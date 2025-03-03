@@ -30,6 +30,8 @@ public class UserService {
       user.setTelegramId(telegramId);
       user.setActive(true);
       user.setUsername("Пользователь " + telegramId); // Заглушка для пустых имен
+    } else if (user.getUsername() == null) {
+      user.setUsername("Пользователь " + telegramId); // Если username пуст, добавляем заглушку
     }
 
     user.setLatitude(lat);
