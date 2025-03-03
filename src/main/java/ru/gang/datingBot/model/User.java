@@ -10,6 +10,7 @@ import lombok.Setter;
 @Getter
 @Table(name = "users")
 public class User {
+
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
@@ -26,5 +27,13 @@ public class User {
   private Integer searchRadius = 5;
   private LocalDateTime lastActive = LocalDateTime.now();
   private LocalDateTime deactivateAt;
+  @Column(nullable = true)
+  private String firstName;
+
+  @Column(nullable = true)
+  private String lastName;
+
+  @Column(nullable = true, unique = true)
+  private String phoneNumber;
 
 }

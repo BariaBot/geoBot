@@ -22,7 +22,8 @@ public class UserService {
     return userRepository.findByTelegramId(telegramId).orElse(null);
   }
 
-  public void updateUserLocation(Long telegramId, double lat, double lon, int hours, int radius, String telegramUsername) {
+  public void updateUserLocation(Long telegramId, double lat, double lon, int hours, int radius,
+      String telegramUsername, String firstName, String lastName, String phoneNumber) {
     User user = userRepository.findByTelegramId(telegramId).orElse(null);
 
     if (user == null) {
@@ -31,9 +32,22 @@ public class UserService {
       user.setActive(true);
     }
 
-    // Если username отсутствует, добавляем из Telegram API или делаем заглушку
-    if (user.getUsername() == null || user.getUsername().equals("Анонимный пользователь")) {
-      user.setUsername((telegramUsername != null && !telegramUsername.isEmpty()) ? telegramUsername : "Пользователь " + telegramId);
+    // Обновляем username, если он не установлен
+    if ((user.getUsername() == null || user.getUsername().isEmpty()) && telegramUsername != null) {
+      user.setUsername(telegramUsername);
+    }
+
+    // Обновляем имя и фамилию, если их нет
+    if ((user.getFirstName() == null || user.getFirstName().isEmpty()) && firstName != null) {
+      user.setFirstName(firstName);
+    }
+    if ((user.getLastName() == null || user.getLastName().isEmpty()) && lastName != null) {
+      user.setLastName(lastName);
+    }
+
+    // Обновляем номер телефона, если его нет
+    if ((user.getPhoneNumber() == null || user.getPhoneNumber().isEmpty()) && phoneNumber != null) {
+      user.setPhoneNumber(phoneNumber);
     }
 
     user.setLatitude(lat);
@@ -45,7 +59,9 @@ public class UserService {
     userRepository.save(user);
 
     System.out.println("✅ Обновлено местоположение для: " + telegramId +
-        " (lat: " + lat + ", lon: " + lon + ", radius: " + radius + ", username: " + user.getUsername() + ")");
+        " (lat: " + lat + ", lon: " + lon + ", username: " + user.getUsername() +
+        ", firstName: " + user.getFirstName() + ", lastName: " + user.getLastName() +
+        ", phone: " + user.getPhoneNumber() + ")");
   }
 
   @Scheduled(fixedRate = 600000) // Каждые 10 минут

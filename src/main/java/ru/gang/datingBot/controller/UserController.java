@@ -29,10 +29,20 @@ public class UserController {
     return user != null ? ResponseEntity.ok(user) : ResponseEntity.notFound().build();
   }
 
-  // Обновить местоположение пользователя
+  // Обновить местоположение пользователя (теперь с username, именем, фамилией и телефоном)
   @PostMapping("/{telegramId}/location")
-  public ResponseEntity<String> updateLocation(@PathVariable Long telegramId, @RequestParam double lat, @RequestParam double lon) {
-    userService.updateUserLocation(telegramId, lat, lon, 1, 5);
+  public ResponseEntity<String> updateLocation(
+      @PathVariable Long telegramId,
+      @RequestParam double lat,
+      @RequestParam double lon,
+      @RequestParam(defaultValue = "1") int hours,
+      @RequestParam(defaultValue = "5") int radius,
+      @RequestParam(required = false) String username,
+      @RequestParam(required = false) String firstName,
+      @RequestParam(required = false) String lastName,
+      @RequestParam(required = false) String phoneNumber) {  // Добавили все новые параметры
+
+    userService.updateUserLocation(telegramId, lat, lon, hours, radius, username, firstName, lastName, phoneNumber);
     return ResponseEntity.ok("Местоположение обновлено");
   }
 

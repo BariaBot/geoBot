@@ -40,7 +40,7 @@ public class DatingBot extends TelegramLongPollingBot {
         processTextMessage(chatId, message.getText());
       } else if (message.hasLocation()) {
         processLocationMessage(chatId, message.getLocation().getLatitude(),
-            message.getLocation().getLongitude(), messageId);
+            message.getLocation().getLongitude(), messageId, update); // Передаем update
       }
     }
 
@@ -48,12 +48,12 @@ public class DatingBot extends TelegramLongPollingBot {
       var callbackQuery = update.getCallbackQuery();
       Long chatId = callbackQuery.getMessage().getChatId();
       String data = callbackQuery.getData();
-      Integer messageId = callbackQuery.getMessage()
-          .getMessageId(); // Получаем ID сообщения с кнопками
+      Integer messageId = callbackQuery.getMessage().getMessageId();
 
       processCallbackQuery(chatId, data, messageId);
     }
   }
+
 
 
   private void processTextMessage(Long chatId, String text) {
@@ -68,25 +68,29 @@ public class DatingBot extends TelegramLongPollingBot {
     }
   }
 
-  private void processLocationMessage(Long chatId, double latitude, double longitude,
-      Integer messageId) {
+  private void processLocationMessage(Long chatId, double latitude, double longitude, Integer messageId, Update update) {
     Integer duration = userLiveLocationDurations.get(chatId);
     Integer radius = userSearchRadius.get(chatId);
 
     if (duration != null && radius != null) {
-      userService.updateUserLocation(chatId, latitude, longitude, duration, radius);
+      var from = update.getMessage().getFrom();
+
+      String telegramUsername = (from.getUserName() != null) ? from.getUserName() : null;
+      String firstName = (from.getFirstName() != null) ? from.getFirstName() : null;
+      String lastName = (from.getLastName() != null) ? from.getLastName() : null;
+      String phoneNumber = (update.getMessage().hasContact()) ? update.getMessage().getContact().getPhoneNumber() : null;
+
+      userService.updateUserLocation(chatId, latitude, longitude, duration, radius, telegramUsername, firstName, lastName, phoneNumber);
 
       // Удаляем сообщение "Отправьте свою геолокацию..."
       deleteMessage(chatId, messageId);
 
-      sendTextMessage(chatId,
-          "📍 Ваше местоположение обновлено! Мы ищем для вас людей поблизости...");
+      sendTextMessage(chatId, "📍 Ваше местоположение обновлено! Мы ищем для вас людей поблизости...");
       suggestNearbyUser(chatId, latitude, longitude, radius);
     } else {
       sendTextMessage(chatId, "⚠️ Пожалуйста, выберите время и радиус перед отправкой геолокации.");
     }
   }
-
 
   private void processCallbackQuery(Long chatId, String data, Integer messageId) {
     // Обработка выбора времени
@@ -195,7 +199,7 @@ public class DatingBot extends TelegramLongPollingBot {
 
     SendMessage message = new SendMessage();
     message.setChatId(chatId);
-    message.setText("✨ " + displayName + " рядом!\nХотите отправить запрос?");
+    message.setText("✨ @" + displayName + " рядом!\nХотите отправить запрос?");
 
     InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
     List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
