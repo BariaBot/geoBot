@@ -161,8 +161,8 @@ public class DatingBot extends TelegramLongPollingBot {
     if (nearbyUsers == null || nearbyUsers.isEmpty()) {
       sendTextMessage(chatId,
           "😔 На данный момент никого поблизости не найдено, попробуйте позже.\n\n" +
-              "📍 У вас активна геолокация на " + userLiveLocationDurations.getOrDefault(chatId, 0) + " часов. " +
-              "Если кто-то окажется рядом, мы вам сообщим!");
+              "📍 У вас активна геолокация на " + userLiveLocationDurations.getOrDefault(chatId, 0) +
+              " часов. Если кто-то окажется рядом, мы вам сообщим!");
       return;
     }
 
