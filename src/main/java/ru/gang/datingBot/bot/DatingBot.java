@@ -87,7 +87,7 @@ public class DatingBot extends TelegramLongPollingBot {
     }
 
     // Обработка выбора радиуса
-    if (data.equals("1 км") || data.equals("3 км") || data.equals("5 км")) {
+    if (data.equals("1 км") || data.equals("3 км") || data.equals("5 км") || data.equals("1500 км")) {
       int radius = Integer.parseInt(data.split(" ")[0]);
       userSearchRadius.put(chatId, radius);
       requestLiveLocation(chatId);
@@ -116,7 +116,7 @@ public class DatingBot extends TelegramLongPollingBot {
     rowInline.add(createButton("1 км", "1 км"));
     rowInline.add(createButton("3 км", "3 км"));
     rowInline.add(createButton("5 км", "5 км"));
-    rowInline.add(createButton("1000 км", "1000 км"));
+    rowInline.add(createButton("1500 км", "1500 км"));
     rowsInline.add(rowInline);
     markupInline.setKeyboard(rowsInline);
     message.setReplyMarkup(markupInline);
