@@ -158,36 +158,48 @@ public class DatingBot extends TelegramLongPollingBot {
 
     List<User> nearbyUsers = userService.findNearbyUsers(lat, lon, radius);
 
-    if (nearbyUsers == null || nearbyUsers.isEmpty() || nearbyUsers.get(0) == null) {
+    if (nearbyUsers == null || nearbyUsers.isEmpty()) {
       sendTextMessage(chatId,
           "😔 На данный момент никого поблизости не найдено, попробуйте позже.\n\n" +
               "📍 У вас активна геолокация на " + userLiveLocationDurations.getOrDefault(chatId, 0) + " часов. " +
               "Если кто-то окажется рядом, мы вам сообщим!");
-    } else {
-      User profile = nearbyUsers.get(0);
-      System.out.println("Найден пользователь: " + profile.getUsername() + " (" + profile.getTelegramId() + ")");
-
-      SendMessage message = new SendMessage();
-      message.setChatId(chatId);
-      message.setText("✨ " + profile.getUsername() + " рядом!\nХотите отправить запрос?");
-
-      InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
-      List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
-      List<InlineKeyboardButton> rowInline = new ArrayList<>();
-
-      InlineKeyboardButton sendRequestButton = new InlineKeyboardButton();
-      sendRequestButton.setText("📩 Отправить запрос");
-      sendRequestButton.setCallbackData("send_request_" + profile.getTelegramId());
-
-      rowInline.add(sendRequestButton);
-      rowsInline.add(rowInline);
-      markupInline.setKeyboard(rowsInline);
-      message.setReplyMarkup(markupInline);
-
-      executeMessage(message);
+      return;
     }
-  }
 
+    System.out.println("Найдено пользователей: " + nearbyUsers.size());
+
+    for (User user : nearbyUsers) {
+      System.out.println(" - " + user.getTelegramId() + " | " + user.getUsername() +
+          " | lat: " + user.getLatitude() + " lon: " + user.getLongitude());
+    }
+
+    // Берем первого пользователя
+    User profile = nearbyUsers.get(0);
+
+    // Если username == null, показываем заглушку
+    String displayName = (profile.getUsername() != null) ? profile.getUsername() : "Анонимный пользователь";
+
+    System.out.println("Выбран пользователь: " + profile.getTelegramId() + " | " + displayName);
+
+    SendMessage message = new SendMessage();
+    message.setChatId(chatId);
+    message.setText("✨ " + displayName + " рядом!\nХотите отправить запрос?");
+
+    InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
+    List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
+    List<InlineKeyboardButton> rowInline = new ArrayList<>();
+
+    InlineKeyboardButton sendRequestButton = new InlineKeyboardButton();
+    sendRequestButton.setText("📩 Отправить запрос");
+    sendRequestButton.setCallbackData("send_request_" + profile.getTelegramId());
+
+    rowInline.add(sendRequestButton);
+    rowsInline.add(rowInline);
+    markupInline.setKeyboard(rowsInline);
+    message.setReplyMarkup(markupInline);
+
+    executeMessage(message);
+  }
 
   private void sendTextMessage(Long chatId, String text) {
     SendMessage message = new SendMessage();

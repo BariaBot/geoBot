@@ -29,6 +29,7 @@ public class UserService {
       user = new User();
       user.setTelegramId(telegramId);
       user.setActive(true);
+      user.setUsername("Пользователь " + telegramId); // Заглушка для пустых имен
     }
 
     user.setLatitude(lat);
@@ -39,11 +40,9 @@ public class UserService {
 
     userRepository.save(user);
 
-    // Логируем, чтобы убедиться, что данные записываются
     System.out.println("Обновлено местоположение для: " + telegramId +
         " (lat: " + lat + ", lon: " + lon + ", radius: " + radius + ")");
   }
-
 
   @Scheduled(fixedRate = 600000) // Каждые 10 минут
   public void deactivateExpiredUsers() {
