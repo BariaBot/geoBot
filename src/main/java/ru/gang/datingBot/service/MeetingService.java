@@ -19,8 +19,13 @@ public class MeetingService {
     this.userRepository = userRepository;
   }
 
-  // Отправка запроса на встречу
+  // Отправка запроса на встречу без фото
   public MeetingRequest sendMeetingRequest(Long senderId, Long receiverId, String message, LocalDateTime scheduledTime) {
+    return sendMeetingRequest(senderId, receiverId, message, scheduledTime, null);
+  }
+  
+  // Отправка запроса на встречу с фото
+  public MeetingRequest sendMeetingRequest(Long senderId, Long receiverId, String message, LocalDateTime scheduledTime, String photoFileId) {
     User sender = userRepository.findByTelegramId(senderId)
         .orElseThrow(() -> new IllegalArgumentException("Отправитель не найден: " + senderId));
     User receiver = userRepository.findByTelegramId(receiverId)
@@ -32,6 +37,11 @@ public class MeetingService {
     request.setMessage(message);
     request.setScheduledTime(scheduledTime);
     request.setStatus("pending");
+    
+    // Добавляем фото, если передано
+    if (photoFileId != null && !photoFileId.isEmpty()) {
+      request.setPhotoFileId(photoFileId);
+    }
 
     return meetingRepository.save(request);
   }
@@ -86,5 +96,11 @@ public class MeetingService {
     for (MeetingRequest meeting : pastMeetings) {
       sendFeedbackRequest(meeting);
     }
+  }
+  
+  // Получить запрос по ID
+  public MeetingRequest getMeetingRequestById(Long requestId) {
+    return meetingRepository.findById(requestId)
+        .orElseThrow(() -> new IllegalArgumentException("Запрос на встречу не найден"));
   }
 }

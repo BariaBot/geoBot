@@ -38,7 +38,6 @@ public class UserService {
     if (telegramUsername != null && !telegramUsername.isEmpty()) {
       user.setUsername(telegramUsername);
     }
-    // Не устанавливаем значение по умолчанию, если username отсутствует
 
     // Обновляем имя и фамилию, если пришли непустые значения
     if (firstName != null && !firstName.isEmpty()) {
@@ -59,7 +58,7 @@ public class UserService {
     user.setLastActive(LocalDateTime.now());
     user.setDeactivateAt(LocalDateTime.now().plusHours(hours));
 
-    // Ensure profileCompleted is initialized
+    // Убедимся, что profileCompleted инициализирован
     if (user.getProfileCompleted() == null) {
       user.setProfileCompleted(false);
     }
@@ -83,9 +82,53 @@ public class UserService {
     }
   }
 
-  // Метод поиска пользователей в радиусе
-  public List<User> findNearbyUsers(double lat, double lon, int radius) {
-    return userRepository.findUsersNearby(lat, lon, radius);
+  // Метод поиска пользователей в радиусе с применением фильтров
+  public List<User> findNearbyUsers(Long currentUserId, double lat, double lon, int radius) {
+    User currentUser = getUserByTelegramId(currentUserId);
+    Integer minAge = null;
+    Integer maxAge = null;
+    String gender = null;
+
+    // Проверяем наличие текущего пользователя и его настроек
+    if (currentUser != null) {
+      minAge = currentUser.getMinAgePreference();
+      maxAge = currentUser.getMaxAgePreference();
+
+      // Определяем значение для фильтра по полу
+      if (currentUser.getGenderPreference() != null && !currentUser.getGenderPreference().equals("any")) {
+        gender = currentUser.getGenderPreference();
+      }
+    }
+
+    List<User> users = userRepository.findUsersNearbyWithFilters(lat, lon, radius, currentUserId, minAge, maxAge, gender);
+
+    System.out.println("Найдено пользователей: " + (users != null ? users.size() : 0));
+    if (users != null && !users.isEmpty()) {
+      for (User user : users) {
+        System.out.println(" - " + user.getTelegramId() + " | " +
+            (user.getUsername() != null ? user.getUsername() : "без username") +
+            " | " + (user.getFirstName() != null ? user.getFirstName() : "") +
+            " | lat: " + user.getLatitude() + " lon: " + user.getLongitude());
+      }
+    }
+
+    return users;
+  }
+  
+  // Метод для фильтрации списка пользователей по общим интересам
+  public List<User> filterUsersByCommonInterests(List<User> users, Long currentUserId) {
+    User currentUser = getUserByTelegramId(currentUserId);
+    if (currentUser.getInterests() == null || currentUser.getInterests().isEmpty()) {
+      return users; // Если у текущего пользователя нет интересов, возвращаем исходный список
+    }
+    
+    // Можно добавить более продвинутую логику для поиска общих интересов
+    // Например, разделить на ключевые слова и искать совпадения
+    return users.stream()
+        .filter(user -> user.getInterests() != null && 
+                       (user.getInterests().toLowerCase().contains(currentUser.getInterests().toLowerCase()) ||
+                        currentUser.getInterests().toLowerCase().contains(user.getInterests().toLowerCase())))
+        .toList();
   }
 
   public List<User> getAllUsers() {
@@ -100,10 +143,10 @@ public class UserService {
     userRepository.save(user);
   }
   
-  // New profile management methods
+  // Методы управления профилем
   
   /**
-   * Updates the user's profile description
+   * Обновляет описание профиля пользователя
    */
   @Transactional
   public void updateUserDescription(Long telegramId, String description) {
@@ -114,7 +157,7 @@ public class UserService {
   }
   
   /**
-   * Updates the user's interests
+   * Обновляет интересы пользователя
    */
   @Transactional
   public void updateUserInterests(Long telegramId, String interests) {
@@ -125,7 +168,7 @@ public class UserService {
   }
   
   /**
-   * Updates the user's profile photo by storing the Telegram file ID
+   * Обновляет фото профиля пользователя, сохраняя ID файла в Telegram
    */
   @Transactional
   public void updateUserPhoto(Long telegramId, String photoFileId) {
@@ -136,26 +179,62 @@ public class UserService {
   }
   
   /**
-   * Checks and updates the profile completion status
+   * Обновляет возраст пользователя
+   */
+  @Transactional
+  public void updateUserAge(Long telegramId, Integer age) {
+    User user = getUserOrCreate(telegramId);
+    user.setAge(age);
+    updateProfileCompleteness(user);
+    userRepository.save(user);
+  }
+  
+  /**
+   * Обновляет пол пользователя
+   */
+  @Transactional
+  public void updateUserGender(Long telegramId, String gender) {
+    User user = getUserOrCreate(telegramId);
+    user.setGender(gender);
+    updateProfileCompleteness(user);
+    userRepository.save(user);
+  }
+  
+  /**
+   * Обновляет настройки поиска пользователя
+   */
+  @Transactional
+  public void updateUserSearchPreferences(Long telegramId, Integer minAge, Integer maxAge, String genderPreference) {
+    User user = getUserOrCreate(telegramId);
+    user.setMinAgePreference(minAge);
+    user.setMaxAgePreference(maxAge);
+    user.setGenderPreference(genderPreference);
+    userRepository.save(user);
+  }
+  
+  /**
+   * Проверяет и обновляет статус заполненности профиля
    */
   private void updateProfileCompleteness(User user) {
     try {
       boolean isComplete = 
           user.getFirstName() != null && !user.getFirstName().isEmpty() &&
+          user.getAge() != null &&
+          user.getGender() != null && !user.getGender().isEmpty() &&
           user.getDescription() != null && !user.getDescription().isEmpty() &&
           user.getInterests() != null && !user.getInterests().isEmpty() &&
           user.getPhotoFileId() != null && !user.getPhotoFileId().isEmpty();
       
       user.setProfileCompleted(isComplete);
     } catch (Exception e) {
-      // Handle potential issues with profileCompleted during migration
+      // Обработка потенциальных проблем с profileCompleted во время миграции
       user.setProfileCompleted(false);
-      System.err.println("Error updating profile completeness: " + e.getMessage());
+      System.err.println("Ошибка обновления полноты профиля: " + e.getMessage());
     }
   }
   
   /**
-   * Returns profile completion percentage
+   * Возвращает процент заполненности профиля
    */
   public int getProfileCompletionPercentage(Long telegramId) {
     User user = getUserOrCreate(telegramId);
@@ -163,7 +242,7 @@ public class UserService {
   }
   
   /**
-   * Gets a user by telegramId or creates a new one if not found
+   * Получает пользователя по telegramId или создает нового, если не найден
    */
   @Transactional
   private User getUserOrCreate(Long telegramId) {
@@ -175,7 +254,7 @@ public class UserService {
       user.setProfileCompleted(false);
       userRepository.save(user);
     } else if (user.getProfileCompleted() == null) {
-      // Ensure profileCompleted is initialized during transition
+      // Убедимся, что profileCompleted инициализирован во время перехода
       user.setProfileCompleted(false);
       userRepository.save(user);
     }
@@ -183,7 +262,7 @@ public class UserService {
   }
   
   /**
-   * Gets formatted profile information as a string
+   * Получает форматированную информацию о профиле в виде строки
    */
   public String getUserProfileInfo(Long telegramId) {
     User user = getUserOrCreate(telegramId);

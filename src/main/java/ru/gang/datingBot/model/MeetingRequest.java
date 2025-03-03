@@ -23,7 +23,17 @@ public class MeetingRequest {
   private User receiver;
 
   private String message;
-  private String status = "pending"; // pending, accepted, declined
+  private String status = "pending"; // pending, accepted, declined, completed
+  
+  // Добавляем поле для хранения ID фотографии Telegram
+  @Column(nullable = true)
+  private String photoFileId;
+  
   private LocalDateTime scheduledTime;
   private LocalDateTime createdAt = LocalDateTime.now();
+  
+  // Добавлен метод для проверки, есть ли фото в запросе
+  public boolean hasPhoto() {
+    return photoFileId != null && !photoFileId.isEmpty();
+  }
 }
