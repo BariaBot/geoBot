@@ -11,6 +11,7 @@ import java.util.List;
 @Service
 @Getter
 public class UserService {
+
   private final UserRepository userRepository;
 
   public UserService(UserRepository userRepository) {
@@ -23,18 +24,26 @@ public class UserService {
 
   public void updateUserLocation(Long telegramId, double lat, double lon, int hours, int radius) {
     User user = userRepository.findByTelegramId(telegramId).orElse(null);
+
     if (user == null) {
       user = new User();
       user.setTelegramId(telegramId);
+      user.setActive(true);
     }
+
     user.setLatitude(lat);
     user.setLongitude(lon);
-    user.setActive(true);
     user.setSearchRadius(radius);
     user.setLastActive(LocalDateTime.now());
     user.setDeactivateAt(LocalDateTime.now().plusHours(hours));
+
     userRepository.save(user);
+
+    // Логируем, чтобы убедиться, что данные записываются
+    System.out.println("Обновлено местоположение для: " + telegramId +
+        " (lat: " + lat + ", lon: " + lon + ", radius: " + radius + ")");
   }
+
 
   @Scheduled(fixedRate = 600000) // Каждые 10 минут
   public void deactivateExpiredUsers() {

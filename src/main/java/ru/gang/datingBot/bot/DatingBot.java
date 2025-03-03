@@ -6,6 +6,7 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 import org.springframework.stereotype.Component;
 import ru.gang.datingBot.model.User;
 import ru.gang.datingBot.service.MeetingService;
@@ -15,6 +16,7 @@ import java.util.*;
 
 @Component
 public class DatingBot extends TelegramLongPollingBot {
+
   private final UserService userService;
   private final MeetingService meetingService;
   private final Map<Long, Integer> userLiveLocationDurations = new HashMap<>();
@@ -28,30 +30,30 @@ public class DatingBot extends TelegramLongPollingBot {
 
   @Override
   public void onUpdateReceived(Update update) {
-    StringBuilder logMessage = new StringBuilder();
-
-    // Обработка текстовых сообщений
     if (update.hasMessage()) {
       var message = update.getMessage();
       Long chatId = message.getChatId();
+      Integer messageId = message.getMessageId(); // Получаем ID сообщения
 
       if (message.hasText()) {
-        String text = message.getText();
-        processTextMessage(chatId, text);
+        processTextMessage(chatId, message.getText());
       } else if (message.hasLocation()) {
-        processLocationMessage(chatId, message.getLocation().getLatitude(), message.getLocation().getLongitude());
+        processLocationMessage(chatId, message.getLocation().getLatitude(),
+            message.getLocation().getLongitude(), messageId);
       }
     }
 
-    // Обработка нажатий на inline-кнопки
     if (update.hasCallbackQuery()) {
       var callbackQuery = update.getCallbackQuery();
       Long chatId = callbackQuery.getMessage().getChatId();
       String data = callbackQuery.getData();
+      Integer messageId = callbackQuery.getMessage()
+          .getMessageId(); // Получаем ID сообщения с кнопками
 
-      processCallbackQuery(chatId, data);
+      processCallbackQuery(chatId, data, messageId);
     }
   }
+
 
   private void processTextMessage(Long chatId, String text) {
     switch (text) {
@@ -65,37 +67,59 @@ public class DatingBot extends TelegramLongPollingBot {
     }
   }
 
-  private void processLocationMessage(Long chatId, double latitude, double longitude) {
+  private void processLocationMessage(Long chatId, double latitude, double longitude,
+      Integer messageId) {
     Integer duration = userLiveLocationDurations.get(chatId);
     Integer radius = userSearchRadius.get(chatId);
 
     if (duration != null && radius != null) {
       userService.updateUserLocation(chatId, latitude, longitude, duration, radius);
-      sendTextMessage(chatId, "Ваше местоположение обновлено! Мы ищем для вас людей поблизости...");
+
+      // Удаляем сообщение "Отправьте свою геолокацию..."
+      deleteMessage(chatId, messageId);
+
+      sendTextMessage(chatId,
+          "📍 Ваше местоположение обновлено! Мы ищем для вас людей поблизости...");
       suggestNearbyUser(chatId, latitude, longitude, radius);
     } else {
-      sendTextMessage(chatId, "Пожалуйста, выберите время и радиус перед отправкой геолокации.");
+      sendTextMessage(chatId, "⚠️ Пожалуйста, выберите время и радиус перед отправкой геолокации.");
     }
   }
 
-  private void processCallbackQuery(Long chatId, String data) {
+
+  private void processCallbackQuery(Long chatId, String data, Integer messageId) {
     // Обработка выбора времени
     if (data.equals("1 час") || data.equals("3 часа") || data.equals("6 часов")) {
       int duration = Integer.parseInt(data.split(" ")[0]);
       userLiveLocationDurations.put(chatId, duration);
+
+      // Удаляем предыдущее сообщение с кнопками
+      deleteMessage(chatId, messageId);
+      sendTextMessage(chatId, "✅ Вы запустили поиск людей рядом на " + duration + " часов.");
+
+      // Отправляем выбор радиуса
       sendRadiusSelection(chatId);
     }
 
     // Обработка выбора радиуса
-    if (data.equals("1 км") || data.equals("3 км") || data.equals("5 км") || data.equals("1500 км")) {
+    if (data.equals("1 км") || data.equals("3 км") || data.equals("5 км") || data.equals(
+        "1500 км")) {
       int radius = Integer.parseInt(data.split(" ")[0]);
       userSearchRadius.put(chatId, radius);
+
+      // Удаляем предыдущее сообщение с кнопками
+      deleteMessage(chatId, messageId);
+      sendTextMessage(chatId, "📍 Вы выбрали радиус поиска " + radius + " км.");
+
+      // Просим отправить геолокацию
       requestLiveLocation(chatId);
     }
   }
 
+
   private void sendTimeSelection(Long chatId) {
-    SendMessage message = new SendMessage(chatId.toString(), "Выберите, на сколько часов включить геолокацию:");
+    SendMessage message = new SendMessage(chatId.toString(),
+        "Выберите, на сколько часов включить геолокацию:");
     InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
     List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
     List<InlineKeyboardButton> rowInline = new ArrayList<>();
@@ -124,20 +148,25 @@ public class DatingBot extends TelegramLongPollingBot {
   }
 
   private void requestLiveLocation(Long chatId) {
-    SendMessage message = new SendMessage(chatId.toString(), "Отправьте свою геолокацию, чтобы вас могли найти:");
+    SendMessage message = new SendMessage(chatId.toString(),
+        "Отправьте свою геолокацию, чтобы вас могли найти:");
     executeMessage(message);
   }
 
   private void suggestNearbyUser(Long chatId, double lat, double lon, int radius) {
+    System.out.println("Поиск пользователей рядом (lat: " + lat + ", lon: " + lon + ", radius: " + radius + " км)");
+
     List<User> nearbyUsers = userService.findNearbyUsers(lat, lon, radius);
 
     if (nearbyUsers == null || nearbyUsers.isEmpty() || nearbyUsers.get(0) == null) {
       sendTextMessage(chatId,
           "😔 На данный момент никого поблизости не найдено, попробуйте позже.\n\n" +
-              "📍 У вас активна геолокация на " + userLiveLocationDurations.get(chatId) + " часов. " +
+              "📍 У вас активна геолокация на " + userLiveLocationDurations.getOrDefault(chatId, 0) + " часов. " +
               "Если кто-то окажется рядом, мы вам сообщим!");
     } else {
       User profile = nearbyUsers.get(0);
+      System.out.println("Найден пользователь: " + profile.getUsername() + " (" + profile.getTelegramId() + ")");
+
       SendMessage message = new SendMessage();
       message.setChatId(chatId);
       message.setText("✨ " + profile.getUsername() + " рядом!\nХотите отправить запрос?");
@@ -159,6 +188,7 @@ public class DatingBot extends TelegramLongPollingBot {
     }
   }
 
+
   private void sendTextMessage(Long chatId, String text) {
     SendMessage message = new SendMessage();
     message.setChatId(chatId.toString());
@@ -171,6 +201,14 @@ public class DatingBot extends TelegramLongPollingBot {
     button.setText(text);
     button.setCallbackData(callbackData);
     return button;
+  }
+
+  private void deleteMessage(Long chatId, Integer messageId) {
+    try {
+      execute(new DeleteMessage(chatId.toString(), messageId));
+    } catch (TelegramApiException e) {
+      e.printStackTrace();
+    }
   }
 
   private void executeMessage(SendMessage message) {
