@@ -9,6 +9,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKe
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 import org.springframework.stereotype.Component;
+import ru.gang.datingBot.model.MeetingRequest;
 import ru.gang.datingBot.model.User;
 import ru.gang.datingBot.service.MeetingService;
 import ru.gang.datingBot.service.UserService;
@@ -128,7 +129,44 @@ public class DatingBot extends TelegramLongPollingBot {
 
       meetingService.sendMeetingRequest(senderId, receiverId, "Привет! Давай встретимся!", LocalDateTime.now().plusHours(1));
 
+      // Уведомляем получателя о запросе
+      notifyUserAboutMeetingRequest(receiverId, senderId);
+
       sendTextMessage(chatId, "✅ Запрос на встречу отправлен!");
+    }
+
+    if (data.startsWith("accept_request_")) {
+      Long senderId = Long.parseLong(data.replace("accept_request_", ""));
+      Long receiverId = chatId;
+
+      // Находим запрос
+      List<MeetingRequest> requests = meetingService.getPendingRequestsForUser(receiverId);
+      for (MeetingRequest request : requests) {
+        if (request.getSender().getTelegramId().equals(senderId)) {
+          meetingService.acceptMeetingRequest(request.getId());
+          // Уведомляем отправителя о принятии запроса
+          sendTextMessage(senderId, "✅ Ваш запрос на встречу был принят!");
+          sendTextMessage(chatId, "Вы приняли запрос на встречу!");
+          break;
+        }
+      }
+    }
+
+    if (data.startsWith("decline_request_")) {
+      Long senderId = Long.parseLong(data.replace("decline_request_", ""));
+      Long receiverId = chatId;
+
+      // Находим запрос
+      List<MeetingRequest> requests = meetingService.getPendingRequestsForUser(receiverId);
+      for (MeetingRequest request : requests) {
+        if (request.getSender().getTelegramId().equals(senderId)) {
+          meetingService.declineMeetingRequest(request.getId());
+          // Уведомляем отправителя об отклонении запроса
+          sendTextMessage(senderId, "❌ Ваш запрос на встречу был отклонен.");
+          sendTextMessage(chatId, "Вы отклонили запрос на встречу.");
+          break;
+        }
+      }
     }
   }
 
@@ -210,6 +248,35 @@ public class DatingBot extends TelegramLongPollingBot {
     sendRequestButton.setCallbackData("send_request_" + profile.getTelegramId());
 
     rowInline.add(sendRequestButton);
+    rowsInline.add(rowInline);
+    markupInline.setKeyboard(rowsInline);
+    message.setReplyMarkup(markupInline);
+
+    executeMessage(message);
+  }
+
+  private void notifyUserAboutMeetingRequest(Long receiverId, Long senderId) {
+    User sender = userService.getUserByTelegramId(senderId);
+    String senderName = (sender.getUsername() != null) ? "@" + sender.getUsername() : "Пользователь";
+
+    SendMessage message = new SendMessage();
+    message.setChatId(receiverId.toString());
+    message.setText("✨ " + senderName + " отправил вам запрос на встречу!");
+
+    InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
+    List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
+    List<InlineKeyboardButton> rowInline = new ArrayList<>();
+
+    InlineKeyboardButton acceptButton = new InlineKeyboardButton();
+    acceptButton.setText("✅ Принять");
+    acceptButton.setCallbackData("accept_request_" + senderId);
+
+    InlineKeyboardButton declineButton = new InlineKeyboardButton();
+    declineButton.setText("❌ Отклонить");
+    declineButton.setCallbackData("decline_request_" + senderId);
+
+    rowInline.add(acceptButton);
+    rowInline.add(declineButton);
     rowsInline.add(rowInline);
     markupInline.setKeyboard(rowsInline);
     message.setReplyMarkup(markupInline);
