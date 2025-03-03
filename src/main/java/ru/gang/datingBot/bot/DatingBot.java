@@ -28,15 +28,29 @@ public class DatingBot extends TelegramLongPollingBot {
 
   @Override
   public void onUpdateReceived(Update update) {
-    System.out.println("Получено обновление: " + update);
+    StringBuilder logMessage = new StringBuilder();
 
     // Обработка текстовых сообщений
     if (update.hasMessage() && update.getMessage().hasText()) {
       var message = update.getMessage();
       Long chatId = message.getChatId();
-      String text = message.getText();
+      String username = message.getFrom().getUserName();
+      String firstName = message.getFrom().getFirstName();
+      String lastName = message.getFrom().getLastName();
+      String text = message.hasText() ? message.getText() : null;
+      String locationInfo = message.hasLocation() ?
+          "Геолокация: lat=" + message.getLocation().getLatitude() + ", lon=" + message.getLocation().getLongitude() +
+              (message.getLocation().getLivePeriod() != null ? " (Live " + message.getLocation().getLivePeriod() + "s)" : "")
+          : null;
 
-      switch (text) {
+      logMessage.append("[").append(chatId).append("] ").append(firstName).append(" ")
+          .append(lastName != null ? lastName + " " : "")
+          .append("(").append(username != null ? username : "без username").append(")");
+
+      if (text != null) logMessage.append(": ").append(text);
+      if (locationInfo != null) logMessage.append(" | ").append(locationInfo);
+
+      switch (Objects.requireNonNull(text)) {
         case "/start":
           sendTimeSelection(chatId);
           break;
@@ -50,10 +64,16 @@ public class DatingBot extends TelegramLongPollingBot {
     // Обработка нажатий на inline-кнопки
     if (update.hasCallbackQuery()) {
       var callbackQuery = update.getCallbackQuery();
-      String data = callbackQuery.getData();
       Long chatId = callbackQuery.getMessage().getChatId();
+      String username = callbackQuery.getFrom().getUserName();
+      String firstName = callbackQuery.getFrom().getFirstName();
+      String lastName = callbackQuery.getFrom().getLastName();
+      String data = callbackQuery.getData();
 
-      System.out.println("Нажата кнопка: " + data);
+      logMessage.append("[").append(chatId).append("] ").append(firstName).append(" ")
+          .append(lastName != null ? lastName + " " : "")
+          .append("(").append(username != null ? username : "без username").append(")")
+          .append(" нажал кнопку: ").append(data);
 
       // Обработка выбора времени
       if (data.equals("1 час") || data.equals("3 часа") || data.equals("6 часов")) {
@@ -68,6 +88,10 @@ public class DatingBot extends TelegramLongPollingBot {
         userSearchRadius.put(chatId, radius);
         requestLiveLocation(chatId);
       }
+    }
+
+    if (!logMessage.toString().isEmpty()) {
+      System.out.println(logMessage);
     }
   }
 
