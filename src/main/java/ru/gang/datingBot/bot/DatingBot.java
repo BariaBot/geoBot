@@ -1,5 +1,6 @@
 package ru.gang.datingBot.bot;
 
+import java.time.LocalDateTime;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -113,6 +114,17 @@ public class DatingBot extends TelegramLongPollingBot {
 
       // Просим отправить геолокацию
       requestLiveLocation(chatId);
+    }
+
+    if (data.startsWith("send_request_")) {
+      Long receiverId = Long.parseLong(data.replace("send_request_", ""));
+      Long senderId = chatId;
+
+      System.out.println("📩 Запрос на встречу от " + senderId + " к " + receiverId);
+
+      meetingService.sendMeetingRequest(senderId, receiverId, "Привет! Давай встретимся!", LocalDateTime.now().plusHours(1));
+
+      sendTextMessage(chatId, "✅ Запрос на встречу отправлен!");
     }
   }
 
