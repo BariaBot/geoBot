@@ -116,6 +116,7 @@ public class DatingBot extends TelegramLongPollingBot {
     rowInline.add(createButton("1 км", "1 км"));
     rowInline.add(createButton("3 км", "3 км"));
     rowInline.add(createButton("5 км", "5 км"));
+    rowInline.add(createButton("1000 км", "1000 км"));
     rowsInline.add(rowInline);
     markupInline.setKeyboard(rowsInline);
     message.setReplyMarkup(markupInline);
@@ -130,7 +131,12 @@ public class DatingBot extends TelegramLongPollingBot {
   private void suggestNearbyUser(Long chatId, double lat, double lon, int radius) {
     List<User> nearbyUsers = userService.findNearbyUsers(lat, lon, radius);
 
-    if (nearbyUsers != null && !nearbyUsers.isEmpty()) {
+    if (nearbyUsers == null || nearbyUsers.isEmpty() || nearbyUsers.get(0) == null) {
+      sendTextMessage(chatId,
+          "😔 На данный момент никого поблизости не найдено, попробуйте позже.\n\n" +
+              "📍 У вас активна геолокация на " + userLiveLocationDurations.get(chatId) + " часов. " +
+              "Если кто-то окажется рядом, мы вам сообщим!");
+    } else {
       User profile = nearbyUsers.get(0);
       SendMessage message = new SendMessage();
       message.setChatId(chatId);
@@ -150,8 +156,6 @@ public class DatingBot extends TelegramLongPollingBot {
       message.setReplyMarkup(markupInline);
 
       executeMessage(message);
-    } else {
-      sendTextMessage(chatId, "😔 Пока рядом никого нет. Попробуйте позже!");
     }
   }
 
@@ -179,11 +183,11 @@ public class DatingBot extends TelegramLongPollingBot {
 
   @Override
   public String getBotUsername() {
-    return "GeoGreetBot";
+    return "GeoGreet_bot";
   }
 
   @Override
   public String getBotToken() {
-    return "6933686090:AAGCO0I-zEu00iKA-aCQ13GKYL0e-kgVDos";
+    return "7906499880:AAGXfaTwF3JXOsiYxIl_yvYdO696Po2DVOU";
   }
 }
