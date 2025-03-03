@@ -22,16 +22,18 @@ public class UserService {
     return userRepository.findByTelegramId(telegramId).orElse(null);
   }
 
-  public void updateUserLocation(Long telegramId, double lat, double lon, int hours, int radius) {
+  public void updateUserLocation(Long telegramId, double lat, double lon, int hours, int radius, String telegramUsername) {
     User user = userRepository.findByTelegramId(telegramId).orElse(null);
 
     if (user == null) {
       user = new User();
       user.setTelegramId(telegramId);
       user.setActive(true);
-      user.setUsername("Пользователь " + telegramId); // Заглушка для пустых имен
-    } else if (user.getUsername() == null) {
-      user.setUsername("Пользователь " + telegramId); // Если username пуст, добавляем заглушку
+    }
+
+    // Если username отсутствует, добавляем из Telegram API или делаем заглушку
+    if (user.getUsername() == null || user.getUsername().equals("Анонимный пользователь")) {
+      user.setUsername((telegramUsername != null && !telegramUsername.isEmpty()) ? telegramUsername : "Пользователь " + telegramId);
     }
 
     user.setLatitude(lat);
@@ -42,8 +44,8 @@ public class UserService {
 
     userRepository.save(user);
 
-    System.out.println("Обновлено местоположение для: " + telegramId +
-        " (lat: " + lat + ", lon: " + lon + ", radius: " + radius + ")");
+    System.out.println("✅ Обновлено местоположение для: " + telegramId +
+        " (lat: " + lat + ", lon: " + lon + ", radius: " + radius + ", username: " + user.getUsername() + ")");
   }
 
   @Scheduled(fixedRate = 600000) // Каждые 10 минут
