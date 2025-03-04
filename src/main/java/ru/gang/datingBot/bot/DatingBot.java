@@ -1,5 +1,6 @@
 package ru.gang.datingBot.bot;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -12,6 +13,12 @@ import ru.gang.datingBot.service.UserService;
 
 @Component
 public class DatingBot extends TelegramLongPollingBot {
+
+  @Value("${bot.username}")
+  private String botUsername;
+
+  @Value("${bot.token}")
+  private String botToken;
 
   private final MessageHandler messageHandler;
   private final CallbackQueryHandler callbackQueryHandler;
@@ -88,11 +95,11 @@ public class DatingBot extends TelegramLongPollingBot {
 
   @Override
   public String getBotUsername() {
-    return "GeoGreet_bot";
+    return botUsername;
   }
 
   @Override
   public String getBotToken() {
-    return "7906499880:AAGXfaTwF3JXOsiYxIl_yvYdO696Po2DVOU";
+    return botToken;
   }
 }
