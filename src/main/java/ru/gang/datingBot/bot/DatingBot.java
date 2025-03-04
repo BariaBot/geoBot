@@ -24,40 +24,41 @@ public class DatingBot extends TelegramLongPollingBot {
   private final CallbackQueryHandler callbackQueryHandler;
   private final LocationHandler locationHandler;
   private final PhotoHandler photoHandler;
+  private final KeyboardService keyboardService;
 
   public DatingBot(UserService userService, MeetingService meetingService) {
     // Инициализируем обработчики и сервисы
     UserStateManager userStateManager = new UserStateManager();
-    KeyboardService keyboardService = new KeyboardService();
+    this.keyboardService = new KeyboardService();
     ProfileService profileService = new ProfileService(userService, keyboardService);
     MessageSender messageSender = new MessageSender(this);
 
     this.callbackQueryHandler = new CallbackQueryHandler(
-        userService,
-        meetingService,
-        userStateManager,
-        keyboardService,
-        profileService,
-        messageSender);
+            userService,
+            meetingService,
+            userStateManager,
+            keyboardService,
+            profileService,
+            messageSender);
 
     this.messageHandler = new MessageHandler(
-        userService,
-        meetingService,
-        userStateManager,
-        keyboardService,
-        profileService,
-        messageSender);
+            userService,
+            meetingService,
+            userStateManager,
+            keyboardService,
+            profileService,
+            messageSender);
 
     this.locationHandler = new LocationHandler(
-        userService,
-        userStateManager,
-        messageSender);
+            userService,
+            userStateManager,
+            messageSender);
 
     this.photoHandler = new PhotoHandler(
-        userService,
-        meetingService,
-        userStateManager,
-        messageSender);
+            userService,
+            meetingService,
+            userStateManager,
+            messageSender);
 
     // Устанавливаем ссылку на CallbackQueryHandler для LocationHandler
     this.locationHandler.setCallbackQueryHandler(this.callbackQueryHandler);
@@ -73,11 +74,11 @@ public class DatingBot extends TelegramLongPollingBot {
         messageHandler.processTextMessage(chatId, message.getText());
       } else if (message.hasLocation()) {
         locationHandler.processLocationMessage(
-            chatId,
-            message.getLocation().getLatitude(),
-            message.getLocation().getLongitude(),
-            message.getMessageId(),
-            update);
+                chatId,
+                message.getLocation().getLatitude(),
+                message.getLocation().getLongitude(),
+                message.getMessageId(),
+                update);
       } else if (message.hasPhoto()) {
         photoHandler.processPhotoMessage(chatId, message.getPhoto(), message.getMessageId());
       }

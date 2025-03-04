@@ -1,6 +1,7 @@
 package ru.gang.datingBot.handler;
 
 import org.telegram.telegrambots.meta.api.objects.PhotoSize;
+import ru.gang.datingBot.bot.KeyboardService;
 import ru.gang.datingBot.bot.MessageSender;
 import ru.gang.datingBot.bot.ProfileService;
 import ru.gang.datingBot.bot.UserStateManager;
@@ -39,31 +40,34 @@ public class PhotoHandler {
    */
   public void processPhotoMessage(Long chatId, List<PhotoSize> photos, Integer messageId) {
     UserState currentState = stateManager.getUserState(chatId);
-    
+
     // Получаем самое большое фото (лучшее качество)
     PhotoSize largestPhoto = photos.stream()
-        .max(Comparator.comparing(PhotoSize::getFileSize))
-        .orElse(null);
-    
+            .max(Comparator.comparing(PhotoSize::getFileSize))
+            .orElse(null);
+
     if (largestPhoto == null) {
       messageSender.sendTextMessage(chatId, "⚠️ Не удалось обработать фото. Пожалуйста, попробуйте еще раз.");
       return;
     }
-    
+
     String fileId = largestPhoto.getFileId();
-    
+
     switch (currentState) {
       case WAITING_FOR_PHOTO:
         processProfilePhoto(chatId, fileId);
         break;
-        
+
       case WAITING_FOR_MEETING_PHOTO:
         processMeetingPhoto(chatId, fileId);
         break;
-        
+
       default:
         // Пользователь отправил фото вне контекста создания профиля
-        messageSender.sendTextMessage(chatId, "📸 Хотите обновить фото профиля? Используйте команду /edit_profile");
+        messageSender.sendTextMessageWithKeyboard(
+                chatId,
+                "📸 Хотите обновить фото профиля? Используйте команду /edit_profile",
+                new KeyboardService().createMainKeyboard());
         break;
     }
   }
@@ -74,14 +78,16 @@ public class PhotoHandler {
   private void processProfilePhoto(Long chatId, String fileId) {
     // Сохраняем фото профиля
     userService.updateUserPhoto(chatId, fileId);
-    
+
     int completionPercentage = userService.getProfileCompletionPercentage(chatId);
-    messageSender.sendTextMessage(chatId, 
-        "✅ Ваше фото профиля обновлено!\n\n" +
-        "🏆 Ваш профиль заполнен на " + completionPercentage + "%\n\n" +
-        "Чтобы просмотреть свой профиль, используйте команду /profile\n" +
-        "Для редактирования профиля используйте /edit_profile");
-    
+    messageSender.sendTextMessageWithKeyboard(
+            chatId,
+            "✅ Ваше фото профиля обновлено!\n\n" +
+                    "🏆 Ваш профиль заполнен на " + completionPercentage + "%\n\n" +
+                    "Чтобы просмотреть свой профиль, используйте команду /profile\n" +
+                    "Для редактирования профиля используйте /edit_profile",
+            new KeyboardService().createMainKeyboard());
+
     stateManager.setUserState(chatId, UserState.NONE);
   }
 
@@ -91,54 +97,59 @@ public class PhotoHandler {
   private void processMeetingPhoto(Long chatId, String fileId) {
     // Сохраняем фото для запроса на встречу
     stateManager.saveMeetingRequestPhoto(chatId, fileId);
-    
+
     Long targetUserId = stateManager.getMeetingRequestTarget(chatId);
     String message = stateManager.getMeetingRequestMessage(chatId);
-    
+
     if (targetUserId != null && message != null) {
       meetingService.sendMeetingRequest(chatId, targetUserId, message, LocalDateTime.now().plusHours(1), fileId);
-      
+
       // Уведомляем получателя о запросе
       notifyUserAboutMeetingRequest(targetUserId, chatId);
-      
-      messageSender.sendTextMessage(chatId, "✅ Запрос на встречу с фото отправлен!");
-      
+
+      messageSender.sendTextMessageWithKeyboard(
+              chatId,
+              "✅ Запрос на встречу с фото отправлен!",
+              new KeyboardService().createMainKeyboard());
+
       // Очищаем временные данные
       stateManager.clearMeetingRequestData(chatId);
     } else {
       messageSender.sendTextMessage(chatId, "❌ Произошла ошибка. Пожалуйста, попробуйте снова.");
     }
-    
+
     stateManager.setUserState(chatId, UserState.NONE);
   }
-  
+
   /**
    * Уведомляет пользователя о запросе на встречу
    */
   private void notifyUserAboutMeetingRequest(Long receiverId, Long senderId) {
     User sender = userService.getUserByTelegramId(senderId);
     String message = stateManager.getMeetingRequestMessage(senderId);
-    
+
     if (sender == null || message == null) {
       return;
     }
-    
+
     // Отправляем уведомление о запросе на встречу
     ProfileService profileService = new ProfileService(userService, null);
     String requestInfo = profileService.formatMeetingRequest(sender, message);
-    
+
     // Создаем кнопки принятия/отклонения
     messageSender.sendTextMessage(receiverId, requestInfo);
-    
-    messageSender.sendTextMessage(receiverId, 
+
+    messageSender.sendTextMessageWithKeyboard(
+            receiverId,
             "Чтобы принять запрос, введите /accept_" + senderId + "\n" +
-            "Чтобы отклонить запрос, введите /decline_" + senderId);
-    
+                    "Чтобы отклонить запрос, введите /decline_" + senderId,
+            new KeyboardService().createMainKeyboard());
+
     // Если у отправителя есть фото профиля, отправляем его отдельно
     if (sender.getPhotoFileId() != null && !sender.getPhotoFileId().isEmpty()) {
       messageSender.sendPhoto(receiverId, sender.getPhotoFileId(), null);
     }
-    
+
     // Если в запросе есть фото, отправляем его отдельно
     String photoFileId = stateManager.getMeetingRequestPhoto(senderId);
     if (photoFileId != null && !photoFileId.isEmpty()) {

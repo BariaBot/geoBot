@@ -47,38 +47,38 @@ public class CallbackQueryHandler {
       processProfileEdit(chatId, field, messageId);
       return;
     }
-    
+
     // Обработка выбора пола
     if (data.startsWith("gender_")) {
       if (!data.startsWith("gender_pref_")) { // проверяем, что это не предпочтения пола
         String gender = data.replace("gender_", "");
         userService.updateUserGender(chatId, gender);
-        
+
         messageSender.deleteMessage(chatId, messageId);
         messageSender.sendTextMessage(chatId, "✅ Ваш пол установлен: " + profileService.getGenderDisplay(gender));
-        
+
         messageSender.sendTextMessage(chatId, "📸 Пожалуйста, отправьте фотографию для вашего профиля:");
         stateManager.setUserState(chatId, UserStateManager.UserState.WAITING_FOR_PHOTO);
         return;
       }
     }
-    
+
     // Обработка выбора предпочтений по полу
     if (data.startsWith("gender_pref_")) {
       String genderPref = data.replace("gender_pref_", "");
-      
+
       User user = userService.getUserByTelegramId(chatId);
       userService.updateUserSearchPreferences(chatId, user.getMinAgePreference(), user.getMaxAgePreference(), genderPref);
-      
+
       messageSender.deleteMessage(chatId, messageId);
       messageSender.sendTextMessage(chatId, "✅ Настройки поиска обновлены!\n\n" +
-                             "🔍 Возраст: " + user.getMinAgePreference() + " - " + user.getMaxAgePreference() + " лет\n" +
-                             "👥 Пол: " + profileService.getGenderPreferenceDisplay(genderPref));
-      
+              "🔍 Возраст: " + user.getMinAgePreference() + " - " + user.getMaxAgePreference() + " лет\n" +
+              "👥 Пол: " + profileService.getGenderPreferenceDisplay(genderPref));
+
       stateManager.setUserState(chatId, UserStateManager.UserState.NONE);
       return;
     }
-    
+
     // Обработка выбора времени
     if (data.equals("1 час") || data.equals("3 часа") || data.equals("6 часов")) {
       int duration = Integer.parseInt(data.split(" ")[0]);
@@ -90,8 +90,8 @@ public class CallbackQueryHandler {
 
       // Отправляем выбор радиуса
       messageSender.sendTextMessageWithKeyboard(
-              chatId, 
-              "Выберите радиус поиска:", 
+              chatId,
+              "Выберите радиус поиска:",
               keyboardService.createRadiusSelectionKeyboard());
     }
 
@@ -105,25 +105,28 @@ public class CallbackQueryHandler {
       messageSender.sendTextMessage(chatId, "📍 Вы выбрали радиус поиска " + radius + " км.");
 
       // Просим отправить геолокацию
-      messageSender.sendTextMessage(chatId, "Отправьте свою геолокацию, чтобы вас могли найти:");
+      messageSender.sendTextMessageWithKeyboard(
+              chatId,
+              "Отправьте свою геолокацию, чтобы вас могли найти:",
+              keyboardService.createLocationRequestKeyboard());
     }
 
     // Отправка запроса на встречу
     if (data.startsWith("send_request_")) {
       Long receiverId = Long.parseLong(data.replace("send_request_", ""));
       stateManager.saveMeetingRequestTarget(chatId, receiverId);
-      
+
       messageSender.deleteMessage(chatId, messageId);
       messageSender.sendTextMessage(chatId, "📝 Напишите сообщение для запроса на встречу:");
       stateManager.setUserState(chatId, UserStateManager.UserState.WAITING_FOR_MEETING_MESSAGE);
     }
-    
+
     // Навигация по списку пользователей
     if (data.equals("next_user")) {
       showNextUser(chatId, messageId);
       return;
     }
-    
+
     if (data.equals("prev_user")) {
       showPreviousUser(chatId, messageId);
       return;
@@ -191,8 +194,8 @@ public class CallbackQueryHandler {
 
       case "gender":
         messageSender.sendTextMessageWithKeyboard(
-                chatId, 
-                "Выберите ваш пол:", 
+                chatId,
+                "Выберите ваш пол:",
                 keyboardService.createGenderSelectionKeyboard());
         stateManager.setUserState(chatId, UserStateManager.UserState.WAITING_FOR_GENDER);
         break;
@@ -213,8 +216,8 @@ public class CallbackQueryHandler {
 
       case "gender_pref":
         messageSender.sendTextMessageWithKeyboard(
-                chatId, 
-                "Выберите предпочитаемый пол для поиска:", 
+                chatId,
+                "Выберите предпочитаемый пол для поиска:",
                 keyboardService.createGenderPreferenceKeyboard());
         stateManager.setUserState(chatId, UserStateManager.UserState.WAITING_FOR_GENDER_PREFERENCE);
         break;
@@ -226,17 +229,17 @@ public class CallbackQueryHandler {
    */
   private void showSearchSettings(Long chatId) {
     User user = userService.getUserByTelegramId(chatId);
-    
+
     if (user == null) {
       messageSender.sendTextMessage(chatId, "⚠️ Профиль не найден. Используйте /edit_profile, чтобы создать свой профиль.");
       return;
     }
-    
+
     messageSender.sendMarkdownMessage(chatId, profileService.formatSearchSettings(user));
-    
+
     messageSender.sendTextMessageWithKeyboard(
-            chatId, 
-            "Что вы хотите изменить?", 
+            chatId,
+            "Что вы хотите изменить?",
             keyboardService.createSearchSettingsKeyboard());
   }
 
@@ -285,7 +288,7 @@ public class CallbackQueryHandler {
     // Показываем нового пользователя
     showCurrentNearbyUser(chatId);
   }
-  
+
   /**
    * Показывает текущего пользователя из списка найденных
    */
@@ -294,10 +297,11 @@ public class CallbackQueryHandler {
     Integer currentIndex = stateManager.getCurrentUserIndex(chatId);
 
     if (nearbyUsers == null || nearbyUsers.isEmpty()) {
-      messageSender.sendTextMessage(chatId,
-          "😔 На данный момент никого поблизости не найдено, попробуйте позже.\n\n" +
-              "📍 У вас активна геолокация на " + stateManager.getLocationDuration(chatId) +
-              " часов. Если кто-то окажется рядом, мы вам сообщим!");
+      messageSender.sendTextMessageWithKeyboard(chatId,
+              "😔 На данный момент никого поблизости не найдено, попробуйте позже.\n\n" +
+                      "📍 У вас активна геолокация на " + stateManager.getLocationDuration(chatId) +
+                      " часов. Если кто-то окажется рядом, мы вам сообщим!",
+              keyboardService.createMainKeyboard());
       return;
     }
 
@@ -307,16 +311,16 @@ public class CallbackQueryHandler {
     }
 
     User profile = nearbyUsers.get(currentIndex);
-    
+
     // Получаем информацию о профиле в отформатированном виде
     String profileInfo = profileService.formatNearbyUserProfile(profile, currentIndex, nearbyUsers.size());
 
     // Отправляем информацию о профиле с кнопками
     messageSender.sendTextMessageWithKeyboard(
-            chatId, 
-            profileInfo, 
+            chatId,
+            profileInfo,
             keyboardService.createNearbyUserNavigationKeyboard(
-                    profile.getTelegramId(), 
+                    profile.getTelegramId(),
                     nearbyUsers.size() > 1));
 
     // Если у пользователя есть фото, отправляем его отдельно
