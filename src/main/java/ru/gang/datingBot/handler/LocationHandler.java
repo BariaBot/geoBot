@@ -1,5 +1,6 @@
 package ru.gang.datingBot.handler;
 
+import lombok.Setter;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import ru.gang.datingBot.bot.KeyboardService;
 import ru.gang.datingBot.bot.MessageSender;
@@ -18,7 +19,13 @@ public class LocationHandler {
   private final UserStateManager stateManager;
   private final MessageSender messageSender;
   private final KeyboardService keyboardService;
-  // Добавляем ссылку на CallbackQueryHandler
+    /**
+     * -- SETTER --
+     *  Устанавливает ссылку на CallbackQueryHandler
+     *  Необходимо вызвать этот метод после создания всех обработчиков
+     */
+    // Добавляем ссылку на CallbackQueryHandler
+  @Setter
   private CallbackQueryHandler callbackQueryHandler;
 
   public LocationHandler(
@@ -31,15 +38,7 @@ public class LocationHandler {
     this.keyboardService = new KeyboardService();
   }
 
-  /**
-   * Устанавливает ссылку на CallbackQueryHandler
-   * Необходимо вызвать этот метод после создания всех обработчиков
-   */
-  public void setCallbackQueryHandler(CallbackQueryHandler callbackQueryHandler) {
-    this.callbackQueryHandler = callbackQueryHandler;
-  }
-
-  /**
+    /**
    * Обрабатывает сообщения с геолокацией
    */
   public void processLocationMessage(Long chatId, double latitude, double longitude, Integer messageId, Update update) {

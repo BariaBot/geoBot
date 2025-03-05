@@ -78,12 +78,15 @@ public class UserService {
 
   @Scheduled(fixedRate = 600000) // Каждые 10 минут
   public void deactivateExpiredUsers() {
+    System.out.println("Проверка активности пользователей...");
+    // Увеличиваем срок действия для истекших пользователей вместо их деактивации
     List<User> expiredUsers = userRepository.findExpiredUsers(LocalDateTime.now());
-    System.out.println("DEBUG: Найдено " + expiredUsers.size() + " пользователей с истекшим временем активности");
+    System.out.println("Найдено " + expiredUsers.size() + " пользователей с истекшим временем активности");
     for (User user : expiredUsers) {
-      user.setActive(false);
+      // Вместо деактивации продлеваем активность
+      user.setDeactivateAt(LocalDateTime.now().plusDays(30));
       userRepository.save(user);
-      System.out.println("DEBUG: Деактивирован пользователь " + user.getTelegramId());
+      System.out.println("Продлена активность пользователя " + user.getTelegramId() + " на 30 дней");
     }
   }
 
