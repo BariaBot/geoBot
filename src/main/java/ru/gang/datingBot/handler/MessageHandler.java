@@ -126,6 +126,7 @@ public class MessageHandler {
 
       case WAITING_FOR_MEETING_MESSAGE:
         // Сохраняем сообщение для запроса на встречу
+        System.out.println("DEBUG: Сохраняем сообщение для запроса на встречу: " + text);
         stateManager.saveMeetingRequestMessage(chatId, text);
         messageSender.sendTextMessage(chatId, "✅ Сообщение сохранено! Хотите добавить фото к запросу? (отправьте фото или напишите \"нет\")");
         stateManager.setUserState(chatId, UserStateManager.UserState.WAITING_FOR_MEETING_PHOTO);

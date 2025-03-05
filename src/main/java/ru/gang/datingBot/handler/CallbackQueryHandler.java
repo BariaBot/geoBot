@@ -48,6 +48,16 @@ public class CallbackQueryHandler {
       return;
     }
 
+    if (data.startsWith("send_request_")) {
+      Long receiverId = Long.parseLong(data.replace("send_request_", ""));
+      stateManager.saveMeetingRequestTarget(chatId, receiverId);
+
+      System.out.println("DEBUG: Начинаем отправку запроса на встречу от " + chatId + " к " + receiverId);
+      messageSender.deleteMessage(chatId, messageId);
+      messageSender.sendTextMessage(chatId, "📝 Напишите сообщение для запроса на встречу:");
+      stateManager.setUserState(chatId, UserStateManager.UserState.WAITING_FOR_MEETING_MESSAGE);
+    }
+
     // Обработка выбора пола
     if (data.startsWith("gender_")) {
       if (!data.startsWith("gender_pref_")) { // проверяем, что это не предпочтения пола

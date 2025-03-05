@@ -132,25 +132,18 @@ public class PhotoHandler {
       return;
     }
 
-    // Отправляем уведомление о запросе на встречу
-    ProfileService profileService = new ProfileService(userService, null);
+    ProfileService profileService = new ProfileService(userService, new KeyboardService());
     String requestInfo = profileService.formatMeetingRequest(sender, message);
-
-    // Создаем кнопки принятия/отклонения
-    messageSender.sendTextMessage(receiverId, requestInfo);
 
     messageSender.sendTextMessageWithKeyboard(
             receiverId,
-            "Чтобы принять запрос, введите /accept_" + senderId + "\n" +
-                    "Чтобы отклонить запрос, введите /decline_" + senderId,
-            new KeyboardService().createMainKeyboard());
+            requestInfo,
+            new KeyboardService().createMeetingRequestKeyboard(senderId));
 
-    // Если у отправителя есть фото профиля, отправляем его отдельно
     if (sender.getPhotoFileId() != null && !sender.getPhotoFileId().isEmpty()) {
       messageSender.sendPhoto(receiverId, sender.getPhotoFileId(), null);
     }
 
-    // Если в запросе есть фото, отправляем его отдельно
     String photoFileId = stateManager.getMeetingRequestPhoto(senderId);
     if (photoFileId != null && !photoFileId.isEmpty()) {
       messageSender.sendPhoto(receiverId, photoFileId, "📸 Фото к запросу на встречу");

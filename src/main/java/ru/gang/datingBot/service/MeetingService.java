@@ -23,13 +23,13 @@ public class MeetingService {
   public MeetingRequest sendMeetingRequest(Long senderId, Long receiverId, String message, LocalDateTime scheduledTime) {
     return sendMeetingRequest(senderId, receiverId, message, scheduledTime, null);
   }
-  
-  // Отправка запроса на встречу с фото
+
+  // В MeetingService.java нужно исправить метод:
   public MeetingRequest sendMeetingRequest(Long senderId, Long receiverId, String message, LocalDateTime scheduledTime, String photoFileId) {
     User sender = userRepository.findByTelegramId(senderId)
-        .orElseThrow(() -> new IllegalArgumentException("Отправитель не найден: " + senderId));
+            .orElseThrow(() -> new IllegalArgumentException("Отправитель не найден: " + senderId));
     User receiver = userRepository.findByTelegramId(receiverId)
-        .orElseThrow(() -> new IllegalArgumentException("Получатель не найден: " + receiverId));
+            .orElseThrow(() -> new IllegalArgumentException("Получатель не найден: " + receiverId));
 
     MeetingRequest request = new MeetingRequest();
     request.setSender(sender);
@@ -37,7 +37,7 @@ public class MeetingService {
     request.setMessage(message);
     request.setScheduledTime(scheduledTime);
     request.setStatus("pending");
-    
+
     // Добавляем фото, если передано
     if (photoFileId != null && !photoFileId.isEmpty()) {
       request.setPhotoFileId(photoFileId);
