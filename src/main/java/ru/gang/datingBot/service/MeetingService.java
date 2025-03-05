@@ -237,7 +237,7 @@ public class MeetingService {
             .filter(meeting -> meeting.getMeetingTime() != null)
             .filter(meeting -> meeting.getMeetingTime().isAfter(startTime) && 
                                meeting.getMeetingTime().isBefore(endTime))
-            .filter(meeting -> !meeting.getFeedbackSent())
+            .filter(meeting -> !meeting.isFeedbackSent())
             .collect(Collectors.toList());
   }
 

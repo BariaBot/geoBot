@@ -1,10 +1,14 @@
 package ru.gang.datingBot.model;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "meeting_requests")
+@Getter
+@Setter
 public class MeetingRequest {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -40,112 +44,8 @@ public class MeetingRequest {
   private boolean receiverConfirmed = false;
   
   // Поле для отслеживания отправки запроса на обратную связь
+  @Column(name = "feedback_sent")
   private boolean feedbackSent = false;
-  
-  // Геттеры и сеттеры
-  public Long getId() {
-    return id;
-  }
-  
-  public void setId(Long id) {
-    this.id = id;
-  }
-  
-  public User getSender() {
-    return sender;
-  }
-  
-  public void setSender(User sender) {
-    this.sender = sender;
-  }
-  
-  public User getReceiver() {
-    return receiver;
-  }
-  
-  public void setReceiver(User receiver) {
-    this.receiver = receiver;
-  }
-  
-  public String getMessage() {
-    return message;
-  }
-  
-  public void setMessage(String message) {
-    this.message = message;
-  }
-  
-  public String getStatus() {
-    return status;
-  }
-  
-  public void setStatus(String status) {
-    this.status = status;
-  }
-  
-  public String getPhotoFileId() {
-    return photoFileId;
-  }
-  
-  public void setPhotoFileId(String photoFileId) {
-    this.photoFileId = photoFileId;
-  }
-  
-  public LocalDateTime getScheduledTime() {
-    return scheduledTime;
-  }
-  
-  public void setScheduledTime(LocalDateTime scheduledTime) {
-    this.scheduledTime = scheduledTime;
-  }
-  
-  public LocalDateTime getCreatedAt() {
-    return createdAt;
-  }
-  
-  public void setCreatedAt(LocalDateTime createdAt) {
-    this.createdAt = createdAt;
-  }
-  
-  public Place getSelectedPlace() {
-    return selectedPlace;
-  }
-  
-  public void setSelectedPlace(Place selectedPlace) {
-    this.selectedPlace = selectedPlace;
-  }
-  
-  public LocalDateTime getMeetingTime() {
-    return meetingTime;
-  }
-  
-  public void setMeetingTime(LocalDateTime meetingTime) {
-    this.meetingTime = meetingTime;
-  }
-  
-  public boolean isSenderConfirmed() {
-    return senderConfirmed;
-  }
-  
-  public void setSenderConfirmed(boolean senderConfirmed) {
-    this.senderConfirmed = senderConfirmed;
-  }
-  
-  public boolean isReceiverConfirmed() {
-    return receiverConfirmed;
-  }
-  
-  public void setReceiverConfirmed(boolean receiverConfirmed) {
-    this.receiverConfirmed = receiverConfirmed;
-  }
-  
-  public boolean getFeedbackSent() {
-    return feedbackSent;
-  }
-  
-  public void setFeedbackSent(boolean feedbackSent) {
-    this.feedbackSent = feedbackSent;
-  }
   
   // Добавлен метод для проверки, есть ли фото в запросе
   public boolean hasPhoto() {
