@@ -44,8 +44,9 @@ public class MeetingRequest {
   private boolean receiverConfirmed = false;
   
   // Поле для отслеживания отправки запроса на обратную связь
+  // Изменено с boolean на Boolean, чтобы поддерживать null значения
   @Column(name = "feedback_sent")
-  private boolean feedbackSent = false;
+  private Boolean feedbackSent = false;
   
   // Добавлен метод для проверки, есть ли фото в запросе
   public boolean hasPhoto() {
