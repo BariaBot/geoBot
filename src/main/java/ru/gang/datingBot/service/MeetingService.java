@@ -1,15 +1,15 @@
 package ru.gang.datingBot.service;
 
-import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.gang.datingBot.bot.MessageSender;
 import ru.gang.datingBot.model.MeetingRequest;
 import ru.gang.datingBot.model.Place;
 import ru.gang.datingBot.model.User;
 import ru.gang.datingBot.repository.MeetingRepository;
 import ru.gang.datingBot.repository.UserRepository;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -24,7 +24,7 @@ public class MeetingService {
   public MeetingService(
           MeetingRepository meetingRepository, 
           UserRepository userRepository, 
-          MessageSender messageSender) {
+          @Lazy MessageSender messageSender) {  // Добавляем @Lazy здесь
     this.meetingRepository = meetingRepository;
     this.userRepository = userRepository;
     this.messageSender = messageSender;

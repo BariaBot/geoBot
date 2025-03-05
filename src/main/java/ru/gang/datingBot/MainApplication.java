@@ -6,6 +6,7 @@ import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 import ru.gang.datingBot.bot.DatingBot;
@@ -84,7 +85,7 @@ public class MainApplication {
   @Bean
   public DatingBot datingBot(
           UserService userService,
-          MeetingService meetingService,
+          @Lazy MeetingService meetingService,  // Добавляем @Lazy здесь
           ChatService chatService,
           MeetingPlaceHandler meetingPlaceHandler) {
     
