@@ -61,7 +61,7 @@ public class MainApplication {
   }
 
   @Bean
-  public MessageSender messageSender(DatingBot datingBot) {
+  public MessageSender messageSender(@Lazy DatingBot datingBot) {
     return new MessageSender(datingBot);
   }
 
@@ -85,9 +85,9 @@ public class MainApplication {
   @Bean
   public DatingBot datingBot(
           UserService userService,
-          @Lazy MeetingService meetingService,  // Добавляем @Lazy здесь
+          @Lazy MeetingService meetingService,
           ChatService chatService,
-          MeetingPlaceHandler meetingPlaceHandler) {
+          @Lazy MeetingPlaceHandler meetingPlaceHandler) {
     
     // Создаем DatingBot с необходимыми зависимостями
     return new DatingBot(
