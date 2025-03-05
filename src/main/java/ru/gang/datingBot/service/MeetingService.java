@@ -1,6 +1,7 @@
 package ru.gang.datingBot.service;
 
 import lombok.RequiredArgsConstructor;
+import ru.gang.datingBot.bot.MessageSender;
 import ru.gang.datingBot.model.MeetingRequest;
 import ru.gang.datingBot.model.Place;
 import ru.gang.datingBot.model.User;
@@ -15,11 +16,19 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
 public class MeetingService {
   private final MeetingRepository meetingRepository;
   private final UserRepository userRepository;
   private final MessageSender messageSender;
+
+  public MeetingService(
+          MeetingRepository meetingRepository, 
+          UserRepository userRepository, 
+          MessageSender messageSender) {
+    this.meetingRepository = meetingRepository;
+    this.userRepository = userRepository;
+    this.messageSender = messageSender;
+  }
 
   /**
    * Отправка запроса на встречу без фото

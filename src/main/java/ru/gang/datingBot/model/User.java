@@ -5,9 +5,9 @@ import java.time.LocalDateTime;
 import lombok.Getter;
 import lombok.Setter;
 
-@Entity
-@Setter
 @Getter
+@Setter
+@Entity
 @Table(name = "users", schema = "public")
 public class User {
 

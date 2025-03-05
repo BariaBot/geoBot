@@ -87,28 +87,12 @@ public class MainApplication {
           MeetingService meetingService,
           ChatService chatService,
           MeetingPlaceHandler meetingPlaceHandler) {
-
-    // Создаем UserStateManager и KeyboardService
-    UserStateManager userStateManager = userStateManager();
-    KeyboardService keyboardService = keyboardService();
-
+    
     // Создаем DatingBot с необходимыми зависимостями
-    DatingBot bot = new DatingBot(
+    return new DatingBot(
             userService,
             meetingService,
             chatService,
-            userStateManager,
-            keyboardService,
             meetingPlaceHandler);
-
-    // Создаем MessageSender и передаем его в MeetingPlaceHandler
-    MessageSender messageSender = new MessageSender(bot);
-
-    // Настраиваем связи между обработчиками
-    bot.getLocationHandler().setCallbackQueryHandler(bot.getCallbackQueryHandler());
-    bot.getCallbackQueryHandler().setChatHandler(bot.getChatHandler());
-    bot.getCallbackQueryHandler().setMeetingPlaceHandler(meetingPlaceHandler);
-
-    return bot;
   }
 }

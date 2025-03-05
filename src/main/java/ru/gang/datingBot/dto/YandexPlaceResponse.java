@@ -16,7 +16,7 @@ public class YandexPlaceResponse {
 @Getter
 @Setter
 @JsonIgnoreProperties(ignoreUnknown = true)
-class YandexFeature {
+public class YandexFeature {
     private YandexProperties properties;
     private YandexGeometry geometry;
 }
@@ -24,7 +24,7 @@ class YandexFeature {
 @Getter
 @Setter
 @JsonIgnoreProperties(ignoreUnknown = true)
-class YandexProperties {
+public class YandexProperties {
     private String name;
     private String description;
     private YandexCompanyMetaData CompanyMetaData;
@@ -52,7 +52,7 @@ class YandexProperties {
 @Getter
 @Setter
 @JsonIgnoreProperties(ignoreUnknown = true)
-class YandexCompanyMetaData {
+public class YandexCompanyMetaData {
     private String id;
     private String address;
     private Double rating;
@@ -62,13 +62,13 @@ class YandexCompanyMetaData {
 @Getter
 @Setter
 @JsonIgnoreProperties(ignoreUnknown = true)
-class YandexPhoto {
+public class YandexPhoto {
     private String url;
 }
 
 @Getter
 @Setter
 @JsonIgnoreProperties(ignoreUnknown = true)
-class YandexGeometry {
+public class YandexGeometry {
     private double[] coordinates;
 }

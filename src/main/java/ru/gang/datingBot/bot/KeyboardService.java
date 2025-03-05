@@ -310,7 +310,7 @@ public class KeyboardService {
   /**
    * Создает клавиатуру для выбора времени встречи
    */
-  public InlineKeyboardMarkup createTimeSelectionKeyboard() {
+  public InlineKeyboardMarkup createMeetingTimeSelectionKeyboard() {
     InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
     List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
     

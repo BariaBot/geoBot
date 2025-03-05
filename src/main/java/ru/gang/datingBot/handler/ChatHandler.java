@@ -3,7 +3,6 @@ package ru.gang.datingBot.handler;
 import org.telegram.telegrambots.meta.api.objects.PhotoSize;
 import ru.gang.datingBot.bot.KeyboardService;
 import ru.gang.datingBot.bot.MessageSender;
-import ru.gang.datingBot.bot.ProfileService;
 import ru.gang.datingBot.bot.UserStateManager;
 import ru.gang.datingBot.model.ChatMessage;
 import ru.gang.datingBot.model.MeetingRequest;
@@ -27,21 +26,23 @@ public class ChatHandler {
   private final UserStateManager stateManager;
   private final MessageSender messageSender;
   private final KeyboardService keyboardService;
-  private final MeetingPlaceHandler meetingPlaceHandler;
+  private MeetingPlaceHandler meetingPlaceHandler;
 
   public ChatHandler(
           UserService userService,
           MeetingService meetingService,
           ChatService chatService,
           UserStateManager stateManager,
-          MessageSender messageSender,
-          MeetingPlaceHandler meetingPlaceHandler) {
+          MessageSender messageSender) {
     this.userService = userService;
     this.meetingService = meetingService;
     this.chatService = chatService;
     this.stateManager = stateManager;
     this.messageSender = messageSender;
     this.keyboardService = new KeyboardService();
+  }
+  
+  public void setMeetingPlaceHandler(MeetingPlaceHandler meetingPlaceHandler) {
     this.meetingPlaceHandler = meetingPlaceHandler;
   }
 
@@ -50,13 +51,13 @@ public class ChatHandler {
    */
   public void processChatMessage(Long chatId, String text) {
     // Обработка команды /meet
-    if ("/meet".equals(text)) {
+    if ("/meet".equals(text) && meetingPlaceHandler != null) {
         meetingPlaceHandler.processMeetCommand(chatId);
         return;
     }
 
     // Обработка ввода типа места
-    if (stateManager.isUserInState(chatId, UserStateManager.UserState.WAITING_FOR_PLACE_TYPE)) {
+    if (stateManager.isUserInState(chatId, UserStateManager.UserState.WAITING_FOR_PLACE_TYPE) && meetingPlaceHandler != null) {
         meetingPlaceHandler.processPlaceTypeInput(chatId, text);
         return;
     }

@@ -208,7 +208,7 @@ public class MeetingPlaceHandler {
         messageSender.sendTextMessageWithKeyboard(
                 chatId,
                 "🕒 Выберите время встречи:",
-                keyboardService.createTimeSelectionKeyboard());
+                keyboardService.createMeetingTimeSelectionKeyboard());
         
         stateManager.setUserState(chatId, UserStateManager.UserState.WAITING_FOR_TIME);
     }

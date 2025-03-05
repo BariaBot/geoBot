@@ -1,5 +1,7 @@
 package ru.gang.datingBot.bot;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
@@ -8,6 +10,7 @@ import ru.gang.datingBot.handler.CallbackQueryHandler;
 import ru.gang.datingBot.handler.ChatHandler;
 import ru.gang.datingBot.handler.LocationHandler;
 import ru.gang.datingBot.handler.MessageHandler;
+import ru.gang.datingBot.handler.MeetingPlaceHandler;
 import ru.gang.datingBot.handler.PhotoHandler;
 import ru.gang.datingBot.service.ChatService;
 import ru.gang.datingBot.service.MeetingService;
@@ -19,6 +22,8 @@ import ru.gang.datingBot.service.UserService;
  * совместимости с текущей версией библиотеки. В будущих версиях следует
  * перейти на современный подход с UpdatesListener.
  */
+@Getter
+@Setter
 @Component
 public class DatingBot extends TelegramLongPollingBot {
 
@@ -35,14 +40,18 @@ public class DatingBot extends TelegramLongPollingBot {
   private final ChatHandler chatHandler;
   private final KeyboardService keyboardService;
   private final UserStateManager userStateManager;
+  private final MeetingPlaceHandler meetingPlaceHandler;
 
-  public DatingBot(UserService userService, MeetingService meetingService, ChatService chatService) {
+  public DatingBot(
+          UserService userService, 
+          MeetingService meetingService, 
+          ChatService chatService,
+          MeetingPlaceHandler meetingPlaceHandler) {
     // Инициализируем базовые сервисы и компоненты
     this.userStateManager = new UserStateManager();
     this.keyboardService = new KeyboardService();
     ProfileService profileService = new ProfileService(userService, keyboardService);
     MessageSender messageSender = new MessageSender(this);
-
 
     this.callbackQueryHandler = new CallbackQueryHandler(
             userService,
@@ -62,6 +71,11 @@ public class DatingBot extends TelegramLongPollingBot {
 
     // Устанавливаем ссылку на ChatHandler в CallbackQueryHandler
     this.callbackQueryHandler.setChatHandler(this.chatHandler);
+    
+    // Связываем обработчики с MeetingPlaceHandler
+    this.meetingPlaceHandler = meetingPlaceHandler;
+    this.callbackQueryHandler.setMeetingPlaceHandler(this.meetingPlaceHandler);
+    this.chatHandler.setMeetingPlaceHandler(this.meetingPlaceHandler);
 
     this.messageHandler = new MessageHandler(
             userService,
@@ -163,4 +177,5 @@ public class DatingBot extends TelegramLongPollingBot {
   public String getBotToken() {
     return botToken;
   }
+
 }
