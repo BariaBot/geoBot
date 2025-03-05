@@ -17,6 +17,7 @@ public class LocationHandler {
   private final UserService userService;
   private final UserStateManager stateManager;
   private final MessageSender messageSender;
+  private final KeyboardService keyboardService;
   // Добавляем ссылку на CallbackQueryHandler
   private CallbackQueryHandler callbackQueryHandler;
 
@@ -27,6 +28,7 @@ public class LocationHandler {
     this.userService = userService;
     this.stateManager = stateManager;
     this.messageSender = messageSender;
+    this.keyboardService = new KeyboardService();
   }
 
   /**
@@ -60,10 +62,11 @@ public class LocationHandler {
       messageSender.sendTextMessageWithKeyboard(
               chatId,
               "📍 Ваше местоположение обновлено! Мы ищем для вас людей поблизости...",
-              new KeyboardService().createMainKeyboard());
+              keyboardService.createMainKeyboard());
 
       // Поиск пользователей поблизости с учетом фильтров
       List<User> nearbyUsers = userService.findNearbyUsers(chatId, latitude, longitude, radius);
+      System.out.println("DEBUG: Найдено пользователей поблизости: " + (nearbyUsers != null ? nearbyUsers.size() : 0));
 
       // Кэшируем результаты поиска
       stateManager.cacheNearbyUsers(chatId, nearbyUsers);
@@ -71,7 +74,10 @@ public class LocationHandler {
       // Отображаем информацию о найденных пользователях
       showNearbyUsers(chatId, nearbyUsers);
     } else {
-      messageSender.sendTextMessage(chatId, "⚠️ Пожалуйста, выберите время и радиус перед отправкой геолокации.");
+      messageSender.sendTextMessageWithKeyboard(
+              chatId,
+              "⚠️ Пожалуйста, выберите время и радиус перед отправкой геолокации.",
+              keyboardService.createTimeSelectionKeyboard());
     }
   }
 
@@ -85,7 +91,7 @@ public class LocationHandler {
               "😔 На данный момент никого поблизости не найдено, попробуйте позже.\n\n" +
                       "📍 У вас активна геолокация на " + stateManager.getLocationDuration(chatId) +
                       " часов. Если кто-то окажется рядом, мы вам сообщим!",
-              new KeyboardService().createMainKeyboard());
+              keyboardService.createMainKeyboard());
       return;
     }
 
@@ -93,16 +99,24 @@ public class LocationHandler {
     messageSender.sendTextMessageWithKeyboard(
             chatId,
             "🔍 Найдено " + nearbyUsers.size() + " человек поблизости!",
-            new KeyboardService().createMainKeyboard());
+            keyboardService.createMainKeyboard());
 
     // Отобразим первого пользователя
     if (callbackQueryHandler != null) {
+      System.out.println("DEBUG: Вызываем показ профиля первого пользователя");
+      // Небольшая задержка перед показом профиля
+      try {
+        Thread.sleep(500);
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+      }
       callbackQueryHandler.showCurrentNearbyUser(chatId);
     } else {
+      System.out.println("DEBUG: callbackQueryHandler равен null, не могу показать профиль");
       messageSender.sendTextMessageWithKeyboard(
               chatId,
               "⚠️ Не удалось отобразить профиль пользователя. Пожалуйста, обновите геолокацию позже.",
-              new KeyboardService().createMainKeyboard());
+              keyboardService.createMainKeyboard());
     }
   }
 }

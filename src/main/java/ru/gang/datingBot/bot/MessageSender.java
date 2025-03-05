@@ -1,7 +1,13 @@
 package ru.gang.datingBot.bot;
 
+import org.telegram.telegrambots.meta.api.methods.send.SendAnimation;
+import org.telegram.telegrambots.meta.api.methods.send.SendAudio;
+import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
+import org.telegram.telegrambots.meta.api.methods.send.SendSticker;
+import org.telegram.telegrambots.meta.api.methods.send.SendVideo;
+import org.telegram.telegrambots.meta.api.methods.send.SendVoice;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
@@ -107,6 +113,139 @@ public class MessageSender {
       // Запасной вариант - отправляем только текст, если фото не загружается
       if (caption != null && !caption.isEmpty()) {
         sendMarkdownMessage(chatId, caption);
+      }
+    }
+  }
+
+  /**
+   * Отправляет стикер
+   */
+  public void sendSticker(Long chatId, String stickerFileId) {
+    SendSticker stickerMessage = new SendSticker();
+    stickerMessage.setChatId(chatId.toString());
+    stickerMessage.setSticker(new InputFile(stickerFileId));
+    
+    try {
+      bot.execute(stickerMessage);
+    } catch (TelegramApiException e) {
+      System.out.println("DEBUG: Ошибка при отправке стикера: " + e.getMessage());
+      e.printStackTrace();
+      // В случае ошибки уведомляем о проблеме
+      sendTextMessage(chatId, "⚠️ Не удалось отправить стикер");
+    }
+  }
+
+  /**
+   * Отправляет анимацию (GIF)
+   */
+  public void sendAnimation(Long chatId, String animationFileId, String caption) {
+    SendAnimation animationMessage = new SendAnimation();
+    animationMessage.setChatId(chatId.toString());
+    animationMessage.setAnimation(new InputFile(animationFileId));
+    
+    if (caption != null && !caption.isEmpty()) {
+      animationMessage.setCaption(caption);
+    }
+    
+    try {
+      bot.execute(animationMessage);
+    } catch (TelegramApiException e) {
+      System.out.println("DEBUG: Ошибка при отправке анимации: " + e.getMessage());
+      e.printStackTrace();
+      if (caption != null && !caption.isEmpty()) {
+        sendTextMessage(chatId, caption);
+      }
+    }
+  }
+
+  /**
+   * Отправляет видео
+   */
+  public void sendVideo(Long chatId, String videoFileId, String caption) {
+    SendVideo videoMessage = new SendVideo();
+    videoMessage.setChatId(chatId.toString());
+    videoMessage.setVideo(new InputFile(videoFileId));
+    
+    if (caption != null && !caption.isEmpty()) {
+      videoMessage.setCaption(caption);
+    }
+    
+    try {
+      bot.execute(videoMessage);
+    } catch (TelegramApiException e) {
+      System.out.println("DEBUG: Ошибка при отправке видео: " + e.getMessage());
+      e.printStackTrace();
+      if (caption != null && !caption.isEmpty()) {
+        sendTextMessage(chatId, caption);
+      }
+    }
+  }
+
+  /**
+   * Отправляет голосовое сообщение
+   */
+  public void sendVoice(Long chatId, String voiceFileId, String caption) {
+    SendVoice voiceMessage = new SendVoice();
+    voiceMessage.setChatId(chatId.toString());
+    voiceMessage.setVoice(new InputFile(voiceFileId));
+    
+    if (caption != null && !caption.isEmpty()) {
+      voiceMessage.setCaption(caption);
+    }
+    
+    try {
+      bot.execute(voiceMessage);
+    } catch (TelegramApiException e) {
+      System.out.println("DEBUG: Ошибка при отправке голосового сообщения: " + e.getMessage());
+      e.printStackTrace();
+      if (caption != null && !caption.isEmpty()) {
+        sendTextMessage(chatId, caption);
+      }
+    }
+  }
+
+  /**
+   * Отправляет аудио
+   */
+  public void sendAudio(Long chatId, String audioFileId, String caption) {
+    SendAudio audioMessage = new SendAudio();
+    audioMessage.setChatId(chatId.toString());
+    audioMessage.setAudio(new InputFile(audioFileId));
+    
+    if (caption != null && !caption.isEmpty()) {
+      audioMessage.setCaption(caption);
+    }
+    
+    try {
+      bot.execute(audioMessage);
+    } catch (TelegramApiException e) {
+      System.out.println("DEBUG: Ошибка при отправке аудио: " + e.getMessage());
+      e.printStackTrace();
+      if (caption != null && !caption.isEmpty()) {
+        sendTextMessage(chatId, caption);
+      }
+    }
+  }
+
+  /**
+   * Отправляет документ
+   */
+  public void sendDocument(Long chatId, String documentFileId, String caption) {
+    SendDocument documentMessage = new SendDocument();
+    documentMessage.setChatId(chatId.toString());
+    documentMessage.setDocument(new InputFile(documentFileId));
+    
+    if (caption != null && !caption.isEmpty()) {
+      documentMessage.setCaption(caption);
+    }
+    
+    try {
+      bot.execute(documentMessage);
+    } catch (TelegramApiException e) {
+      System.out.println("DEBUG: Ошибка при отправке документа: " + e.getMessage());
+      e.printStackTrace();
+      if (caption != null && !caption.isEmpty()) {
+        sendTextMessage(chatId, caption);
       }
     }
   }

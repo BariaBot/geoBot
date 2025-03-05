@@ -8,6 +8,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class MeetingService {
@@ -56,6 +57,21 @@ public class MeetingService {
     User receiver = userRepository.findByTelegramId(receiverId)
         .orElseThrow(() -> new IllegalArgumentException("Получатель не найден"));
     return meetingRepository.findByReceiverAndStatus(receiver, "pending");
+  }
+  
+  // Получить все принятые запросы для пользователя (как отправителя, так и получателя)
+  public List<MeetingRequest> getAcceptedRequestsForUser(Long userId) {
+    User user = userRepository.findByTelegramId(userId)
+        .orElseThrow(() -> new IllegalArgumentException("Пользователь не найден: " + userId));
+    
+    // Получаем все запросы, где пользователь является отправителем или получателем
+    List<MeetingRequest> allRequests = meetingRepository.findAll();
+    
+    return allRequests.stream()
+            .filter(request -> "accepted".equals(request.getStatus()))
+            .filter(request -> request.getSender().getTelegramId().equals(userId) || 
+                             request.getReceiver().getTelegramId().equals(userId))
+            .collect(Collectors.toList());
   }
 
   // Принятие запроса на встречу

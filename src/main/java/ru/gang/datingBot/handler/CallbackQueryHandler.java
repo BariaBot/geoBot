@@ -21,6 +21,7 @@ public class CallbackQueryHandler {
   private final KeyboardService keyboardService;
   private final ProfileService profileService;
   private final MessageSender messageSender;
+  private ChatHandler chatHandler; // Не передаем в конструкторе, устанавливаем через сеттер
 
   public CallbackQueryHandler(
           UserService userService,
@@ -35,6 +36,13 @@ public class CallbackQueryHandler {
     this.keyboardService = keyboardService;
     this.profileService = profileService;
     this.messageSender = messageSender;
+  }
+
+  /**
+   * Установка ChatHandler после инициализации других компонентов
+   */
+  public void setChatHandler(ChatHandler chatHandler) {
+    this.chatHandler = chatHandler;
   }
 
   /**
@@ -175,9 +183,16 @@ public class CallbackQueryHandler {
         if (request.getSender().getTelegramId().equals(senderId)) {
           try {
             meetingService.acceptMeetingRequest(request.getId());
-            // Уведомляем отправителя о принятии запроса
-            messageSender.sendTextMessage(senderId, "✅ Ваш запрос на встречу был принят!");
-            messageSender.sendTextMessage(chatId, "Вы приняли запрос на встречу!");
+            
+            // Инициализируем чат между пользователями если ChatHandler доступен
+            if (chatHandler != null) {
+              chatHandler.initializeChat(senderId, receiverId, request.getId());
+            } else {
+              // Простое уведомление в случае, если ChatHandler недоступен
+              messageSender.sendTextMessage(senderId, "✅ Ваш запрос на встречу был принят!");
+              messageSender.sendTextMessage(chatId, "Вы приняли запрос на встречу!");
+            }
+            
             System.out.println("DEBUG: Запрос на встречу от " + senderId + " принят пользователем " + receiverId);
           } catch (Exception e) {
             System.out.println("DEBUG: Ошибка при принятии запроса: " + e.getMessage());

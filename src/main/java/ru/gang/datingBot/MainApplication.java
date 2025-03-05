@@ -6,9 +6,15 @@ import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Bean;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import ru.gang.datingBot.bot.DatingBot;
+import ru.gang.datingBot.repository.ChatMessageRepository;
+import ru.gang.datingBot.repository.MeetingRepository;
+import ru.gang.datingBot.repository.UserRepository;
+import ru.gang.datingBot.service.ChatService;
 
 @SpringBootApplication
+@EnableScheduling
 public class MainApplication {
   public static void main(String[] args) {
     SpringApplication.run(MainApplication.class, args);
@@ -25,5 +31,12 @@ public class MainApplication {
         e.printStackTrace();
       }
     };
+  }
+  
+  @Bean
+  public ChatService chatService(ChatMessageRepository chatMessageRepository, 
+                             MeetingRepository meetingRepository,
+                             UserRepository userRepository) {
+    return new ChatService(chatMessageRepository, meetingRepository, userRepository);
   }
 }
