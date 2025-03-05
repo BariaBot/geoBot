@@ -1,6 +1,7 @@
 package ru.gang.datingBot.handler;
 
 import java.util.List;
+import lombok.Setter;
 import ru.gang.datingBot.bot.KeyboardService;
 import ru.gang.datingBot.bot.MessageSender;
 import ru.gang.datingBot.bot.ProfileService;
@@ -21,7 +22,12 @@ public class CallbackQueryHandler {
   private final KeyboardService keyboardService;
   private final ProfileService profileService;
   private final MessageSender messageSender;
+  
+  @Setter
   private ChatHandler chatHandler; // Не передаем в конструкторе, устанавливаем через сеттер
+  
+  @Setter
+  private MeetingPlaceHandler meetingPlaceHandler;
 
   public CallbackQueryHandler(
           UserService userService,
@@ -36,13 +42,6 @@ public class CallbackQueryHandler {
     this.keyboardService = keyboardService;
     this.profileService = profileService;
     this.messageSender = messageSender;
-  }
-
-  /**
-   * Установка ChatHandler после инициализации других компонентов
-   */
-  public void setChatHandler(ChatHandler chatHandler) {
-    this.chatHandler = chatHandler;
   }
 
   /**
@@ -167,6 +166,57 @@ public class CallbackQueryHandler {
 
     if (data.equals("prev_user")) {
       showPreviousUser(chatId, messageId);
+      return;
+    }
+    
+    // Навигация по местам
+    if (data.equals("next_place")) {
+      meetingPlaceHandler.showNextPlace(chatId);
+      return;
+    }
+
+    if (data.equals("prev_place")) {
+      meetingPlaceHandler.showPreviousPlace(chatId);
+      return;
+    }
+
+    // Выбор места
+    if (data.startsWith("select_place_")) {
+      Long placeId = Long.parseLong(data.replace("select_place_", ""));
+      meetingPlaceHandler.processPlaceSelection(chatId, placeId);
+      return;
+    }
+
+    // Выбор даты
+    if (data.startsWith("date_")) {
+      String dateString = data.replace("date_", "");
+      meetingPlaceHandler.processDateSelection(chatId, dateString);
+      return;
+    }
+
+    // Выбор времени
+    if (data.startsWith("time_")) {
+      String timeString = data.replace("time_", "");
+      meetingPlaceHandler.processTimeSelection(chatId, timeString);
+      return;
+    }
+
+    // Подтверждение встречи
+    if (data.startsWith("confirm_meeting_")) {
+      Long meetingRequestId = Long.parseLong(data.replace("confirm_meeting_", ""));
+      meetingPlaceHandler.processConfirmation(chatId, meetingRequestId);
+      return;
+    }
+
+    // Оценка встречи
+    if (data.startsWith("rate_meeting_")) {
+      String[] parts = data.replace("rate_meeting_", "").split("_");
+      if (parts.length == 2) {
+        Long meetingRequestId = Long.parseLong(parts[0]);
+        int rating = Integer.parseInt(parts[1]);
+        // Здесь можно добавить обработку оценки встречи
+        messageSender.sendTextMessage(chatId, "Спасибо за вашу оценку! Ваш отзыв очень важен для нас.");
+      }
       return;
     }
 

@@ -1,31 +1,36 @@
 package ru.gang.datingBot.service;
 
+import lombok.RequiredArgsConstructor;
 import ru.gang.datingBot.model.MeetingRequest;
+import ru.gang.datingBot.model.Place;
 import ru.gang.datingBot.model.User;
 import ru.gang.datingBot.repository.MeetingRepository;
 import ru.gang.datingBot.repository.UserRepository;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class MeetingService {
   private final MeetingRepository meetingRepository;
   private final UserRepository userRepository;
+  private final MessageSender messageSender;
 
-  public MeetingService(MeetingRepository meetingRepository, UserRepository userRepository) {
-    this.meetingRepository = meetingRepository;
-    this.userRepository = userRepository;
-  }
-
-  // Отправка запроса на встречу без фото
+  /**
+   * Отправка запроса на встречу без фото
+   */
   public MeetingRequest sendMeetingRequest(Long senderId, Long receiverId, String message, LocalDateTime scheduledTime) {
     return sendMeetingRequest(senderId, receiverId, message, scheduledTime, null);
   }
   
-  // Отправка запроса на встречу с фото
+  /**
+   * Отправка запроса на встречу с фото
+   */
   public MeetingRequest sendMeetingRequest(Long senderId, Long receiverId, String message, LocalDateTime scheduledTime, String photoFileId) {
     System.out.println("DEBUG: Создание запроса на встречу от " + senderId + " к " + receiverId);
     User sender = userRepository.findByTelegramId(senderId)
@@ -52,14 +57,18 @@ public class MeetingService {
     return savedRequest;
   }
 
-  // Получить все ожидающие запросы для пользователя
+  /**
+   * Получить все ожидающие запросы для пользователя
+   */
   public List<MeetingRequest> getPendingRequestsForUser(Long receiverId) {
     User receiver = userRepository.findByTelegramId(receiverId)
         .orElseThrow(() -> new IllegalArgumentException("Получатель не найден"));
     return meetingRepository.findByReceiverAndStatus(receiver, "pending");
   }
   
-  // Получить все принятые запросы для пользователя (как отправителя, так и получателя)
+  /**
+   * Получить все принятые запросы для пользователя (как отправителя, так и получателя)
+   */
   public List<MeetingRequest> getAcceptedRequestsForUser(Long userId) {
     User user = userRepository.findByTelegramId(userId)
         .orElseThrow(() -> new IllegalArgumentException("Пользователь не найден: " + userId));
@@ -74,7 +83,9 @@ public class MeetingService {
             .collect(Collectors.toList());
   }
 
-  // Принятие запроса на встречу
+  /**
+   * Принятие запроса на встречу
+   */
   public void acceptMeetingRequest(Long requestId) {
     MeetingRequest request = meetingRepository.findById(requestId)
         .orElseThrow(() -> new IllegalArgumentException("Запрос не найден"));
@@ -83,7 +94,9 @@ public class MeetingService {
     System.out.println("DEBUG: Запрос на встречу с ID " + requestId + " принят");
   }
 
-  // Отклонение запроса на встречу
+  /**
+   * Отклонение запроса на встречу
+   */
   public void declineMeetingRequest(Long requestId) {
     MeetingRequest request = meetingRepository.findById(requestId)
         .orElseThrow(() -> new IllegalArgumentException("Запрос не найден"));
@@ -92,7 +105,9 @@ public class MeetingService {
     System.out.println("DEBUG: Запрос на встречу с ID " + requestId + " отклонен");
   }
 
-  // Завершение встречи (бот отправляет запрос на отзыв)
+  /**
+   * Завершение встречи (бот отправляет запрос на отзыв)
+   */
   public void completeMeeting(Long requestId) {
     MeetingRequest request = meetingRepository.findById(requestId)
         .orElseThrow(() -> new IllegalArgumentException("Запрос не найден"));
@@ -103,15 +118,29 @@ public class MeetingService {
     sendFeedbackRequest(request);
   }
 
-  // Отправка запроса на отзыв после встречи
+  /**
+   * Отправка запроса на отзыв после встречи
+   */
   private void sendFeedbackRequest(MeetingRequest request) {
-    Long senderId = request.getSender().getTelegramId();
-    Long receiverId = request.getReceiver().getTelegramId();
-
-    System.out.println("Запрос на отзыв отправлен пользователям: " + senderId + " и " + receiverId);
+    if (request.getSelectedPlace() == null) {
+      return;
+    }
+    
+    String message = "👋 Как прошла ваша встреча в " + request.getSelectedPlace().getName() + "? " +
+            "Надеемся, все прошло хорошо! Если захотите поделиться впечатлениями, используйте команду /feedback";
+    
+    // Отправляем сообщение обоим участникам
+    messageSender.sendTextMessage(request.getSender().getTelegramId(), message);
+    messageSender.sendTextMessage(request.getReceiver().getTelegramId(), message);
+    
+    System.out.println("Запрос на обратную связь отправлен пользователям: " + 
+            request.getSender().getTelegramId() + " и " + 
+            request.getReceiver().getTelegramId());
   }
 
-  // Автоматическая отправка запросов на отзыв (каждый час)
+  /**
+   * Автоматическая отправка запросов на отзыв (каждый час)
+   */
   @Scheduled(fixedRate = 3600000) // Каждые 60 минут
   public void sendMeetingFeedbackRequests() {
     List<MeetingRequest> pastMeetings = meetingRepository.findPastMeetings(LocalDateTime.now().minusHours(1));
@@ -121,9 +150,100 @@ public class MeetingService {
     }
   }
   
-  // Получить запрос по ID
+  /**
+   * Получить запрос по ID
+   */
   public MeetingRequest getMeetingRequestById(Long requestId) {
     return meetingRepository.findById(requestId)
         .orElseThrow(() -> new IllegalArgumentException("Запрос на встречу не найден"));
+  }
+
+  /**
+   * Обновляет информацию о месте встречи и времени для запроса на встречу
+   * @return true если успешно, false если произошла ошибка
+   */
+  @Transactional
+  public boolean updateMeetingRequestWithPlace(Long requestId, Place place, LocalDateTime meetingTime, Long initiatorId) {
+    try {
+        MeetingRequest request = meetingRepository.findById(requestId)
+                .orElseThrow(() -> new IllegalArgumentException("Запрос на встречу не найден: " + requestId));
+        
+        request.setSelectedPlace(place);
+        request.setMeetingTime(meetingTime);
+        request.setFeedbackSent(false);
+        
+        // Устанавливаем флаг подтверждения для инициатора
+        if (request.getSender().getTelegramId().equals(initiatorId)) {
+            request.setSenderConfirmed(true);
+            request.setReceiverConfirmed(false);
+        } else if (request.getReceiver().getTelegramId().equals(initiatorId)) {
+            request.setReceiverConfirmed(true);
+            request.setSenderConfirmed(false);
+        } else {
+            return false; // Инициатор не является участником встречи
+        }
+        
+        meetingRepository.save(request);
+        return true;
+    } catch (Exception e) {
+        System.out.println("Ошибка при обновлении запроса на встречу: " + e.getMessage());
+        return false;
+    }
+  }
+
+  /**
+   * Подтверждает встречу пользователем
+   * @return true если успешно, false если произошла ошибка
+   */
+  @Transactional
+  public boolean confirmMeetingByUser(Long requestId, Long userId) {
+    try {
+        MeetingRequest request = meetingRepository.findById(requestId)
+                .orElseThrow(() -> new IllegalArgumentException("Запрос на встречу не найден: " + requestId));
+        
+        // Устанавливаем флаг подтверждения в зависимости от того, кто подтверждает
+        if (request.getSender().getTelegramId().equals(userId)) {
+            request.setSenderConfirmed(true);
+        } else if (request.getReceiver().getTelegramId().equals(userId)) {
+            request.setReceiverConfirmed(true);
+        } else {
+            return false; // Пользователь не является участником встречи
+        }
+        
+        meetingRepository.save(request);
+        return true;
+    } catch (Exception e) {
+        System.out.println("Ошибка при подтверждении встречи: " + e.getMessage());
+        return false;
+    }
+  }
+
+  /**
+   * Находит встречи, для которых нужно отправить запрос на обратную связь
+   */
+  public List<MeetingRequest> findMeetingsForFeedback(LocalDateTime startTime, LocalDateTime endTime) {
+    return meetingRepository.findAll().stream()
+            .filter(meeting -> "accepted".equals(meeting.getStatus()))
+            .filter(meeting -> meeting.isPlaceConfirmedByBoth())
+            .filter(meeting -> meeting.getMeetingTime() != null)
+            .filter(meeting -> meeting.getMeetingTime().isAfter(startTime) && 
+                               meeting.getMeetingTime().isBefore(endTime))
+            .filter(meeting -> !meeting.getFeedbackSent())
+            .collect(Collectors.toList());
+  }
+
+  /**
+   * Отправляет запрос на обратную связь после встречи
+   */
+  @Scheduled(fixedRate = 300000) // Каждые 5 минут
+  public void checkAndSendFeedbackRequests() {
+    LocalDateTime now = LocalDateTime.now();
+    List<MeetingRequest> meetingsToCheck = findMeetingsForFeedback(now.minusHours(1), now);
+    
+    for (MeetingRequest meeting : meetingsToCheck) {
+        sendFeedbackRequest(meeting);
+        meeting.setFeedbackSent(true);
+        meetingRepository.save(meeting);
+    }
   }
 }

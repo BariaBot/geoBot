@@ -27,25 +27,40 @@ public class ChatHandler {
   private final UserStateManager stateManager;
   private final MessageSender messageSender;
   private final KeyboardService keyboardService;
+  private final MeetingPlaceHandler meetingPlaceHandler;
 
   public ChatHandler(
           UserService userService,
           MeetingService meetingService,
           ChatService chatService,
           UserStateManager stateManager,
-          MessageSender messageSender) {
+          MessageSender messageSender,
+          MeetingPlaceHandler meetingPlaceHandler) {
     this.userService = userService;
     this.meetingService = meetingService;
     this.chatService = chatService;
     this.stateManager = stateManager;
     this.messageSender = messageSender;
     this.keyboardService = new KeyboardService();
+    this.meetingPlaceHandler = meetingPlaceHandler;
   }
 
   /**
    * Обрабатывает текстовые сообщения в режиме чата
    */
   public void processChatMessage(Long chatId, String text) {
+    // Обработка команды /meet
+    if ("/meet".equals(text)) {
+        meetingPlaceHandler.processMeetCommand(chatId);
+        return;
+    }
+
+    // Обработка ввода типа места
+    if (stateManager.isUserInState(chatId, UserStateManager.UserState.WAITING_FOR_PLACE_TYPE)) {
+        meetingPlaceHandler.processPlaceTypeInput(chatId, text);
+        return;
+    }
+    
     // Получаем информацию о текущем чате пользователя
     Long targetUserId = stateManager.getCurrentChatUser(chatId);
     Long meetingRequestId = stateManager.getCurrentChatMeetingRequest(chatId);
@@ -336,14 +351,16 @@ public class ChatHandler {
     // Уведомляем отправителя запроса
     String senderMessage = "✅ " + receiverName + " принял(а) ваш запрос на встречу!\n\n" +
                            "Теперь вы можете обмениваться сообщениями. Все ваши сообщения будут доставлены собеседнику.\n\n" +
-                           "Для завершения чата введите /end_chat";
+                           "Для завершения чата введите /end_chat\n" +
+                           "Чтобы предложить место встречи, введите /meet";
     
     messageSender.sendTextMessage(senderUserId, senderMessage);
     
     // Уведомляем принявшего запрос
     String receiverMessage = "✅ Вы приняли запрос на встречу от " + senderName + "!\n\n" +
                             "Теперь вы можете обмениваться сообщениями. Все ваши сообщения будут доставлены собеседнику.\n\n" +
-                            "Для завершения чата введите /end_chat";
+                            "Для завершения чата введите /end_chat\n" +
+                            "Чтобы предложить место встречи, введите /meet";
     
     messageSender.sendTextMessage(receiverUserId, receiverMessage);
     
