@@ -13,6 +13,12 @@ import ru.gang.datingBot.service.ChatService;
 import ru.gang.datingBot.service.MeetingService;
 import ru.gang.datingBot.service.UserService;
 
+/**
+ * Основной класс бота
+ * Примечание: TelegramLongPollingBot помечен как устаревший, но используется из-за
+ * совместимости с текущей версией библиотеки. В будущих версиях следует
+ * перейти на современный подход с UpdatesListener.
+ */
 @Component
 public class DatingBot extends TelegramLongPollingBot {
 

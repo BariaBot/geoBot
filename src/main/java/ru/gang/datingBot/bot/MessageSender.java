@@ -15,6 +15,7 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 /**
  * Класс для отправки сообщений и управления сообщениями в Telegram
+ * Обновлен для работы с DefaultAbsSender
  */
 public class MessageSender {
 
