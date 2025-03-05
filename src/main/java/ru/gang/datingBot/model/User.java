@@ -5,8 +5,6 @@ import java.time.LocalDateTime;
 import lombok.Getter;
 import lombok.Setter;
 
-@Getter
-@Setter
 @Entity
 @Table(name = "users", schema = "public")
 public class User {
@@ -66,6 +64,175 @@ public class User {
   // Индикатор заполненности профиля
   @Column(nullable = false, columnDefinition = "boolean default false")
   private Boolean profileCompleted = false;
+  
+  // Геттеры и сеттеры
+  public Long getId() {
+    return id;
+  }
+
+  public void setId(Long id) {
+    this.id = id;
+  }
+
+  public Long getTelegramId() {
+    return telegramId;
+  }
+
+  public void setTelegramId(Long telegramId) {
+    this.telegramId = telegramId;
+  }
+
+  public String getUsername() {
+    return username;
+  }
+
+  public void setUsername(String username) {
+    this.username = username;
+  }
+
+  public Integer getAge() {
+    return age;
+  }
+
+  public void setAge(Integer age) {
+    this.age = age;
+  }
+
+  public String getGender() {
+    return gender;
+  }
+
+  public void setGender(String gender) {
+    this.gender = gender;
+  }
+
+  public Double getLatitude() {
+    return latitude;
+  }
+
+  public void setLatitude(Double latitude) {
+    this.latitude = latitude;
+  }
+
+  public Double getLongitude() {
+    return longitude;
+  }
+
+  public void setLongitude(Double longitude) {
+    this.longitude = longitude;
+  }
+
+  public Boolean getActive() {
+    return active;
+  }
+
+  public void setActive(Boolean active) {
+    this.active = active;
+  }
+
+  public Integer getSearchRadius() {
+    return searchRadius;
+  }
+
+  public void setSearchRadius(Integer searchRadius) {
+    this.searchRadius = searchRadius;
+  }
+
+  public LocalDateTime getLastActive() {
+    return lastActive;
+  }
+
+  public void setLastActive(LocalDateTime lastActive) {
+    this.lastActive = lastActive;
+  }
+
+  public LocalDateTime getDeactivateAt() {
+    return deactivateAt;
+  }
+
+  public void setDeactivateAt(LocalDateTime deactivateAt) {
+    this.deactivateAt = deactivateAt;
+  }
+
+  public String getFirstName() {
+    return firstName;
+  }
+
+  public void setFirstName(String firstName) {
+    this.firstName = firstName;
+  }
+
+  public String getLastName() {
+    return lastName;
+  }
+
+  public void setLastName(String lastName) {
+    this.lastName = lastName;
+  }
+
+  public String getPhoneNumber() {
+    return phoneNumber;
+  }
+
+  public void setPhoneNumber(String phoneNumber) {
+    this.phoneNumber = phoneNumber;
+  }
+
+  public String getDescription() {
+    return description;
+  }
+
+  public void setDescription(String description) {
+    this.description = description;
+  }
+
+  public String getInterests() {
+    return interests;
+  }
+
+  public void setInterests(String interests) {
+    this.interests = interests;
+  }
+
+  public String getPhotoFileId() {
+    return photoFileId;
+  }
+
+  public void setPhotoFileId(String photoFileId) {
+    this.photoFileId = photoFileId;
+  }
+
+  public Integer getMinAgePreference() {
+    return minAgePreference;
+  }
+
+  public void setMinAgePreference(Integer minAgePreference) {
+    this.minAgePreference = minAgePreference;
+  }
+
+  public Integer getMaxAgePreference() {
+    return maxAgePreference;
+  }
+
+  public void setMaxAgePreference(Integer maxAgePreference) {
+    this.maxAgePreference = maxAgePreference;
+  }
+
+  public String getGenderPreference() {
+    return genderPreference;
+  }
+
+  public void setGenderPreference(String genderPreference) {
+    this.genderPreference = genderPreference;
+  }
+
+  public Boolean getProfileCompleted() {
+    return profileCompleted;
+  }
+
+  public void setProfileCompleted(Boolean profileCompleted) {
+    this.profileCompleted = profileCompleted;
+  }
   
   // Возвращает отформатированную строку с информацией профиля пользователя
   public String getProfileInfo() {

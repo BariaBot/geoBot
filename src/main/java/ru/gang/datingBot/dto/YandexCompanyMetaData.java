@@ -9,6 +9,9 @@ import java.util.List;
 @Getter
 @Setter
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class YandexPlaceResponse {
-    private List<YandexFeature> features;
+public class YandexCompanyMetaData {
+    private String id;
+    private String address;
+    private Double rating;
+    private List<YandexPhoto> Photos;
 }
