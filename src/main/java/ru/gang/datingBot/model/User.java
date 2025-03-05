@@ -2,7 +2,6 @@ package ru.gang.datingBot.model;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
-import java.time.LocalDate;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -71,33 +70,33 @@ public class User {
   // Возвращает отформатированную строку с информацией профиля пользователя
   public String getProfileInfo() {
     StringBuilder profile = new StringBuilder();
-    profile.append("📋 *Ваш профиль:*\n\n");
+    profile.append("📋 Ваш профиль:\n\n");
     
-    profile.append("👤 *Имя:* ").append(firstName != null ? firstName : "Не указано").append("\n");
-    profile.append("📛 *Фамилия:* ").append(lastName != null ? lastName : "Не указано").append("\n");
-    profile.append("🔍 *Username:* ").append(username != null ? "@" + username : "Не указано").append("\n");
+    profile.append("👤 Имя: ").append(firstName != null ? firstName : "Не указано").append("\n");
+    profile.append("📛 Фамилия: ").append(lastName != null ? lastName : "Не указано").append("\n");
+    profile.append("🔍 Username: ").append(username != null ? "@" + username : "Не указано").append("\n");
     
     // Добавлена информация о возрасте и поле
-    profile.append("🎂 *Возраст:* ").append(age != null ? age : "Не указан").append("\n");
-    profile.append("⚧ *Пол:* ").append(getGenderDisplay()).append("\n");
+    profile.append("🎂 Возраст: ").append(age != null ? age : "Не указан").append("\n");
+    profile.append("⚧ Пол: ").append(getGenderDisplay()).append("\n");
     
     if (description != null && !description.isEmpty()) {
-      profile.append("\n📝 *О себе:*\n").append(description).append("\n");
+      profile.append("\n📝 О себе:\n").append(description).append("\n");
     } else {
-      profile.append("\n📝 *О себе:* Не указано\n");
+      profile.append("\n📝 О себе: Не указано\n");
     }
     
     if (interests != null && !interests.isEmpty()) {
-      profile.append("\n⭐ *Интересы:*\n").append(interests).append("\n");
+      profile.append("\n⭐ Интересы:\n").append(interests).append("\n");
     } else {
-      profile.append("\n⭐ *Интересы:* Не указано\n");
+      profile.append("\n⭐ Интересы: Не указано\n");
     }
     
-    profile.append("\n📱 *Телефон:* ").append(phoneNumber != null ? phoneNumber : "Не указано").append("\n");
-    profile.append("🖼 *Фото:* ").append(photoFileId != null ? "Загружено" : "Не загружено").append("\n");
+    profile.append("\n📱 Телефон: ").append(phoneNumber != null ? phoneNumber : "Не указано").append("\n");
+    profile.append("🖼 Фото: ").append(photoFileId != null ? "Загружено" : "Не загружено").append("\n");
     
     // Добавлены настройки поиска
-    profile.append("\n🔍 *Настройки поиска:*\n");
+    profile.append("\n🔍 Настройки поиска:\n");
     String ageRange = "Любой";
     if (minAgePreference != null && maxAgePreference != null) {
       ageRange = minAgePreference + " - " + maxAgePreference + " лет";
@@ -106,8 +105,8 @@ public class User {
     } else if (maxAgePreference != null) {
       ageRange = "до " + maxAgePreference + " лет";
     }
-    profile.append("🎯 *Возраст:* ").append(ageRange).append("\n");
-    profile.append("👥 *Пол:* ").append(getGenderPreferenceDisplay()).append("\n");
+    profile.append("🎯 Возраст: ").append(ageRange).append("\n");
+    profile.append("👥 Пол: ").append(getGenderPreferenceDisplay()).append("\n");
     
     return profile.toString();
   }
@@ -149,5 +148,16 @@ public class User {
       case "any" -> "Любой";
       default -> "Любой";
     };
+  }
+  
+  // Экранирует специальные символы Markdown
+  private String escapeMarkdown(String text) {
+    if (text == null) return "";
+    return text
+            .replace("_", "\\_")
+            .replace("*", "\\*")
+            .replace("[", "\\[")
+            .replace("]", "\\]")
+            .replace("`", "\\`");
   }
 }

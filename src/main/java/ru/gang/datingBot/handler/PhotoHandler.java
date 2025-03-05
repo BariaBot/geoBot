@@ -52,6 +52,7 @@ public class PhotoHandler {
     }
 
     String fileId = largestPhoto.getFileId();
+    System.out.println("DEBUG: Получено фото с fileId: " + fileId);
 
     switch (currentState) {
       case WAITING_FOR_PHOTO:
@@ -76,6 +77,7 @@ public class PhotoHandler {
    * Обработка фото профиля
    */
   private void processProfilePhoto(Long chatId, String fileId) {
+    System.out.println("DEBUG: Обновление фото профиля для пользователя " + chatId);
     // Сохраняем фото профиля
     userService.updateUserPhoto(chatId, fileId);
 
@@ -95,6 +97,7 @@ public class PhotoHandler {
    * Обработка фото для запроса на встречу
    */
   private void processMeetingPhoto(Long chatId, String fileId) {
+    System.out.println("DEBUG: Обработка фото для запроса на встречу от пользователя " + chatId);
     // Сохраняем фото для запроса на встречу
     stateManager.saveMeetingRequestPhoto(chatId, fileId);
 
@@ -102,19 +105,26 @@ public class PhotoHandler {
     String message = stateManager.getMeetingRequestMessage(chatId);
 
     if (targetUserId != null && message != null) {
-      meetingService.sendMeetingRequest(chatId, targetUserId, message, LocalDateTime.now().plusHours(1), fileId);
+      System.out.println("DEBUG: Отправка запроса на встречу с фото от " + chatId + " к " + targetUserId);
+      try {
+        meetingService.sendMeetingRequest(chatId, targetUserId, message, LocalDateTime.now().plusHours(1), fileId);
 
-      // Уведомляем получателя о запросе
-      notifyUserAboutMeetingRequest(targetUserId, chatId);
+        // Уведомляем получателя о запросе
+        notifyUserAboutMeetingRequest(targetUserId, chatId);
 
-      messageSender.sendTextMessageWithKeyboard(
-              chatId,
-              "✅ Запрос на встречу с фото отправлен!",
-              new KeyboardService().createMainKeyboard());
+        messageSender.sendTextMessageWithKeyboard(
+                chatId,
+                "✅ Запрос на встречу с фото отправлен!",
+                new KeyboardService().createMainKeyboard());
 
-      // Очищаем временные данные
-      stateManager.clearMeetingRequestData(chatId);
+        // Очищаем временные данные
+        stateManager.clearMeetingRequestData(chatId);
+      } catch (Exception e) {
+        System.out.println("DEBUG: Ошибка при отправке запроса на встречу: " + e.getMessage());
+        messageSender.sendTextMessage(chatId, "❌ Произошла ошибка. Пожалуйста, попробуйте снова.");
+      }
     } else {
+      System.out.println("DEBUG: Ошибка - targetUserId или message равны null");
       messageSender.sendTextMessage(chatId, "❌ Произошла ошибка. Пожалуйста, попробуйте снова.");
     }
 
@@ -125,28 +135,47 @@ public class PhotoHandler {
    * Уведомляет пользователя о запросе на встречу
    */
   private void notifyUserAboutMeetingRequest(Long receiverId, Long senderId) {
+    System.out.println("DEBUG: Отправка уведомления о запросе на встречу к " + receiverId + " от " + senderId);
     User sender = userService.getUserByTelegramId(senderId);
     String message = stateManager.getMeetingRequestMessage(senderId);
 
     if (sender == null || message == null) {
+      System.out.println("DEBUG: Ошибка - отправитель или сообщение не найдены");
       return;
     }
 
-    ProfileService profileService = new ProfileService(userService, new KeyboardService());
+    // Создаем необходимые сервисы для формирования уведомления
+    KeyboardService keyboardService = new KeyboardService();
+    ProfileService profileService = new ProfileService(userService, keyboardService);
+    
+    // Отправляем уведомление о запросе на встречу
     String requestInfo = profileService.formatMeetingRequest(sender, message);
 
-    messageSender.sendTextMessageWithKeyboard(
-            receiverId,
-            requestInfo,
-            new KeyboardService().createMeetingRequestKeyboard(senderId));
+    try {
+      // Отправляем сообщение с кнопками принятия/отклонения
+      messageSender.sendTextMessageWithKeyboard(
+              receiverId,
+              requestInfo,
+              keyboardService.createMeetingRequestKeyboard(senderId));
 
-    if (sender.getPhotoFileId() != null && !sender.getPhotoFileId().isEmpty()) {
-      messageSender.sendPhoto(receiverId, sender.getPhotoFileId(), null);
-    }
+      // Если у отправителя есть фото профиля, отправляем его отдельно
+      if (sender.getPhotoFileId() != null && !sender.getPhotoFileId().isEmpty()) {
+        messageSender.sendPhoto(receiverId, sender.getPhotoFileId(), null);
+      }
 
-    String photoFileId = stateManager.getMeetingRequestPhoto(senderId);
-    if (photoFileId != null && !photoFileId.isEmpty()) {
-      messageSender.sendPhoto(receiverId, photoFileId, "📸 Фото к запросу на встречу");
+      // Если в запросе есть фото, отправляем его отдельно
+      String photoFileId = stateManager.getMeetingRequestPhoto(senderId);
+      if (photoFileId != null && !photoFileId.isEmpty()) {
+        messageSender.sendPhoto(receiverId, photoFileId, "📸 Фото к запросу на встречу");
+      }
+      
+      System.out.println("DEBUG: Уведомление о запросе на встречу успешно отправлено");
+    } catch (Exception e) {
+      System.out.println("DEBUG: Ошибка при отправке уведомления: " + e.getMessage());
+      // Запасной вариант без кнопок
+      messageSender.sendTextMessage(
+              receiverId,
+              requestInfo + "\n\nЧтобы ответить, используйте команды:\n/accept_" + senderId + " - принять\n/decline_" + senderId + " - отклонить");
     }
   }
 }

@@ -31,8 +31,10 @@ public class UserService {
     if (user == null) {
       user = new User();
       user.setTelegramId(telegramId);
-      user.setActive(true);
     }
+
+    // Самое важное - гарантируем, что пользователь активен
+    user.setActive(true);
 
     // Обновляем username - сохраняем только реальный username из Telegram
     if (telegramUsername != null && !telegramUsername.isEmpty()) {
@@ -70,15 +72,18 @@ public class UserService {
         ", username: " + (user.getUsername() != null ? user.getUsername() : "не установлен") +
         ", firstName: " + user.getFirstName() + 
         ", lastName: " + user.getLastName() + 
-        ", phone: " + user.getPhoneNumber() + ")");
+        ", phone: " + user.getPhoneNumber() + 
+        ", active: " + user.getActive() + ")");
   }
 
   @Scheduled(fixedRate = 600000) // Каждые 10 минут
   public void deactivateExpiredUsers() {
     List<User> expiredUsers = userRepository.findExpiredUsers(LocalDateTime.now());
+    System.out.println("DEBUG: Найдено " + expiredUsers.size() + " пользователей с истекшим временем активности");
     for (User user : expiredUsers) {
       user.setActive(false);
       userRepository.save(user);
+      System.out.println("DEBUG: Деактивирован пользователь " + user.getTelegramId());
     }
   }
 
@@ -108,7 +113,8 @@ public class UserService {
         System.out.println(" - " + user.getTelegramId() + " | " +
             (user.getUsername() != null ? user.getUsername() : "без username") +
             " | " + (user.getFirstName() != null ? user.getFirstName() : "") +
-            " | lat: " + user.getLatitude() + " lon: " + user.getLongitude());
+            " | lat: " + user.getLatitude() + " lon: " + user.getLongitude() +
+            " | active: " + user.getActive());
       }
     }
 
@@ -141,6 +147,7 @@ public class UserService {
         .orElseThrow(() -> new IllegalArgumentException("Пользователь не найден"));
     user.setActive(false);
     userRepository.save(user);
+    System.out.println("DEBUG: Пользователь " + telegramId + " деактивирован вручную");
   }
   
   // Методы управления профилем
@@ -210,6 +217,8 @@ public class UserService {
     user.setMaxAgePreference(maxAge);
     user.setGenderPreference(genderPreference);
     userRepository.save(user);
+    System.out.println("DEBUG: Обновлены настройки поиска для пользователя " + telegramId + 
+                      ": возраст " + minAge + "-" + maxAge + ", пол " + genderPreference);
   }
   
   /**

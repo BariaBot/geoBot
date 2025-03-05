@@ -45,7 +45,7 @@ public class MessageSender {
   public void sendMarkdownMessage(Long chatId, String text) {
     SendMessage message = new SendMessage();
     message.setChatId(chatId.toString());
-    message.setText(text);
+    message.setText(escapeMarkdown(text));
     message.setParseMode("Markdown");
     executeMessage(message);
   }
@@ -56,7 +56,7 @@ public class MessageSender {
   public void sendMarkdownMessageWithKeyboard(Long chatId, String text, ReplyKeyboard keyboard) {
     SendMessage message = new SendMessage();
     message.setChatId(chatId.toString());
-    message.setText(text);
+    message.setText(escapeMarkdown(text));
     message.setParseMode("Markdown");
     message.setReplyMarkup(keyboard);
     executeMessage(message);
@@ -77,6 +77,7 @@ public class MessageSender {
     try {
       bot.execute(photoMessage);
     } catch (TelegramApiException e) {
+      System.out.println("DEBUG: Ошибка при отправке фото: " + e.getMessage());
       e.printStackTrace();
       // Запасной вариант - отправляем только текст, если фото не загружается
       if (caption != null && !caption.isEmpty()) {
@@ -94,13 +95,14 @@ public class MessageSender {
     photoMessage.setPhoto(new InputFile(photoFileId));
     
     if (caption != null && !caption.isEmpty()) {
-      photoMessage.setCaption(caption);
+      photoMessage.setCaption(escapeMarkdown(caption));
       photoMessage.setParseMode("Markdown");
     }
     
     try {
       bot.execute(photoMessage);
     } catch (TelegramApiException e) {
+      System.out.println("DEBUG: Ошибка при отправке фото с Markdown: " + e.getMessage());
       e.printStackTrace();
       // Запасной вариант - отправляем только текст, если фото не загружается
       if (caption != null && !caption.isEmpty()) {
@@ -116,7 +118,11 @@ public class MessageSender {
     try {
       bot.execute(new DeleteMessage(chatId.toString(), messageId));
     } catch (TelegramApiException e) {
-      e.printStackTrace();
+      // Игнорируем ошибку, если сообщение не найдено
+      if (!e.getMessage().contains("message to delete not found")) {
+        System.out.println("DEBUG: Ошибка при удалении сообщения: " + e.getMessage());
+        e.printStackTrace();
+      }
     }
   }
 
@@ -127,7 +133,42 @@ public class MessageSender {
     try {
       bot.execute(message);
     } catch (TelegramApiException e) {
+      System.out.println("DEBUG: Ошибка при отправке сообщения: " + e.getMessage());
       e.printStackTrace();
+      
+      // Попробуем отправить без разметки, если ошибка связана с форматированием
+      if (e.getMessage().contains("can't parse entities")) {
+        try {
+          // Создаем новое сообщение без разметки
+          SendMessage plainMessage = new SendMessage();
+          plainMessage.setChatId(message.getChatId());
+          plainMessage.setText(message.getText());
+          plainMessage.setReplyMarkup(message.getReplyMarkup());
+          // Сбрасываем режим разбора
+          plainMessage.setParseMode(null);
+          
+          bot.execute(plainMessage);
+          System.out.println("DEBUG: Сообщение отправлено без разметки");
+        } catch (TelegramApiException e2) {
+          System.out.println("DEBUG: Не удалось отправить даже без разметки: " + e2.getMessage());
+        }
+      }
     }
+  }
+  
+  /**
+   * Экранирует символы для Markdown
+   */
+  private String escapeMarkdown(String text) {
+    if (text == null) {
+      return "";
+    }
+    return text
+            .replace("_", "\\_")
+            .replace("*", "\\*")
+            .replace("[", "\\[")
+            .replace("]", "\\]")
+            .replace("`", "\\`")
+            .replace(".", "\\.");
   }
 }

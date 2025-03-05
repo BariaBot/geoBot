@@ -41,21 +41,13 @@ public class CallbackQueryHandler {
    * Обрабатывает callback-запросы от встроенных кнопок
    */
   public void processCallbackQuery(Long chatId, String data, Integer messageId) {
+    System.out.println("DEBUG: Получен callback: " + data + " от пользователя " + chatId);
+    
     // Обработка команд, связанных с профилем
     if (data.startsWith("edit_profile_")) {
       String field = data.replace("edit_profile_", "");
       processProfileEdit(chatId, field, messageId);
       return;
-    }
-
-    if (data.startsWith("send_request_")) {
-      Long receiverId = Long.parseLong(data.replace("send_request_", ""));
-      stateManager.saveMeetingRequestTarget(chatId, receiverId);
-
-      System.out.println("DEBUG: Начинаем отправку запроса на встречу от " + chatId + " к " + receiverId);
-      messageSender.deleteMessage(chatId, messageId);
-      messageSender.sendTextMessage(chatId, "📝 Напишите сообщение для запроса на встречу:");
-      stateManager.setUserState(chatId, UserStateManager.UserState.WAITING_FOR_MEETING_MESSAGE);
     }
 
     // Обработка выбора пола
@@ -64,7 +56,12 @@ public class CallbackQueryHandler {
         String gender = data.replace("gender_", "");
         userService.updateUserGender(chatId, gender);
 
-        messageSender.deleteMessage(chatId, messageId);
+        try {
+          messageSender.deleteMessage(chatId, messageId);
+        } catch (Exception e) {
+          System.out.println("DEBUG: Не удалось удалить сообщение: " + e.getMessage());
+        }
+        
         messageSender.sendTextMessage(chatId, "✅ Ваш пол установлен: " + profileService.getGenderDisplay(gender));
 
         messageSender.sendTextMessage(chatId, "📸 Пожалуйста, отправьте фотографию для вашего профиля:");
@@ -80,9 +77,15 @@ public class CallbackQueryHandler {
       User user = userService.getUserByTelegramId(chatId);
       userService.updateUserSearchPreferences(chatId, user.getMinAgePreference(), user.getMaxAgePreference(), genderPref);
 
-      messageSender.deleteMessage(chatId, messageId);
+      try {
+        messageSender.deleteMessage(chatId, messageId);
+      } catch (Exception e) {
+        System.out.println("DEBUG: Не удалось удалить сообщение: " + e.getMessage());
+      }
+      
       messageSender.sendTextMessage(chatId, "✅ Настройки поиска обновлены!\n\n" +
-              "🔍 Возраст: " + user.getMinAgePreference() + " - " + user.getMaxAgePreference() + " лет\n" +
+              "🔍 Возраст: " + (user.getMinAgePreference() != null ? user.getMinAgePreference() : "любой") + 
+              " - " + (user.getMaxAgePreference() != null ? user.getMaxAgePreference() : "любой") + " лет\n" +
               "👥 Пол: " + profileService.getGenderPreferenceDisplay(genderPref));
 
       stateManager.setUserState(chatId, UserStateManager.UserState.NONE);
@@ -95,7 +98,12 @@ public class CallbackQueryHandler {
       stateManager.saveLocationDuration(chatId, duration);
 
       // Удаляем предыдущее сообщение с кнопками
-      messageSender.deleteMessage(chatId, messageId);
+      try {
+        messageSender.deleteMessage(chatId, messageId);
+      } catch (Exception e) {
+        System.out.println("DEBUG: Не удалось удалить сообщение: " + e.getMessage());
+      }
+      
       messageSender.sendTextMessage(chatId, "✅ Вы запустили поиск людей рядом на " + duration + " часов.");
 
       // Отправляем выбор радиуса
@@ -111,7 +119,12 @@ public class CallbackQueryHandler {
       stateManager.saveSearchRadius(chatId, radius);
 
       // Удаляем предыдущее сообщение с кнопками
-      messageSender.deleteMessage(chatId, messageId);
+      try {
+        messageSender.deleteMessage(chatId, messageId);
+      } catch (Exception e) {
+        System.out.println("DEBUG: Не удалось удалить сообщение: " + e.getMessage());
+      }
+      
       messageSender.sendTextMessage(chatId, "📍 Вы выбрали радиус поиска " + radius + " км.");
 
       // Просим отправить геолокацию
@@ -126,7 +139,14 @@ public class CallbackQueryHandler {
       Long receiverId = Long.parseLong(data.replace("send_request_", ""));
       stateManager.saveMeetingRequestTarget(chatId, receiverId);
 
-      messageSender.deleteMessage(chatId, messageId);
+      System.out.println("DEBUG: Начинаем отправку запроса на встречу от " + chatId + " к " + receiverId);
+      
+      try {
+        messageSender.deleteMessage(chatId, messageId);
+      } catch (Exception e) {
+        System.out.println("DEBUG: Не удалось удалить сообщение: " + e.getMessage());
+      }
+      
       messageSender.sendTextMessage(chatId, "📝 Напишите сообщение для запроса на встречу:");
       stateManager.setUserState(chatId, UserStateManager.UserState.WAITING_FOR_MEETING_MESSAGE);
     }
@@ -147,14 +167,22 @@ public class CallbackQueryHandler {
       Long senderId = Long.parseLong(data.replace("accept_request_", ""));
       Long receiverId = chatId;
 
+      System.out.println("DEBUG: Принятие запроса на встречу от " + senderId + " пользователем " + receiverId);
+      
       // Находим запрос
       List<MeetingRequest> requests = meetingService.getPendingRequestsForUser(receiverId);
       for (MeetingRequest request : requests) {
         if (request.getSender().getTelegramId().equals(senderId)) {
-          meetingService.acceptMeetingRequest(request.getId());
-          // Уведомляем отправителя о принятии запроса
-          messageSender.sendTextMessage(senderId, "✅ Ваш запрос на встречу был принят!");
-          messageSender.sendTextMessage(chatId, "Вы приняли запрос на встречу!");
+          try {
+            meetingService.acceptMeetingRequest(request.getId());
+            // Уведомляем отправителя о принятии запроса
+            messageSender.sendTextMessage(senderId, "✅ Ваш запрос на встречу был принят!");
+            messageSender.sendTextMessage(chatId, "Вы приняли запрос на встречу!");
+            System.out.println("DEBUG: Запрос на встречу от " + senderId + " принят пользователем " + receiverId);
+          } catch (Exception e) {
+            System.out.println("DEBUG: Ошибка при принятии запроса: " + e.getMessage());
+            messageSender.sendTextMessage(chatId, "❌ Произошла ошибка. Пожалуйста, попробуйте снова.");
+          }
           break;
         }
       }
@@ -165,14 +193,22 @@ public class CallbackQueryHandler {
       Long senderId = Long.parseLong(data.replace("decline_request_", ""));
       Long receiverId = chatId;
 
+      System.out.println("DEBUG: Отклонение запроса на встречу от " + senderId + " пользователем " + receiverId);
+      
       // Находим запрос
       List<MeetingRequest> requests = meetingService.getPendingRequestsForUser(receiverId);
       for (MeetingRequest request : requests) {
         if (request.getSender().getTelegramId().equals(senderId)) {
-          meetingService.declineMeetingRequest(request.getId());
-          // Уведомляем отправителя об отклонении запроса
-          messageSender.sendTextMessage(senderId, "❌ Ваш запрос на встречу был отклонен.");
-          messageSender.sendTextMessage(chatId, "Вы отклонили запрос на встречу.");
+          try {
+            meetingService.declineMeetingRequest(request.getId());
+            // Уведомляем отправителя об отклонении запроса
+            messageSender.sendTextMessage(senderId, "❌ Ваш запрос на встречу был отклонен.");
+            messageSender.sendTextMessage(chatId, "Вы отклонили запрос на встречу.");
+            System.out.println("DEBUG: Запрос на встречу от " + senderId + " отклонен пользователем " + receiverId);
+          } catch (Exception e) {
+            System.out.println("DEBUG: Ошибка при отклонении запроса: " + e.getMessage());
+            messageSender.sendTextMessage(chatId, "❌ Произошла ошибка. Пожалуйста, попробуйте снова.");
+          }
           break;
         }
       }
@@ -184,7 +220,11 @@ public class CallbackQueryHandler {
    */
   private void processProfileEdit(Long chatId, String field, Integer messageId) {
     // Удаляем предыдущее сообщение с кнопками
-    messageSender.deleteMessage(chatId, messageId);
+    try {
+      messageSender.deleteMessage(chatId, messageId);
+    } catch (Exception e) {
+      System.out.println("DEBUG: Не удалось удалить сообщение: " + e.getMessage());
+    }
 
     switch (field) {
       case "description":
@@ -245,7 +285,16 @@ public class CallbackQueryHandler {
       return;
     }
 
-    messageSender.sendMarkdownMessage(chatId, profileService.formatSearchSettings(user));
+    try {
+      messageSender.sendTextMessage(chatId, profileService.formatSearchSettings(user));
+    } catch (Exception e) {
+      System.out.println("DEBUG: Ошибка при отображении настроек поиска: " + e.getMessage());
+      messageSender.sendTextMessage(chatId, "Ваши настройки поиска:\n" +
+              "🎯 Возраст: " + (user.getMinAgePreference() != null ? user.getMinAgePreference() : "любой") + 
+              " - " + (user.getMaxAgePreference() != null ? user.getMaxAgePreference() : "любой") + " лет\n" +
+              "👥 Пол: " + user.getGenderPreferenceDisplay() + "\n" +
+              "📍 Радиус поиска: " + user.getSearchRadius() + " км");
+    }
 
     messageSender.sendTextMessageWithKeyboard(
             chatId,
@@ -258,7 +307,11 @@ public class CallbackQueryHandler {
    */
   private void showNextUser(Long chatId, Integer messageId) {
     // Удаляем предыдущее сообщение
-    messageSender.deleteMessage(chatId, messageId);
+    try {
+      messageSender.deleteMessage(chatId, messageId);
+    } catch (Exception e) {
+      System.out.println("DEBUG: Не удалось удалить сообщение: " + e.getMessage());
+    }
 
     List<User> nearbyUsers = stateManager.getNearbyUsersCache(chatId);
     Integer currentIndex = stateManager.getCurrentUserIndex(chatId);
@@ -281,7 +334,11 @@ public class CallbackQueryHandler {
    */
   private void showPreviousUser(Long chatId, Integer messageId) {
     // Удаляем предыдущее сообщение
-    messageSender.deleteMessage(chatId, messageId);
+    try {
+      messageSender.deleteMessage(chatId, messageId);
+    } catch (Exception e) {
+      System.out.println("DEBUG: Не удалось удалить сообщение: " + e.getMessage());
+    }
 
     List<User> nearbyUsers = stateManager.getNearbyUsersCache(chatId);
     Integer currentIndex = stateManager.getCurrentUserIndex(chatId);
@@ -321,6 +378,7 @@ public class CallbackQueryHandler {
     }
 
     User profile = nearbyUsers.get(currentIndex);
+    System.out.println("DEBUG: Показываем профиль " + profile.getTelegramId() + " для пользователя " + chatId);
 
     // Получаем информацию о профиле в отформатированном виде
     String profileInfo = profileService.formatNearbyUserProfile(profile, currentIndex, nearbyUsers.size());
@@ -335,7 +393,11 @@ public class CallbackQueryHandler {
 
     // Если у пользователя есть фото, отправляем его отдельно
     if (profile.getPhotoFileId() != null && !profile.getPhotoFileId().isEmpty()) {
-      messageSender.sendPhoto(chatId, profile.getPhotoFileId(), null);
+      try {
+        messageSender.sendPhoto(chatId, profile.getPhotoFileId(), null);
+      } catch (Exception e) {
+        System.out.println("DEBUG: Ошибка при отправке фото профиля: " + e.getMessage());
+      }
     }
   }
 }

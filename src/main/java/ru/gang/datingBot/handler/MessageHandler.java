@@ -139,6 +139,7 @@ public class MessageHandler {
           String message = stateManager.getMeetingRequestMessage(chatId);
 
           if (targetUserId != null && message != null) {
+            System.out.println("DEBUG: Отправляем запрос на встречу от " + chatId + " к " + targetUserId);
             meetingService.sendMeetingRequest(chatId, targetUserId, message, LocalDateTime.now().plusHours(1));
 
             // Уведомляем получателя о запросе
@@ -152,6 +153,7 @@ public class MessageHandler {
             // Очищаем временные данные
             stateManager.clearMeetingRequestData(chatId);
           } else {
+            System.out.println("DEBUG: Ошибка отправки запроса, targetUserId: " + targetUserId + ", message: " + message);
             messageSender.sendTextMessage(chatId, "❌ Произошла ошибка. Пожалуйста, попробуйте снова.");
           }
 
@@ -226,10 +228,15 @@ public class MessageHandler {
 
     // Если у пользователя есть фото профиля, отправляем его с информацией профиля
     if (user.getPhotoFileId() != null && !user.getPhotoFileId().isEmpty()) {
-      messageSender.sendPhotoWithMarkdown(chatId, user.getPhotoFileId(), user.getProfileInfo());
+      try {
+        messageSender.sendPhotoWithMarkdown(chatId, user.getPhotoFileId(), escapeMarkdown(user.getProfileInfo()));
+      } catch (Exception e) {
+        // В случае ошибки отправляем только текст
+        messageSender.sendTextMessage(chatId, "Информация о вашем профиле:\n\n" + user.getProfileInfo());
+      }
     } else {
-      // Отправляем профиль только с текстом
-      messageSender.sendMarkdownMessage(
+      // Отправляем профиль только с текстом, избегая Markdown
+      messageSender.sendTextMessage(
               chatId,
               user.getProfileInfo() + "\n🔄 Используйте /edit_profile для редактирования профиля.");
     }
@@ -272,8 +279,13 @@ public class MessageHandler {
       return;
     }
 
-    // Отправляем информацию о текущих настройках
-    messageSender.sendMarkdownMessage(chatId, profileService.formatSearchSettings(user));
+    // Отправляем информацию о текущих настройках, избегая Markdown
+    try {
+      messageSender.sendTextMessage(chatId, escapeMarkdown(profileService.formatSearchSettings(user)));
+    } catch (Exception e) {
+      // В случае ошибки отправляем без форматирования
+      messageSender.sendTextMessage(chatId, "Ваши настройки поиска:\n\n" + profileService.formatSearchSettings(user));
+    }
 
     // Показываем кнопки для изменения настроек
     messageSender.sendTextMessageWithKeyboard(
@@ -283,34 +295,72 @@ public class MessageHandler {
   }
 
   /**
+   * Экранирует символы в Markdown
+   */
+  private String escapeMarkdown(String text) {
+    if (text == null) return "";
+    return text
+            .replace("_", "\\_")
+            .replace("*", "\\*")
+            .replace("[", "\\[")
+            .replace("]", "\\]")
+            .replace("`", "\\`");
+  }
+
+  /**
    * Уведомляет пользователя о запросе на встречу
    */
   private void notifyUserAboutMeetingRequest(Long receiverId, Long senderId) {
+    System.out.println("DEBUG: Начало отправки уведомления о запросе на встречу от " + senderId + " к " + receiverId);
     User sender = userService.getUserByTelegramId(senderId);
     String message = stateManager.getMeetingRequestMessage(senderId);
 
     if (sender == null || message == null) {
+      System.out.println("DEBUG: Ошибка - отправитель или сообщение не найдены");
       return;
     }
 
-    // Форматируем сообщение о запросе на встречу
+    System.out.println("DEBUG: Форматирование информации о запросе");
+    
+    // Форматируем сообщение о запросе на встречу с очищенным форматированием
     String requestInfo = profileService.formatMeetingRequest(sender, message);
 
     // Отправляем сообщение с кнопками принятия/отклонения
-    messageSender.sendTextMessageWithKeyboard(
-            receiverId,
-            requestInfo,
-            keyboardService.createMeetingRequestKeyboard(senderId));
+    System.out.println("DEBUG: Отправка сообщения с кнопками принятия/отклонения");
+    try {
+      messageSender.sendTextMessageWithKeyboard(
+              receiverId,
+              requestInfo,
+              keyboardService.createMeetingRequestKeyboard(senderId));
+    } catch (Exception e) {
+      System.out.println("DEBUG: Ошибка при отправке уведомления с кнопками: " + e.getMessage());
+      // Запасной вариант без кнопок
+      messageSender.sendTextMessage(
+              receiverId,
+              requestInfo + "\n\nЧтобы ответить, используйте команды:\n/accept_" + senderId + " - принять\n/decline_" + senderId + " - отклонить");
+    }
 
     // Если у отправителя есть фото профиля, отправляем его отдельно
     if (sender.getPhotoFileId() != null && !sender.getPhotoFileId().isEmpty()) {
-      messageSender.sendPhoto(receiverId, sender.getPhotoFileId(), null);
+      System.out.println("DEBUG: Отправка фото профиля отправителя");
+      try {
+        messageSender.sendPhoto(receiverId, sender.getPhotoFileId(), null);
+      } catch (Exception e) {
+        System.out.println("DEBUG: Ошибка при отправке фото профиля: " + e.getMessage());
+      }
     }
 
     // Если в запросе есть фото, отправляем его отдельно
     String photoFileId = stateManager.getMeetingRequestPhoto(senderId);
     if (photoFileId != null && !photoFileId.isEmpty()) {
-      messageSender.sendPhoto(receiverId, photoFileId, "📸 Фото к запросу на встречу");
+      System.out.println("DEBUG: Отправка фото из запроса");
+      try {
+        messageSender.sendPhoto(receiverId, photoFileId, "📸 Фото к запросу на встречу");
+      } catch (Exception e) {
+        System.out.println("DEBUG: Ошибка при отправке фото запроса: " + e.getMessage());
+      }
     }
+    
+    System.out.println("DEBUG: Уведомление о запросе на встречу отправлено");
   }
 }

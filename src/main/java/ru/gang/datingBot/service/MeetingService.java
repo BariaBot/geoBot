@@ -23,13 +23,14 @@ public class MeetingService {
   public MeetingRequest sendMeetingRequest(Long senderId, Long receiverId, String message, LocalDateTime scheduledTime) {
     return sendMeetingRequest(senderId, receiverId, message, scheduledTime, null);
   }
-
-  // В MeetingService.java нужно исправить метод:
+  
+  // Отправка запроса на встречу с фото
   public MeetingRequest sendMeetingRequest(Long senderId, Long receiverId, String message, LocalDateTime scheduledTime, String photoFileId) {
+    System.out.println("DEBUG: Создание запроса на встречу от " + senderId + " к " + receiverId);
     User sender = userRepository.findByTelegramId(senderId)
-            .orElseThrow(() -> new IllegalArgumentException("Отправитель не найден: " + senderId));
+        .orElseThrow(() -> new IllegalArgumentException("Отправитель не найден: " + senderId));
     User receiver = userRepository.findByTelegramId(receiverId)
-            .orElseThrow(() -> new IllegalArgumentException("Получатель не найден: " + receiverId));
+        .orElseThrow(() -> new IllegalArgumentException("Получатель не найден: " + receiverId));
 
     MeetingRequest request = new MeetingRequest();
     request.setSender(sender);
@@ -37,13 +38,17 @@ public class MeetingService {
     request.setMessage(message);
     request.setScheduledTime(scheduledTime);
     request.setStatus("pending");
-
+    
     // Добавляем фото, если передано
     if (photoFileId != null && !photoFileId.isEmpty()) {
       request.setPhotoFileId(photoFileId);
     }
 
-    return meetingRepository.save(request);
+    System.out.println("DEBUG: Сохранение запроса на встречу в базу данных");
+    MeetingRequest savedRequest = meetingRepository.save(request);
+    System.out.println("DEBUG: Запрос на встречу сохранен с ID " + savedRequest.getId());
+    
+    return savedRequest;
   }
 
   // Получить все ожидающие запросы для пользователя
@@ -59,6 +64,7 @@ public class MeetingService {
         .orElseThrow(() -> new IllegalArgumentException("Запрос не найден"));
     request.setStatus("accepted");
     meetingRepository.save(request);
+    System.out.println("DEBUG: Запрос на встречу с ID " + requestId + " принят");
   }
 
   // Отклонение запроса на встречу
@@ -67,6 +73,7 @@ public class MeetingService {
         .orElseThrow(() -> new IllegalArgumentException("Запрос не найден"));
     request.setStatus("declined");
     meetingRepository.save(request);
+    System.out.println("DEBUG: Запрос на встречу с ID " + requestId + " отклонен");
   }
 
   // Завершение встречи (бот отправляет запрос на отзыв)
