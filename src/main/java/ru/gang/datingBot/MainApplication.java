@@ -15,9 +15,11 @@ import ru.gang.datingBot.bot.MessageSender;
 import ru.gang.datingBot.bot.UserStateManager;
 import ru.gang.datingBot.repository.ChatMessageRepository;
 import ru.gang.datingBot.repository.MeetingRepository;
+import ru.gang.datingBot.repository.SubscriptionRepository;
 import ru.gang.datingBot.repository.UserRepository;
 import ru.gang.datingBot.service.ChatService;
 import ru.gang.datingBot.service.MeetingService;
+import ru.gang.datingBot.service.SubscriptionService;
 import ru.gang.datingBot.service.UserService;
 
 @SpringBootApplication
@@ -62,17 +64,26 @@ public class MainApplication {
   public MessageSender messageSender(@Lazy DatingBot datingBot) {
     return new MessageSender(datingBot);
   }
+  
+  @Bean
+  public SubscriptionService subscriptionService(
+          SubscriptionRepository subscriptionRepository,
+          UserRepository userRepository) {
+    return new SubscriptionService(subscriptionRepository, userRepository);
+  }
 
   @Bean
   public DatingBot datingBot(
           UserService userService,
           @Lazy MeetingService meetingService,
-          ChatService chatService) {
+          ChatService chatService,
+          SubscriptionService subscriptionService) {
     
     // Создаем DatingBot с необходимыми зависимостями
     return new DatingBot(
             userService,
             meetingService,
-            chatService);
+            chatService,
+            subscriptionService);
   }
 }

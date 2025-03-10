@@ -155,6 +155,42 @@ public class KeyboardService {
     return markupInline;
   }
 
+  public InlineKeyboardMarkup createVipPlansKeyboard() {
+    InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
+    List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
+
+    List<InlineKeyboardButton> row1 = new ArrayList<>();
+    row1.add(createButton("1 месяц - 199₽", "vip_plan_month"));
+    rowsInline.add(row1);
+
+    List<InlineKeyboardButton> row2 = new ArrayList<>();
+    row2.add(createButton("3 месяца - 499₽", "vip_plan_3months"));
+    rowsInline.add(row2);
+
+    List<InlineKeyboardButton> row3 = new ArrayList<>();
+    row3.add(createButton("1 год - 1499₽", "vip_plan_year"));
+    rowsInline.add(row3);
+
+    markupInline.setKeyboard(rowsInline);
+    return markupInline;
+  }
+
+  public InlineKeyboardMarkup createPaymentConfirmationKeyboard(Long subscriptionId) {
+    InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
+    List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
+
+    List<InlineKeyboardButton> row1 = new ArrayList<>();
+    row1.add(createButton("💳 Оплатить", "pay_confirm_" + subscriptionId));
+    rowsInline.add(row1);
+
+    List<InlineKeyboardButton> row2 = new ArrayList<>();
+    row2.add(createButton("❌ Отменить", "pay_cancel_" + subscriptionId));
+    rowsInline.add(row2);
+
+    markupInline.setKeyboard(rowsInline);
+    return markupInline;
+  }
+
   public ReplyKeyboardMarkup createLocationRequestKeyboard() {
     KeyboardButton locationButton = new KeyboardButton("📍 Поделиться геолокацией");
     locationButton.setRequestLocation(true);
@@ -191,6 +227,7 @@ public class KeyboardService {
     row1.add(new KeyboardButton("👤 Мой профиль"));
 
     KeyboardRow row2 = new KeyboardRow();
+    row2.add(new KeyboardButton("👑 VIP-статус"));
     row2.add(new KeyboardButton("❌ Остановить поиск"));
 
     keyboard.add(row1);

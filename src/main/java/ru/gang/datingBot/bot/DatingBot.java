@@ -35,7 +35,8 @@ public class DatingBot extends TelegramLongPollingBot {
   public DatingBot(
           UserService userService, 
           MeetingService meetingService, 
-          ChatService chatService) {
+          ChatService chatService,
+          SubscriptionService subscriptionService) {
     this.userStateManager = new UserStateManager();
     this.keyboardService = new KeyboardService();
     ProfileService profileService = new ProfileService(userService, keyboardService);
@@ -47,7 +48,8 @@ public class DatingBot extends TelegramLongPollingBot {
             userStateManager,
             keyboardService,
             profileService,
-            messageSender);
+            messageSender,
+            subscriptionService);
 
     this.chatHandler = new ChatHandler(
             userService, 
@@ -64,7 +66,8 @@ public class DatingBot extends TelegramLongPollingBot {
             userStateManager,
             keyboardService,
             profileService,
-            messageSender);
+            messageSender,
+            subscriptionService);
 
     this.locationHandler = new LocationHandler(
             userService,

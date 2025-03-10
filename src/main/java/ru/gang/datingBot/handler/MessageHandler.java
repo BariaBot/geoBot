@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import ru.gang.datingBot.service.KeyboardService;
 import ru.gang.datingBot.bot.MessageSender;
 import ru.gang.datingBot.service.ProfileService;
+import ru.gang.datingBot.service.SubscriptionService;
 import ru.gang.datingBot.bot.UserStateManager;
 import ru.gang.datingBot.model.User;
 import ru.gang.datingBot.service.MeetingService;
@@ -19,6 +20,50 @@ public class MessageHandler {
   private final KeyboardService keyboardService;
   private final ProfileService profileService;
   private final MessageSender messageSender;
+  private final SubscriptionService subscriptionService;
+  private final VipHandler vipHandler;
+
+  public MessageHandler(
+        UserService userService,
+        MeetingService meetingService,
+        UserStateManager stateManager,
+        KeyboardService keyboardService,
+        ProfileService profileService,
+        MessageSender messageSender) {
+    this.userService = userService;
+    this.meetingService = meetingService;
+    this.stateManager = stateManager;
+    this.keyboardService = keyboardService;
+    this.profileService = profileService;
+    this.messageSender = messageSender;
+    this.subscriptionService = null;
+    this.vipHandler = null;
+  }
+
+  public MessageHandler(
+        UserService userService,
+        MeetingService meetingService,
+        UserStateManager stateManager,
+        KeyboardService keyboardService,
+        ProfileService profileService,
+        MessageSender messageSender,
+        SubscriptionService subscriptionService) {
+    this.userService = userService;
+    this.meetingService = meetingService;
+    this.stateManager = stateManager;
+    this.keyboardService = keyboardService;
+    this.profileService = profileService;
+    this.messageSender = messageSender;
+    this.subscriptionService = subscriptionService;
+    this.vipHandler = new VipHandler(
+            userService,
+            subscriptionService,
+            stateManager,
+            messageSender,
+            keyboardService,
+            profileService
+    );
+  }
 
   public void processTextMessage(Long chatId, String text) {
     UserStateManager.UserState currentState = stateManager.getUserState(chatId);
@@ -167,6 +212,15 @@ public class MessageHandler {
         showSearchSettings(chatId);
         break;
 
+      case "/vip":
+      case "👑 VIP-статус":
+        if (vipHandler != null) {
+          vipHandler.processVipCommand(chatId);
+        } else {
+          messageSender.sendTextMessage(chatId, "⚠️ Функция VIP временно недоступна. Пожалуйста, попробуйте позже.");
+        }
+        break;
+        
       case "🔄 Обновить геолокацию":
         messageSender.sendTextMessageWithKeyboard(
                 chatId,

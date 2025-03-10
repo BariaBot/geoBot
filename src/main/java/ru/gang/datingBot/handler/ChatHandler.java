@@ -7,6 +7,7 @@ import ru.gang.datingBot.bot.UserStateManager;
 import ru.gang.datingBot.model.User;
 import ru.gang.datingBot.service.ChatService;
 import ru.gang.datingBot.service.MeetingService;
+import ru.gang.datingBot.service.ProfileService;
 import ru.gang.datingBot.service.UserService;
 
 import java.util.Comparator;
@@ -14,9 +15,6 @@ import java.util.List;
 
 import lombok.RequiredArgsConstructor;
 
-/**
- * Обработчик чатов между пользователями
- */
 @RequiredArgsConstructor
 public class ChatHandler {
 
@@ -26,10 +24,22 @@ public class ChatHandler {
   private final UserStateManager stateManager;
   private final MessageSender messageSender;
   private final KeyboardService keyboardService = new KeyboardService();
+  private final ProfileService profileService;
 
-  /**
-   * Обрабатывает текстовые сообщения в чате
-   */
+  public ChatHandler(
+          UserService userService,
+          MeetingService meetingService,
+          ChatService chatService,
+          UserStateManager stateManager,
+          MessageSender messageSender) {
+    this.userService = userService;
+    this.meetingService = meetingService;
+    this.chatService = chatService;
+    this.stateManager = stateManager;
+    this.messageSender = messageSender;
+    this.profileService = new ProfileService(userService, keyboardService);
+  }
+
   public void processChatMessage(Long chatId, String text) {
     Long targetUserId = stateManager.getCurrentChatUser(chatId);
     Long meetingRequestId = stateManager.getCurrentChatMeetingRequest(chatId);
@@ -47,7 +57,7 @@ public class ChatHandler {
       chatService.sendMessage(chatId, targetUserId, meetingRequestId, text, null);
 
       User sender = userService.getUserByTelegramId(chatId);
-      String senderName = getSenderDisplayName(sender);
+      String senderName = profileService.getSenderDisplayName(sender);
 
       messageSender.sendTextMessage(
               targetUserId,
@@ -60,9 +70,6 @@ public class ChatHandler {
     }
   }
 
-  /**
-   * Обрабатывает отправку фотографий в чате
-   */
   public void processChatPhoto(Long chatId, List<PhotoSize> photos) {
     Long targetUserId = stateManager.getCurrentChatUser(chatId);
     Long meetingRequestId = stateManager.getCurrentChatMeetingRequest(chatId);
@@ -89,7 +96,7 @@ public class ChatHandler {
       chatService.sendMessage(chatId, targetUserId, meetingRequestId, "📸 Фото", fileId);
 
       User sender = userService.getUserByTelegramId(chatId);
-      String senderName = getSenderDisplayName(sender);
+      String senderName = profileService.getSenderDisplayName(sender);
 
       messageSender.sendPhoto(
               targetUserId,
@@ -103,9 +110,6 @@ public class ChatHandler {
     }
   }
 
-  /**
-   * Обрабатывает отправку стикеров в чате
-   */
   public void processChatSticker(Long chatId, Object sticker) {
     Long targetUserId = stateManager.getCurrentChatUser(chatId);
     Long meetingRequestId = stateManager.getCurrentChatMeetingRequest(chatId);
@@ -142,9 +146,6 @@ public class ChatHandler {
     }
   }
 
-  /**
-   * Обрабатывает отправку различных типов медиа-сообщений
-   */
   public void processMediaMessage(Long chatId, String mediaType, String fileId, String caption) {
     Long targetUserId = stateManager.getCurrentChatUser(chatId);
     Long meetingRequestId = stateManager.getCurrentChatMeetingRequest(chatId);
@@ -159,7 +160,7 @@ public class ChatHandler {
       chatService.sendMessage(chatId, targetUserId, meetingRequestId, mediaType, fileId);
 
       User sender = userService.getUserByTelegramId(chatId);
-      String senderName = getSenderDisplayName(sender);
+      String senderName = profileService.getSenderDisplayName(sender);
 
       String mediaCaption = caption;
       if (caption == null || caption.isEmpty()) {
@@ -195,9 +196,6 @@ public class ChatHandler {
     }
   }
 
-  /**
-   * Обрабатывает отправку анимаций в чате
-   */
   public void processChatAnimation(Long chatId, Object animation) {
     try {
       java.lang.reflect.Method getFileId = animation.getClass().getMethod("getFileId");
@@ -209,9 +207,6 @@ public class ChatHandler {
     }
   }
 
-  /**
-   * Обрабатывает отправку видео в чате
-   */
   public void processChatVideo(Long chatId, Object video) {
     try {
       java.lang.reflect.Method getFileId = video.getClass().getMethod("getFileId");
@@ -223,9 +218,6 @@ public class ChatHandler {
     }
   }
 
-  /**
-   * Обрабатывает отправку голосовых сообщений в чате
-   */
   public void processChatVoice(Long chatId, Object voice) {
     try {
       java.lang.reflect.Method getFileId = voice.getClass().getMethod("getFileId");
@@ -237,9 +229,6 @@ public class ChatHandler {
     }
   }
 
-  /**
-   * Обрабатывает отправку аудио в чате
-   */
   public void processChatAudio(Long chatId, Object audio) {
     try {
       java.lang.reflect.Method getFileId = audio.getClass().getMethod("getFileId");
@@ -260,9 +249,6 @@ public class ChatHandler {
     }
   }
 
-  /**
-   * Обрабатывает отправку документов в чате
-   */
   public void processChatDocument(Long chatId, Object document) {
     try {
       java.lang.reflect.Method getFileId = document.getClass().getMethod("getFileId");
@@ -283,15 +269,12 @@ public class ChatHandler {
     }
   }
 
-  /**
-   * Инициализирует чат между пользователями
-   */
   public void initializeChat(Long senderUserId, Long receiverUserId, Long meetingRequestId) {
     User sender = userService.getUserByTelegramId(senderUserId);
     User receiver = userService.getUserByTelegramId(receiverUserId);
 
-    String senderName = getSenderDisplayName(sender);
-    String receiverName = getSenderDisplayName(receiver);
+    String senderName = profileService.getSenderDisplayName(sender);
+    String receiverName = profileService.getSenderDisplayName(receiver);
 
     String senderMessage = "✅ " + receiverName + " принял(а) ваш запрос на встречу!\n\n" +
             "Теперь вы можете обмениваться сообщениями. Все ваши сообщения будут доставлены собеседнику.\n\n" +
@@ -311,9 +294,6 @@ public class ChatHandler {
     System.out.println("DEBUG: Чат инициализирован между " + senderUserId + " и " + receiverUserId + " для запроса " + meetingRequestId);
   }
 
-  /**
-   * Завершает текущий чат пользователя
-   */
   public void endCurrentChat(Long chatId) {
     Long targetUserId = stateManager.getCurrentChatUser(chatId);
 
@@ -331,7 +311,7 @@ public class ChatHandler {
 
     try {
       User user = userService.getUserByTelegramId(chatId);
-      String userName = getSenderDisplayName(user);
+      String userName = profileService.getSenderDisplayName(user);
 
       messageSender.sendTextMessage(
               targetUserId,
@@ -339,30 +319,5 @@ public class ChatHandler {
     } catch (Exception e) {
       System.out.println("DEBUG: Ошибка при уведомлении о завершении чата: " + e.getMessage());
     }
-  }
-
-  /**
-   * Получает отображаемое имя пользователя для чатов
-   * Использует только firstName и lastName, но не username
-   */
-  private String getSenderDisplayName(User user) {
-    StringBuilder displayName = new StringBuilder();
-    
-    if (user.getFirstName() != null && !user.getFirstName().isEmpty()) {
-      displayName.append(user.getFirstName());
-    }
-    
-    if (user.getLastName() != null && !user.getLastName().isEmpty()) {
-      if (displayName.length() > 0) {
-        displayName.append(" ");
-      }
-      displayName.append(user.getLastName());
-    }
-    
-    if (displayName.length() == 0) {
-      return "Пользователь";
-    }
-    
-    return displayName.toString();
   }
 }

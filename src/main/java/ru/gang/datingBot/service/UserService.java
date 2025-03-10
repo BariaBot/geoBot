@@ -7,7 +7,9 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -111,7 +113,8 @@ public class UserService {
             (user.getUsername() != null ? user.getUsername() : "без username") +
             " | " + (user.getFirstName() != null ? user.getFirstName() : "") +
             " | lat: " + user.getLatitude() + " lon: " + user.getLongitude() +
-            " | active: " + user.getActive());
+            " | active: " + user.getActive() +
+            " | vip: " + (user.getIsVip() != null && user.getIsVip() ? "да" : "нет"));
       }
     } else {
       System.out.println("DEBUG: SQL запрос не вернул ни одного пользователя. Пробуем без фильтров.");
@@ -120,7 +123,29 @@ public class UserService {
       System.out.println("DEBUG: Без фильтров найдено пользователей: " + (users != null ? users.size() : 0));
     }
 
+    // Сортировка результатов: VIP пользователи в начале списка
+    if (users != null && !users.isEmpty()) {
+        users = sortUsersByVipStatus(users);
+    }
+
     return users;
+  }
+
+  // Сортировка пользователей с приоритетом VIP
+  private List<User> sortUsersByVipStatus(List<User> users) {
+    LocalDateTime now = LocalDateTime.now();
+    
+    return users.stream()
+        .sorted(Comparator
+            // Сначала VIP-пользователи
+            .comparing((User u) -> u.getIsVip() != null && u.getIsVip() && 
+                                  u.getVipExpiresAt() != null && 
+                                  u.getVipExpiresAt().isAfter(now) ? 0 : 1)
+            // Затем по последней активности
+            .thenComparing((User u) -> u.getLastActive(), Comparator.nullsLast(Comparator.reverseOrder()))
+            // И, наконец, по ID
+            .thenComparing(User::getId))
+        .collect(Collectors.toList());
   }
 
   public List<User> filterUsersByCommonInterests(List<User> users, Long currentUserId) {

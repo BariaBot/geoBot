@@ -66,9 +66,19 @@ public class User {
   @Column(nullable = false, columnDefinition = "boolean default false")
   private Boolean profileCompleted = false;
   
+  @Column(nullable = false, columnDefinition = "boolean default false")
+  private Boolean isVip = false;
+  
+  @Column(nullable = true)
+  private LocalDateTime vipExpiresAt;
+  
   public String getProfileInfo() {
     StringBuilder profile = new StringBuilder();
     profile.append("📋 Ваш профиль:\n\n");
+    
+    if (isVip != null && isVip) {
+      profile.append("👑 VIP-статус до: ").append(vipExpiresAt.toLocalDate()).append("\n\n");
+    }
     
     profile.append("👤 Имя: ").append(firstName != null ? firstName : "Не указано").append("\n");
     profile.append("📛 Фамилия: ").append(lastName != null ? lastName : "Не указано").append("\n");
@@ -143,13 +153,7 @@ public class User {
     };
   }
   
-  private String escapeMarkdown(String text) {
-    if (text == null) return "";
-    return text
-            .replace("_", "\\_")
-            .replace("*", "\\*")
-            .replace("[", "\\[")
-            .replace("]", "\\]")
-            .replace("`", "\\`");
+  public boolean isVipActive() {
+    return isVip != null && isVip && vipExpiresAt != null && vipExpiresAt.isAfter(LocalDateTime.now());
   }
 }

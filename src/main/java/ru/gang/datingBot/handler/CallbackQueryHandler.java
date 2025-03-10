@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import ru.gang.datingBot.service.KeyboardService;
 import ru.gang.datingBot.bot.MessageSender;
 import ru.gang.datingBot.service.ProfileService;
+import ru.gang.datingBot.service.SubscriptionService;
 import ru.gang.datingBot.bot.UserStateManager;
 import ru.gang.datingBot.model.MeetingRequest;
 import ru.gang.datingBot.model.User;
@@ -21,13 +22,106 @@ public class CallbackQueryHandler {
   private final KeyboardService keyboardService;
   private final ProfileService profileService;
   private final MessageSender messageSender;
+  private final SubscriptionService subscriptionService;
+  private final VipHandler vipHandler;
   
   @Setter
   private ChatHandler chatHandler;
 
+  public CallbackQueryHandler(
+          UserService userService,
+          MeetingService meetingService,
+          UserStateManager stateManager,
+          KeyboardService keyboardService,
+          ProfileService profileService,
+          MessageSender messageSender) {
+    this.userService = userService;
+    this.meetingService = meetingService;
+    this.stateManager = stateManager;
+    this.keyboardService = keyboardService;
+    this.profileService = profileService;
+    this.messageSender = messageSender;
+    this.subscriptionService = null;
+    this.vipHandler = null;
+  }
+
+  public CallbackQueryHandler(
+          UserService userService,
+          MeetingService meetingService,
+          UserStateManager stateManager,
+          KeyboardService keyboardService,
+          ProfileService profileService,
+          MessageSender messageSender,
+          SubscriptionService subscriptionService) {
+    this.userService = userService;
+    this.meetingService = meetingService;
+    this.stateManager = stateManager;
+    this.keyboardService = keyboardService;
+    this.profileService = profileService;
+    this.messageSender = messageSender;
+    this.subscriptionService = subscriptionService;
+    this.vipHandler = new VipHandler(
+            userService,
+            subscriptionService,
+            stateManager,
+            messageSender,
+            keyboardService,
+            profileService
+    );
+  }
+
   public void processCallbackQuery(Long chatId, String data, Integer messageId) {
     System.out.println("DEBUG: Получен callback: " + data + " от пользователя " + chatId);
     
+    // Обработка callback'ов для VIP статуса
+    if (data.startsWith("vip_plan_")) {
+      if (vipHandler != null) {
+        String planType = data.replace("vip_plan_", "");
+        vipHandler.processVipPlanSelection(chatId, planType);
+        try {
+          messageSender.deleteMessage(chatId, messageId);
+        } catch (Exception e) {
+          System.out.println("DEBUG: Не удалось удалить сообщение: " + e.getMessage());
+        }
+      } else {
+        messageSender.sendTextMessage(chatId, "⚠️ Функция VIP временно недоступна. Пожалуйста, попробуйте позже.");
+      }
+      return;
+    }
+    
+    if (data.startsWith("pay_confirm_")) {
+      if (vipHandler != null) {
+        try {
+          Long subscriptionId = Long.parseLong(data.replace("pay_confirm_", ""));
+          vipHandler.processPaymentConfirmation(chatId, subscriptionId);
+          messageSender.deleteMessage(chatId, messageId);
+        } catch (Exception e) {
+          System.out.println("DEBUG: Ошибка при подтверждении оплаты: " + e.getMessage());
+          messageSender.sendTextMessage(chatId, "❌ Произошла ошибка при обработке платежа. Пожалуйста, попробуйте позже.");
+        }
+      } else {
+        messageSender.sendTextMessage(chatId, "⚠️ Функция VIP временно недоступна. Пожалуйста, попробуйте позже.");
+      }
+      return;
+    }
+    
+    if (data.startsWith("pay_cancel_")) {
+      if (vipHandler != null) {
+        try {
+          Long subscriptionId = Long.parseLong(data.replace("pay_cancel_", ""));
+          vipHandler.processPaymentCancel(chatId, subscriptionId);
+          messageSender.deleteMessage(chatId, messageId);
+        } catch (Exception e) {
+          System.out.println("DEBUG: Ошибка при отмене оплаты: " + e.getMessage());
+          messageSender.sendTextMessage(chatId, "❌ Произошла ошибка при отмене платежа. Пожалуйста, попробуйте позже.");
+        }
+      } else {
+        messageSender.sendTextMessage(chatId, "⚠️ Функция VIP временно недоступна. Пожалуйста, попробуйте позже.");
+      }
+      return;
+    }
+    
+    // Стандартная обработка callback'ов
     if (data.startsWith("edit_profile_")) {
       String field = data.replace("edit_profile_", "");
       processProfileEdit(chatId, field, messageId);

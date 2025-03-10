@@ -3,43 +3,22 @@ package ru.gang.datingBot.service;
 import lombok.RequiredArgsConstructor;
 import ru.gang.datingBot.model.User;
 
-/**
- * Сервис для работы с профилями пользователей и их отображением
- */
+import java.time.LocalDateTime;
+
 @RequiredArgsConstructor
 public class ProfileService {
 
   private final UserService userService;
   private final KeyboardService keyboardService;
 
-  /**
-   * Получает отображаемое имя пользователя
-   * Использует только firstName, но не username
-   */
   public String getDisplayName(User user) {
-    StringBuilder displayName = new StringBuilder();
-    
     if (user.getFirstName() != null && !user.getFirstName().isEmpty()) {
-      displayName.append(user.getFirstName());
-    }
-    
-    if (user.getLastName() != null && !user.getLastName().isEmpty()) {
-      if (displayName.length() > 0) {
-        displayName.append(" ");
-      }
-      displayName.append(user.getLastName());
-    }
-    
-    if (displayName.length() == 0) {
+      return user.getFirstName();
+    } else {
       return "Анонимный пользователь";
     }
-    
-    return displayName.toString();
   }
 
-  /**
-   * Возвращает отображаемое название пола
-   */
   public String getGenderDisplay(String gender) {
     if (gender == null) return "Не указан";
     return switch (gender) {
@@ -50,9 +29,6 @@ public class ProfileService {
     };
   }
 
-  /**
-   * Возвращает отображаемое название предпочтения по полу
-   */
   public String getGenderPreferenceDisplay(String genderPref) {
     if (genderPref == null) return "Любой";
     return switch (genderPref) {
@@ -63,14 +39,24 @@ public class ProfileService {
     };
   }
 
-  /**
-   * Форматирует профиль пользователя для отображения в списке ближайших
-   */
   public String formatNearbyUserProfile(User profile, int currentIndex, int totalUsers) {
     String displayName = getDisplayName(profile);
 
     StringBuilder profileInfo = new StringBuilder();
-    profileInfo.append("✨ ").append(displayName).append(" рядом!");
+    
+    // Отображаем статус VIP, если пользователь имеет активную подписку
+    if (profile.isVipActive()) {
+      profileInfo.append("👑 ");
+    }
+    
+    profileInfo.append("✨ ").append(displayName);
+    
+    // Для VIP пользователей показываем username, если он есть
+    if (profile.isVipActive() && profile.getUsername() != null && !profile.getUsername().isEmpty()) {
+      profileInfo.append(" (@").append(profile.getUsername()).append(")");
+    }
+    
+    profileInfo.append(" рядом!");
 
     if (profile.getAge() != null) {
       profileInfo.append("\n\n🎂 Возраст: ").append(profile.getAge());
@@ -93,14 +79,24 @@ public class ProfileService {
     return profileInfo.toString();
   }
 
-  /**
-   * Форматирует запрос на встречу
-   */
   public String formatMeetingRequest(User sender, String message) {
     String senderName = getDisplayName(sender);
     
     StringBuilder requestInfo = new StringBuilder();
-    requestInfo.append("✨ ").append(senderName).append(" отправил вам запрос на встречу!");
+    
+    // Отображаем статус VIP для запросов на встречу
+    if (sender.isVipActive()) {
+      requestInfo.append("👑 ");
+    }
+    
+    requestInfo.append("✨ ").append(senderName);
+    
+    // Для VIP пользователей показываем username в запросе
+    if (sender.isVipActive() && sender.getUsername() != null && !sender.getUsername().isEmpty()) {
+      requestInfo.append(" (@").append(sender.getUsername()).append(")");
+    }
+    
+    requestInfo.append(" отправил вам запрос на встречу!");
 
     if (sender.getAge() != null) {
       requestInfo.append("\n\n🎂 Возраст: ").append(sender.getAge());
@@ -123,9 +119,6 @@ public class ProfileService {
     return requestInfo.toString();
   }
 
-  /**
-   * Форматирует настройки поиска пользователя
-   */
   public String formatSearchSettings(User user) {
     StringBuilder settingsInfo = new StringBuilder();
     settingsInfo.append("🔍 *Ваши настройки поиска:*\n\n");
@@ -144,5 +137,59 @@ public class ProfileService {
     settingsInfo.append("📍 *Радиус поиска:* ").append(user.getSearchRadius()).append(" км\n");
     
     return settingsInfo.toString();
+  }
+  
+  public String formatVipInfo(User user, boolean isActive, LocalDateTime expiresAt, String planType) {
+    StringBuilder vipInfo = new StringBuilder();
+    
+    vipInfo.append("👑 *VIP-статус*\n\n");
+    
+    if (isActive) {
+      vipInfo.append("✅ У вас активирован VIP-статус!\n");
+      vipInfo.append("📅 Действует до: ").append(expiresAt.toLocalDate()).append("\n");
+      vipInfo.append("🔄 Текущий тарифный план: ").append(getReadablePlanType(planType)).append("\n\n");
+      vipInfo.append("📱 Ваш профиль будет отображаться с пометкой VIP\n");
+      vipInfo.append("👁 Пользователи будут видеть ваш username для быстрой связи\n");
+      vipInfo.append("🔍 Вы будете отображаться выше в результатах поиска\n");
+    } else {
+      vipInfo.append("⭐ Получите больше от нашего сервиса с VIP-статусом!\n\n");
+      vipInfo.append("📱 Ваш профиль будет отображаться с пометкой VIP\n");
+      vipInfo.append("👁 Пользователи будут видеть ваш username для быстрой связи\n");
+      vipInfo.append("🔍 Вы будете отображаться выше в результатах поиска\n\n");
+      vipInfo.append("Выберите тарифный план ниже для приобретения VIP-статуса:");
+    }
+    
+    return vipInfo.toString();
+  }
+  
+  public String getReadablePlanType(String planType) {
+    return switch (planType) {
+      case "month" -> "1 месяц";
+      case "3months" -> "3 месяца";
+      case "year" -> "1 год";
+      default -> planType;
+    };
+  }
+  
+  public String getSenderDisplayName(User user) {
+    StringBuilder name = new StringBuilder();
+    
+    if (user.isVipActive()) {
+      name.append("👑 ");
+    }
+    
+    if (user.getFirstName() != null && !user.getFirstName().isEmpty()) {
+      name.append(user.getFirstName());
+      
+      if (user.isVipActive() && user.getUsername() != null && !user.getUsername().isEmpty()) {
+        name.append(" (@").append(user.getUsername()).append(")");
+      }
+      
+      return name.toString();
+    } else if (user.getUsername() != null && !user.getUsername().isEmpty()) {
+      return name.append("@").append(user.getUsername()).toString();
+    } else {
+      return name.append("Пользователь").toString();
+    }
   }
 }
