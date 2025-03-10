@@ -10,7 +10,6 @@ import ru.gang.datingBot.handler.CallbackQueryHandler;
 import ru.gang.datingBot.handler.ChatHandler;
 import ru.gang.datingBot.handler.LocationHandler;
 import ru.gang.datingBot.handler.MessageHandler;
-import ru.gang.datingBot.handler.MeetingPlaceHandler;
 import ru.gang.datingBot.handler.PhotoHandler;
 import ru.gang.datingBot.service.ChatService;
 import ru.gang.datingBot.service.MeetingService;
@@ -40,13 +39,11 @@ public class DatingBot extends TelegramLongPollingBot {
   private final ChatHandler chatHandler;
   private final KeyboardService keyboardService;
   private final UserStateManager userStateManager;
-  private final MeetingPlaceHandler meetingPlaceHandler;
 
   public DatingBot(
           UserService userService, 
           MeetingService meetingService, 
-          ChatService chatService,
-          MeetingPlaceHandler meetingPlaceHandler) {
+          ChatService chatService) {
     // Инициализируем базовые сервисы и компоненты
     this.userStateManager = new UserStateManager();
     this.keyboardService = new KeyboardService();
@@ -71,11 +68,6 @@ public class DatingBot extends TelegramLongPollingBot {
 
     // Устанавливаем ссылку на ChatHandler в CallbackQueryHandler
     this.callbackQueryHandler.setChatHandler(this.chatHandler);
-    
-    // Связываем обработчики с MeetingPlaceHandler
-    this.meetingPlaceHandler = meetingPlaceHandler;
-    this.callbackQueryHandler.setMeetingPlaceHandler(this.meetingPlaceHandler);
-    this.chatHandler.setMeetingPlaceHandler(this.meetingPlaceHandler);
 
     this.messageHandler = new MessageHandler(
             userService,
@@ -177,5 +169,4 @@ public class DatingBot extends TelegramLongPollingBot {
   public String getBotToken() {
     return botToken;
   }
-
 }

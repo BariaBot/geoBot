@@ -5,7 +5,7 @@
 
   <groupId>ru.gang</groupId>
   <artifactId>datingBot</artifactId>
-  <version>1.0.002</version>
+  <version>1.0.100</version>
   <packaging>jar</packaging>
 
   <name>DatingBot</name>

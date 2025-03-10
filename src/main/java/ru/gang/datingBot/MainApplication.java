@@ -13,13 +13,11 @@ import ru.gang.datingBot.bot.DatingBot;
 import ru.gang.datingBot.bot.KeyboardService;
 import ru.gang.datingBot.bot.MessageSender;
 import ru.gang.datingBot.bot.UserStateManager;
-import ru.gang.datingBot.handler.MeetingPlaceHandler;
 import ru.gang.datingBot.repository.ChatMessageRepository;
 import ru.gang.datingBot.repository.MeetingRepository;
 import ru.gang.datingBot.repository.UserRepository;
 import ru.gang.datingBot.service.ChatService;
 import ru.gang.datingBot.service.MeetingService;
-import ru.gang.datingBot.service.PlaceService;
 import ru.gang.datingBot.service.UserService;
 
 @SpringBootApplication
@@ -66,34 +64,15 @@ public class MainApplication {
   }
 
   @Bean
-  public MeetingPlaceHandler meetingPlaceHandler(
-          UserService userService,
-          MeetingService meetingService,
-          PlaceService placeService,
-          UserStateManager userStateManager,
-          KeyboardService keyboardService,
-          MessageSender messageSender) {
-    return new MeetingPlaceHandler(
-            userService,
-            meetingService,
-            placeService,
-            userStateManager,
-            keyboardService,
-            messageSender);
-  }
-
-  @Bean
   public DatingBot datingBot(
           UserService userService,
           @Lazy MeetingService meetingService,
-          ChatService chatService,
-          @Lazy MeetingPlaceHandler meetingPlaceHandler) {
+          ChatService chatService) {
     
     // Создаем DatingBot с необходимыми зависимостями
     return new DatingBot(
             userService,
             meetingService,
-            chatService,
-            meetingPlaceHandler);
+            chatService);
   }
 }

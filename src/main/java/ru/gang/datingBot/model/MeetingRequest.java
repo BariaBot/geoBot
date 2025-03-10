@@ -32,29 +32,8 @@ public class MeetingRequest {
   private LocalDateTime scheduledTime;
   private LocalDateTime createdAt = LocalDateTime.now();
   
-  // Добавляем поля для информации о месте встречи
-  @ManyToOne
-  @JoinColumn(name = "place_id")
-  private Place selectedPlace;
-  
-  private LocalDateTime meetingTime;
-  
-  // Поля для подтверждения места встречи
-  private boolean senderConfirmed = false;
-  private boolean receiverConfirmed = false;
-  
-  // Поле для отслеживания отправки запроса на обратную связь
-  // Изменено с boolean на Boolean, чтобы поддерживать null значения
-  @Column(name = "feedback_sent")
-  private Boolean feedbackSent = false;
-  
   // Добавлен метод для проверки, есть ли фото в запросе
   public boolean hasPhoto() {
     return photoFileId != null && !photoFileId.isEmpty();
-  }
-  
-  // Проверяет, подтверждено ли место обоими пользователями
-  public boolean isPlaceConfirmedByBoth() {
-    return senderConfirmed && receiverConfirmed;
   }
 }

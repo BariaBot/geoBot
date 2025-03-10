@@ -14,10 +14,6 @@ public interface MeetingRepository extends JpaRepository<MeetingRequest, Long> {
   // Получить все ожидающие запросы для пользователя
   List<MeetingRequest> findByReceiverAndStatus(User receiver, String status);
 
-  // Получить все запросы, которые были одобрены и должны быть оценены
-  @Query("SELECT m FROM MeetingRequest m WHERE m.status = 'accepted' AND m.scheduledTime < :timeLimit")
-  List<MeetingRequest> findPastMeetings(@Param("timeLimit") LocalDateTime timeLimit);
-
   // Найти запросы, отправленные конкретным пользователем
   List<MeetingRequest> findBySender(User sender);
 

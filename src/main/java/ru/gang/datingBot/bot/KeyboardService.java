@@ -6,11 +6,8 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKe
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 /**
  * Сервис для создания различных типов клавиатур в Telegram
@@ -239,130 +236,5 @@ public class KeyboardService {
 
     markup.setKeyboard(keyboard);
     return markup;
-  }
-
-  /**
-   * Создает клавиатуру для навигации по местам встречи
-   */
-  public InlineKeyboardMarkup createPlaceNavigationKeyboard(Long placeId, boolean hasMultiplePlaces) {
-    InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
-    List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
-    
-    // Кнопки навигации
-    if (hasMultiplePlaces) {
-        List<InlineKeyboardButton> navigationRow = new ArrayList<>();
-        navigationRow.add(createButton("⬅️ Предыдущее", "prev_place"));
-        navigationRow.add(createButton("Следующее ➡️", "next_place"));
-        rowsInline.add(navigationRow);
-    }
-    
-    // Кнопка выбора места
-    List<InlineKeyboardButton> actionRow = new ArrayList<>();
-    actionRow.add(createButton("✅ Выбрать это место", "select_place_" + placeId));
-    rowsInline.add(actionRow);
-    
-    markupInline.setKeyboard(rowsInline);
-    return markupInline;
-  }
-
-  /**
-   * Создает клавиатуру для выбора даты встречи
-   */
-  public InlineKeyboardMarkup createDateSelectionKeyboard() {
-    InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
-    List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
-    
-    LocalDate today = LocalDate.now();
-    
-    // Создаем кнопки для 7 дней
-    for (int i = 0; i < 7; i += 2) {
-        List<InlineKeyboardButton> row = new ArrayList<>();
-        
-        LocalDate date1 = today.plusDays(i);
-        row.add(createButton(
-            formatDate(date1), 
-            "date_" + date1.format(DateTimeFormatter.ISO_DATE)
-        ));
-        
-        if (i + 1 < 7) {
-            LocalDate date2 = today.plusDays(i + 1);
-            row.add(createButton(
-                formatDate(date2), 
-                "date_" + date2.format(DateTimeFormatter.ISO_DATE)
-            ));
-        }
-        
-        rowsInline.add(row);
-    }
-    
-    markupInline.setKeyboard(rowsInline);
-    return markupInline;
-  }
-
-  /**
-   * Форматирует дату для отображения
-   */
-  private String formatDate(LocalDate date) {
-    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMM (E)", new Locale("ru"));
-    return date.format(formatter);
-  }
-
-  /**
-   * Создает клавиатуру для выбора времени встречи
-   */
-  public InlineKeyboardMarkup createMeetingTimeSelectionKeyboard() {
-    InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
-    List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
-    
-    // Временные слоты с 10:00 до 21:00
-    for (int hour = 10; hour <= 20; hour += 2) {
-        List<InlineKeyboardButton> row = new ArrayList<>();
-        
-        String time1 = String.format("%02d:00", hour);
-        row.add(createButton(time1, "time_" + time1));
-        
-        if (hour + 1 <= 20) {
-            String time2 = String.format("%02d:00", hour + 1);
-            row.add(createButton(time2, "time_" + time2));
-        }
-        
-        rowsInline.add(row);
-    }
-    
-    markupInline.setKeyboard(rowsInline);
-    return markupInline;
-  }
-
-  /**
-   * Создает клавиатуру для подтверждения встречи
-   */
-  public InlineKeyboardMarkup createConfirmMeetingKeyboard(Long meetingRequestId) {
-    InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
-    List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
-    
-    List<InlineKeyboardButton> row = new ArrayList<>();
-    row.add(createButton("✅ Подтвердить", "confirm_meeting_" + meetingRequestId));
-    rowsInline.add(row);
-    
-    markupInline.setKeyboard(rowsInline);
-    return markupInline;
-  }
-
-  /**
-   * Создает клавиатуру для сбора обратной связи
-   */
-  public InlineKeyboardMarkup createFeedbackKeyboard(Long meetingRequestId) {
-    InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
-    List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
-    
-    // Оценка от 1 до 5
-    List<InlineKeyboardButton> ratingRow = new ArrayList<>();
-    for (int i = 1; i <= 5; i++) {
-        ratingRow.add(createButton(i + "⭐", "rate_meeting_" + meetingRequestId + "_" + i));
-    }
-    rowsInline.add(ratingRow);
-    
-    markupInline.setKeyboard(rowsInline);
-    return markupInline;
   }
 }

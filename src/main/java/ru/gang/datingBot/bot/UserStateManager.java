@@ -4,8 +4,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.List;
 
-import ru.gang.datingBot.model.Place;
-
 /**
  * Класс для управления состояниями пользователей в процессе диалога с ботом
  */
@@ -26,12 +24,7 @@ public class UserStateManager {
     WAITING_FOR_GENDER_PREFERENCE,
     WAITING_FOR_MEETING_MESSAGE,
     WAITING_FOR_MEETING_PHOTO,
-    CHATTING, // Состояние чата
-    WAITING_FOR_PLACE_TYPE,    // Ожидание ввода типа заведения
-    VIEWING_PLACES,            // Просмотр мест
-    WAITING_FOR_DATE,          // Выбор даты встречи
-    WAITING_FOR_TIME,          // Выбор времени встречи
-    WAITING_FOR_CONFIRMATION   // Подтверждение встречи
+    CHATTING // Состояние чата
   }
   
   // Карта для отслеживания текущего состояния каждого пользователя
@@ -53,14 +46,6 @@ public class UserStateManager {
   // Хранилище информации о текущем чате
   private final Map<Long, Long> currentChatUser = new HashMap<>(); // chatId -> targetUserId
   private final Map<Long, Long> currentChatMeetingRequest = new HashMap<>(); // chatId -> meetingRequestId
-
-  // Хранилище для информации о местах встречи
-  private final Map<Long, List<Place>> cachedPlaces = new HashMap<>();
-  private final Map<Long, Integer> currentPlaceIndex = new HashMap<>();
-  private final Map<Long, Long> selectedPlaceId = new HashMap<>();
-  private final Map<Long, String> selectedDate = new HashMap<>();
-  private final Map<Long, String> selectedTime = new HashMap<>();
-  private final Map<Long, Long> pendingMeetingRequestId = new HashMap<>();
 
   /**
    * Получить текущее состояние пользователя
@@ -187,66 +172,5 @@ public class UserStateManager {
 
   public boolean hasLocationSettings(Long chatId) {
     return userLiveLocationDurations.containsKey(chatId) && userSearchRadius.containsKey(chatId);
-  }
-
-  /**
-   * Методы для работы с местами встреч
-   */
-  public void cachePlaces(Long chatId, List<Place> places) {
-    cachedPlaces.put(chatId, places);
-    currentPlaceIndex.put(chatId, 0);
-  }
-
-  public List<Place> getCachedPlaces(Long chatId) {
-    return cachedPlaces.get(chatId);
-  }
-
-  public Integer getCurrentPlaceIndex(Long chatId) {
-    return currentPlaceIndex.getOrDefault(chatId, 0);
-  }
-
-  public void setCurrentPlaceIndex(Long chatId, Integer index) {
-    currentPlaceIndex.put(chatId, index);
-  }
-
-  public void saveSelectedPlaceId(Long chatId, Long placeId) {
-    selectedPlaceId.put(chatId, placeId);
-  }
-
-  public Long getSelectedPlaceId(Long chatId) {
-    return selectedPlaceId.get(chatId);
-  }
-
-  public void saveSelectedDate(Long chatId, String date) {
-    selectedDate.put(chatId, date);
-  }
-
-  public String getSelectedDate(Long chatId) {
-    return selectedDate.get(chatId);
-  }
-
-  public void saveSelectedTime(Long chatId, String time) {
-    selectedTime.put(chatId, time);
-  }
-
-  public String getSelectedTime(Long chatId) {
-    return selectedTime.get(chatId);
-  }
-
-  public void savePendingMeetingRequestId(Long chatId, Long meetingRequestId) {
-    pendingMeetingRequestId.put(chatId, meetingRequestId);
-  }
-
-  public Long getPendingMeetingRequestId(Long chatId) {
-    return pendingMeetingRequestId.get(chatId);
-  }
-
-  public void clearMeetingPlaceData(Long chatId) {
-    cachedPlaces.remove(chatId);
-    currentPlaceIndex.remove(chatId);
-    selectedPlaceId.remove(chatId);
-    selectedDate.remove(chatId);
-    selectedTime.remove(chatId);
-    pendingMeetingRequestId.remove(chatId);
   }
 }
