@@ -9,14 +9,8 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.Keyboard
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Сервис для создания различных типов клавиатур в Telegram
- */
 public class KeyboardService {
 
-  /**
-   * Создает кнопку для инлайн-клавиатуры
-   */
   public InlineKeyboardButton createButton(String text, String callbackData) {
     InlineKeyboardButton button = new InlineKeyboardButton();
     button.setText(text);
@@ -24,9 +18,6 @@ public class KeyboardService {
     return button;
   }
 
-  /**
-   * Создает меню выбора времени для геолокации
-   */
   public InlineKeyboardMarkup createTimeSelectionKeyboard() {
     InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
     List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
@@ -42,9 +33,6 @@ public class KeyboardService {
     return markupInline;
   }
 
-  /**
-   * Создает меню выбора радиуса поиска
-   */
   public InlineKeyboardMarkup createRadiusSelectionKeyboard() {
     InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
     List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
@@ -61,9 +49,6 @@ public class KeyboardService {
     return markupInline;
   }
 
-  /**
-   * Создает клавиатуру выбора пола
-   */
   public InlineKeyboardMarkup createGenderSelectionKeyboard() {
     InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
     List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
@@ -81,9 +66,6 @@ public class KeyboardService {
     return markupInline;
   }
 
-  /**
-   * Создает клавиатуру выбора предпочитаемого пола
-   */
   public InlineKeyboardMarkup createGenderPreferenceKeyboard() {
     InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
     List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
@@ -101,9 +83,6 @@ public class KeyboardService {
     return markupInline;
   }
 
-  /**
-   * Создает клавиатуру для редактирования профиля
-   */
   public InlineKeyboardMarkup createProfileEditKeyboard() {
     InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
     List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
@@ -127,14 +106,10 @@ public class KeyboardService {
     return markupInline;
   }
 
-  /**
-   * Создает клавиатуру для поиска пользователей поблизости
-   */
   public InlineKeyboardMarkup createNearbyUserNavigationKeyboard(Long targetUserId, boolean hasMultipleUsers) {
     InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
     List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
 
-    // Добавляем кнопки навигации только при наличии нескольких пользователей
     if (hasMultipleUsers) {
       List<InlineKeyboardButton> navigationRow = new ArrayList<>();
       navigationRow.add(createButton("⬅️ Предыдущий", "prev_user"));
@@ -142,7 +117,6 @@ public class KeyboardService {
       rowsInline.add(navigationRow);
     }
 
-    // Кнопка для отправки запроса на встречу
     List<InlineKeyboardButton> actionRow = new ArrayList<>();
     actionRow.add(createButton("📩 Отправить запрос", "send_request_" + targetUserId));
     rowsInline.add(actionRow);
@@ -151,9 +125,6 @@ public class KeyboardService {
     return markupInline;
   }
 
-  /**
-   * Создает клавиатуру для запросов на встречу
-   */
   public InlineKeyboardMarkup createMeetingRequestKeyboard(Long senderId) {
     InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
     List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
@@ -168,9 +139,6 @@ public class KeyboardService {
     return markupInline;
   }
 
-  /**
-   * Создает клавиатуру для настроек поиска
-   */
   public InlineKeyboardMarkup createSearchSettingsKeyboard() {
     InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
     List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
@@ -187,9 +155,6 @@ public class KeyboardService {
     return markupInline;
   }
 
-  /**
-   * Создает клавиатуру с кнопкой запроса геолокации
-   */
   public ReplyKeyboardMarkup createLocationRequestKeyboard() {
     KeyboardButton locationButton = new KeyboardButton("📍 Поделиться геолокацией");
     locationButton.setRequestLocation(true);
@@ -213,9 +178,6 @@ public class KeyboardService {
     return replyKeyboardMarkup;
   }
 
-  /**
-   * Создает основную клавиатуру с кнопками для быстрого доступа
-   */
   public ReplyKeyboardMarkup createMainKeyboard() {
     ReplyKeyboardMarkup markup = new ReplyKeyboardMarkup();
     markup.setResizeKeyboard(true);

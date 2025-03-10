@@ -15,12 +15,6 @@ import ru.gang.datingBot.service.ChatService;
 import ru.gang.datingBot.service.MeetingService;
 import ru.gang.datingBot.service.UserService;
 
-/**
- * Основной класс бота
- * Примечание: TelegramLongPollingBot помечен как устаревший, но используется из-за
- * совместимости с текущей версией библиотеки. В будущих версиях следует
- * перейти на современный подход с UpdatesListener.
- */
 @Getter
 @Setter
 @Component
@@ -58,7 +52,6 @@ public class DatingBot extends TelegramLongPollingBot {
             profileService,
             messageSender);
 
-    // Затем создаем ChatHandler
     this.chatHandler = new ChatHandler(
             userService, 
             meetingService, 
@@ -66,7 +59,6 @@ public class DatingBot extends TelegramLongPollingBot {
             userStateManager, 
             messageSender);
 
-    // Устанавливаем ссылку на ChatHandler в CallbackQueryHandler
     this.callbackQueryHandler.setChatHandler(this.chatHandler);
 
     this.messageHandler = new MessageHandler(
@@ -88,7 +80,6 @@ public class DatingBot extends TelegramLongPollingBot {
             userStateManager,
             messageSender);
 
-    // Устанавливаем ссылку на CallbackQueryHandler для LocationHandler
     this.locationHandler.setCallbackQueryHandler(this.callbackQueryHandler);
   }
 
@@ -98,44 +89,33 @@ public class DatingBot extends TelegramLongPollingBot {
       var message = update.getMessage();
       Long chatId = message.getChatId();
 
-      // Проверяем, находится ли пользователь в режиме чата
       if (userStateManager.isUserInState(chatId, UserStateManager.UserState.CHATTING)) {
         if (message.hasText()) {
-          // Обрабатываем текстовое сообщение в режиме чата
           String text = message.getText();
           
-          // Проверяем команду завершения чата
           if ("/end_chat".equals(text)) {
             chatHandler.endCurrentChat(chatId);
           } else {
             chatHandler.processChatMessage(chatId, text);
           }
         } else if (message.hasPhoto()) {
-          // Обрабатываем фото в режиме чата
           chatHandler.processChatPhoto(chatId, message.getPhoto());
         } else if (message.hasSticker()) {
-          // Обрабатываем стикеры в режиме чата
           chatHandler.processChatSticker(chatId, message.getSticker());
         } else if (message.hasAnimation()) {
-          // Обрабатываем GIF-анимации в режиме чата
           chatHandler.processChatAnimation(chatId, message.getAnimation());
         } else if (message.hasVideo()) {
-          // Обрабатываем видео в режиме чата
           chatHandler.processChatVideo(chatId, message.getVideo());
         } else if (message.hasVoice()) {
-          // Обрабатываем голосовые сообщения в режиме чата
           chatHandler.processChatVoice(chatId, message.getVoice());
         } else if (message.hasAudio()) {
-          // Обрабатываем аудио в режиме чата
           chatHandler.processChatAudio(chatId, message.getAudio());
         } else if (message.hasDocument()) {
-          // Обрабатываем документы в режиме чата
           chatHandler.processChatDocument(chatId, message.getDocument());
         }
         return;
       }
 
-      // Стандартная обработка сообщений
       if (message.hasText()) {
         messageHandler.processTextMessage(chatId, message.getText());
       } else if (message.hasLocation()) {

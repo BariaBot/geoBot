@@ -3,9 +3,6 @@ package ru.gang.datingBot.bot;
 import ru.gang.datingBot.model.User;
 import ru.gang.datingBot.service.UserService;
 
-/**
- * Сервис для работы с профилями пользователей внутри бота
- */
 public class ProfileService {
 
   private final UserService userService;
@@ -16,9 +13,6 @@ public class ProfileService {
     this.keyboardService = keyboardService;
   }
 
-  /**
-   * Получает отображаемое имя пользователя
-   */
   public String getDisplayName(User user) {
     if (user.getUsername() != null && !user.getUsername().isEmpty()) {
       return user.getUsername();
@@ -33,9 +27,6 @@ public class ProfileService {
     }
   }
 
-  /**
-   * Получает текстовое представление пола для отображения
-   */
   public String getGenderDisplay(String gender) {
     if (gender == null) return "Не указан";
     return switch (gender) {
@@ -46,9 +37,6 @@ public class ProfileService {
     };
   }
 
-  /**
-   * Получает текстовое представление предпочтений по полу для отображения
-   */
   public String getGenderPreferenceDisplay(String genderPref) {
     if (genderPref == null) return "Любой";
     return switch (genderPref) {
@@ -59,14 +47,9 @@ public class ProfileService {
     };
   }
 
-  /**
-   * Форматирует информацию о профиле найденного пользователя для отображения
-   */
   public String formatNearbyUserProfile(User profile, int currentIndex, int totalUsers) {
-    // Получаем отображаемое имя
     String displayName = getDisplayName(profile);
 
-    // Включаем информацию профиля
     StringBuilder profileInfo = new StringBuilder();
     profileInfo.append("✨ @").append(displayName).append(" рядом!");
 
@@ -86,15 +69,11 @@ public class ProfileService {
       profileInfo.append("\n\n⭐ Интересы: ").append(profile.getInterests());
     }
 
-    // Добавляем счетчик профилей
     profileInfo.append("\n\n🔢 Профиль ").append(currentIndex + 1).append(" из ").append(totalUsers);
 
     return profileInfo.toString();
   }
 
-  /**
-   * Форматирует информацию о запросе на встречу
-   */
   public String formatMeetingRequest(User sender, String message) {
     String senderName = getDisplayName(sender);
     
@@ -117,20 +96,15 @@ public class ProfileService {
       requestInfo.append("\n\n⭐ Интересы: ").append(sender.getInterests());
     }
 
-    // Добавляем сообщение из запроса на встречу
     requestInfo.append("\n\n💬 Сообщение: ").append(message);
 
     return requestInfo.toString();
   }
-  
-  /**
-   * Форматирует информацию о настройках поиска
-   */
+
   public String formatSearchSettings(User user) {
     StringBuilder settingsInfo = new StringBuilder();
     settingsInfo.append("🔍 *Ваши настройки поиска:*\n\n");
     
-    // Информация о возрастном диапазоне
     String ageRange = "Любой";
     if (user.getMinAgePreference() != null && user.getMaxAgePreference() != null) {
       ageRange = user.getMinAgePreference() + " - " + user.getMaxAgePreference() + " лет";
