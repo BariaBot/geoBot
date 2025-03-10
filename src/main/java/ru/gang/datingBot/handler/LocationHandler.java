@@ -9,38 +9,19 @@ import ru.gang.datingBot.model.User;
 import ru.gang.datingBot.service.UserService;
 
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 
-/**
- * Обработчик сообщений с геолокацией
- */
+@RequiredArgsConstructor
 public class LocationHandler {
 
   private final UserService userService;
   private final UserStateManager stateManager;
   private final MessageSender messageSender;
-  private final KeyboardService keyboardService;
-    /**
-     * -- SETTER --
-     *  Устанавливает ссылку на CallbackQueryHandler
-     *  Необходимо вызвать этот метод после создания всех обработчиков
-     */
-    // Добавляем ссылку на CallbackQueryHandler
+  private final KeyboardService keyboardService = new KeyboardService();
+    
   @Setter
   private CallbackQueryHandler callbackQueryHandler;
 
-  public LocationHandler(
-          UserService userService,
-          UserStateManager stateManager,
-          MessageSender messageSender) {
-    this.userService = userService;
-    this.stateManager = stateManager;
-    this.messageSender = messageSender;
-    this.keyboardService = new KeyboardService();
-  }
-
-    /**
-   * Обрабатывает сообщения с геолокацией
-   */
   public void processLocationMessage(Long chatId, double latitude, double longitude, Integer messageId, Update update) {
     Integer duration = stateManager.getLocationDuration(chatId);
     Integer radius = stateManager.getSearchRadius(chatId);
@@ -55,7 +36,6 @@ public class LocationHandler {
 
       userService.updateUserLocation(chatId, latitude, longitude, duration, radius, telegramUsername, firstName, lastName, phoneNumber);
 
-      // Удаляем сообщение "Отправьте свою геолокацию..."
       messageSender.deleteMessage(chatId, messageId);
 
       messageSender.sendTextMessageWithKeyboard(
@@ -63,14 +43,11 @@ public class LocationHandler {
               "📍 Ваше местоположение обновлено! Мы ищем для вас людей поблизости...",
               keyboardService.createMainKeyboard());
 
-      // Поиск пользователей поблизости с учетом фильтров
       List<User> nearbyUsers = userService.findNearbyUsers(chatId, latitude, longitude, radius);
       System.out.println("DEBUG: Найдено пользователей поблизости: " + (nearbyUsers != null ? nearbyUsers.size() : 0));
 
-      // Кэшируем результаты поиска
       stateManager.cacheNearbyUsers(chatId, nearbyUsers);
 
-      // Отображаем информацию о найденных пользователях
       showNearbyUsers(chatId, nearbyUsers);
     } else {
       messageSender.sendTextMessageWithKeyboard(
@@ -80,9 +57,6 @@ public class LocationHandler {
     }
   }
 
-  /**
-   * Отображает информацию о найденных пользователях
-   */
   private void showNearbyUsers(Long chatId, List<User> nearbyUsers) {
     if (nearbyUsers == null || nearbyUsers.isEmpty()) {
       messageSender.sendTextMessageWithKeyboard(
@@ -94,16 +68,13 @@ public class LocationHandler {
       return;
     }
 
-    // Показываем информацию о количестве найденных пользователей
     messageSender.sendTextMessageWithKeyboard(
             chatId,
             "🔍 Найдено " + nearbyUsers.size() + " человек поблизости!",
             keyboardService.createMainKeyboard());
 
-    // Отобразим первого пользователя
     if (callbackQueryHandler != null) {
       System.out.println("DEBUG: Вызываем показ профиля первого пользователя");
-      // Небольшая задержка перед показом профиля
       try {
         Thread.sleep(500);
       } catch (InterruptedException e) {

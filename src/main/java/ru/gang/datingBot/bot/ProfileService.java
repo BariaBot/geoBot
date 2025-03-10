@@ -1,17 +1,14 @@
 package ru.gang.datingBot.bot;
 
+import lombok.RequiredArgsConstructor;
 import ru.gang.datingBot.model.User;
 import ru.gang.datingBot.service.UserService;
 
+@RequiredArgsConstructor
 public class ProfileService {
 
   private final UserService userService;
   private final KeyboardService keyboardService;
-
-  public ProfileService(UserService userService, KeyboardService keyboardService) {
-    this.userService = userService;
-    this.keyboardService = keyboardService;
-  }
 
   public String getDisplayName(User user) {
     if (user.getUsername() != null && !user.getUsername().isEmpty()) {
@@ -49,9 +46,11 @@ public class ProfileService {
 
   public String formatNearbyUserProfile(User profile, int currentIndex, int totalUsers) {
     String displayName = getDisplayName(profile);
+    String username = profile.getUsername() != null ? "@" + profile.getUsername() : "Нет username";
 
     StringBuilder profileInfo = new StringBuilder();
-    profileInfo.append("✨ @").append(displayName).append(" рядом!");
+    profileInfo.append("✨ ").append(displayName).append(" рядом!");
+    profileInfo.append("\n📱 Username: ").append(username);
 
     if (profile.getAge() != null) {
       profileInfo.append("\n\n🎂 Возраст: ").append(profile.getAge());
@@ -76,9 +75,11 @@ public class ProfileService {
 
   public String formatMeetingRequest(User sender, String message) {
     String senderName = getDisplayName(sender);
+    String username = sender.getUsername() != null ? "@" + sender.getUsername() : "Нет username";
     
     StringBuilder requestInfo = new StringBuilder();
     requestInfo.append("✨ ").append(senderName).append(" отправил вам запрос на встречу!");
+    requestInfo.append("\n📱 Username: ").append(username);
 
     if (sender.getAge() != null) {
       requestInfo.append("\n\n🎂 Возраст: ").append(sender.getAge());

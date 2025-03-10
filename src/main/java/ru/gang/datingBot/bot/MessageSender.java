@@ -1,5 +1,6 @@
 package ru.gang.datingBot.bot;
 
+import lombok.RequiredArgsConstructor;
 import org.telegram.telegrambots.meta.api.methods.send.SendAnimation;
 import org.telegram.telegrambots.meta.api.methods.send.SendAudio;
 import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
@@ -13,13 +14,10 @@ import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
+@RequiredArgsConstructor
 public class MessageSender {
 
   private final DatingBot bot;
-
-  public MessageSender(DatingBot bot) {
-    this.bot = bot;
-  }
 
   public void sendTextMessage(Long chatId, String text) {
     SendMessage message = new SendMessage();
@@ -203,7 +201,6 @@ public class MessageSender {
     try {
       bot.execute(new DeleteMessage(chatId.toString(), messageId));
     } catch (TelegramApiException e) {
-      // Игнорируем ошибку, если сообщение не найдено
       if (!e.getMessage().contains("message to delete not found")) {
         System.out.println("DEBUG: Ошибка при удалении сообщения: " + e.getMessage());
         e.printStackTrace();

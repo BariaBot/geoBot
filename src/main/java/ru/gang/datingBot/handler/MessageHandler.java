@@ -8,10 +8,9 @@ import ru.gang.datingBot.bot.UserStateManager;
 import ru.gang.datingBot.model.User;
 import ru.gang.datingBot.service.MeetingService;
 import ru.gang.datingBot.service.UserService;
+import lombok.RequiredArgsConstructor;
 
-/**
- * Обработчик текстовых сообщений от пользователей
- */
+@RequiredArgsConstructor
 public class MessageHandler {
 
   private final UserService userService;
@@ -21,26 +20,7 @@ public class MessageHandler {
   private final ProfileService profileService;
   private final MessageSender messageSender;
 
-  public MessageHandler(
-          UserService userService,
-          MeetingService meetingService,
-          UserStateManager stateManager,
-          KeyboardService keyboardService,
-          ProfileService profileService,
-          MessageSender messageSender) {
-    this.userService = userService;
-    this.meetingService = meetingService;
-    this.stateManager = stateManager;
-    this.keyboardService = keyboardService;
-    this.profileService = profileService;
-    this.messageSender = messageSender;
-  }
-
-  /**
-   * Обрабатывает текстовые сообщения от пользователей
-   */
   public void processTextMessage(Long chatId, String text) {
-    // Проверяем состояние пользователя в первую очередь для обработки процесса создания профиля
     UserStateManager.UserState currentState = stateManager.getUserState(chatId);
 
     switch (currentState) {
@@ -83,7 +63,6 @@ public class MessageHandler {
           }
 
           User user = userService.getUserByTelegramId(chatId);
-          // Временно сохраняем только минимальный возраст
           userService.updateUserSearchPreferences(chatId, minAge, user.getMaxAgePreference(), user.getGenderPreference());
 
           messageSender.sendTextMessage(chatId, "✅ Минимальный возраст установлен на " + minAge + " лет. Теперь укажите максимальный возраст для поиска.");
@@ -107,7 +86,6 @@ public class MessageHandler {
             return;
           }
 
-          // Теперь сохраняем оба значения возраста
           userService.updateUserSearchPreferences(chatId, user.getMinAgePreference(), maxAge, user.getGenderPreference());
 
           messageSender.sendTextMessageWithKeyboard(
@@ -125,7 +103,6 @@ public class MessageHandler {
         return;
 
       case WAITING_FOR_MEETING_MESSAGE:
-        // Сохраняем сообщение для запроса на встречу
         System.out.println("DEBUG: Сохраняем сообщение для запроса на встречу: " + text);
         stateManager.saveMeetingRequestMessage(chatId, text);
         messageSender.sendTextMessage(chatId, "✅ Сообщение сохранено! Хотите добавить фото к запросу? (отправьте фото или напишите \"нет\")");
@@ -134,7 +111,6 @@ public class MessageHandler {
 
       case WAITING_FOR_MEETING_PHOTO:
         if (text.equalsIgnoreCase("нет") || text.equalsIgnoreCase("no")) {
-          // Отправляем запрос без фото
           Long targetUserId = stateManager.getMeetingRequestTarget(chatId);
           String message = stateManager.getMeetingRequestMessage(chatId);
 
@@ -142,7 +118,6 @@ public class MessageHandler {
             System.out.println("DEBUG: Отправляем запрос на встречу от " + chatId + " к " + targetUserId);
             meetingService.sendMeetingRequest(chatId, targetUserId, message, LocalDateTime.now().plusHours(1));
 
-            // Уведомляем получателя о запросе
             notifyUserAboutMeetingRequest(targetUserId, chatId);
 
             messageSender.sendTextMessageWithKeyboard(
@@ -150,7 +125,6 @@ public class MessageHandler {
                     "✅ Запрос на встречу отправлен!",
                     keyboardService.createMainKeyboard());
 
-            // Очищаем временные данные
             stateManager.clearMeetingRequestData(chatId);
           } else {
             System.out.println("DEBUG: Ошибка отправки запроса, targetUserId: " + targetUserId + ", message: " + message);
@@ -164,11 +138,9 @@ public class MessageHandler {
         return;
 
       default:
-        // Обработка команд или обычных сообщений
         break;
     }
 
-    // Обработка команд
     switch (text) {
       case "/start":
         messageSender.sendTextMessage(chatId,
@@ -212,9 +184,6 @@ public class MessageHandler {
     }
   }
 
-  /**
-   * Показывает профиль пользователя
-   */
   private void showUserProfile(Long chatId) {
     User user = userService.getUserByTelegramId(chatId);
 
@@ -226,41 +195,32 @@ public class MessageHandler {
       return;
     }
 
-    // Если у пользователя есть фото профиля, отправляем его с информацией профиля
     if (user.getPhotoFileId() != null && !user.getPhotoFileId().isEmpty()) {
       try {
         messageSender.sendPhotoWithMarkdown(chatId, user.getPhotoFileId(), escapeMarkdown(user.getProfileInfo()));
       } catch (Exception e) {
-        // В случае ошибки отправляем только текст
         messageSender.sendTextMessage(chatId, "Информация о вашем профиле:\n\n" + user.getProfileInfo());
       }
     } else {
-      // Отправляем профиль только с текстом, избегая Markdown
       messageSender.sendTextMessage(
               chatId,
               user.getProfileInfo() + "\n🔄 Используйте /edit_profile для редактирования профиля.");
     }
 
-    // Показываем процент заполненности
     int completionPercentage = user.getProfileCompletionPercentage();
     messageSender.sendTextMessage(chatId, "🏆 Ваш профиль заполнен на " + completionPercentage + "%");
 
-    // Показываем кнопки редактирования, а затем основную клавиатуру
     messageSender.sendTextMessageWithKeyboard(
             chatId,
             "Что вы хотите изменить в своем профиле?",
             keyboardService.createProfileEditKeyboard());
 
-    // После инлайн-клавиатуры для редактирования показываем основную клавиатуру
     messageSender.sendTextMessageWithKeyboard(
             chatId,
             "Вернуться к основным действиям:",
             keyboardService.createMainKeyboard());
   }
 
-  /**
-   * Начинаем процесс редактирования профиля
-   */
   private void startProfileEditing(Long chatId) {
     messageSender.sendTextMessageWithKeyboard(
             chatId,
@@ -268,9 +228,6 @@ public class MessageHandler {
             keyboardService.createProfileEditKeyboard());
   }
 
-  /**
-   * Отображает настройки поиска
-   */
   private void showSearchSettings(Long chatId) {
     User user = userService.getUserByTelegramId(chatId);
 
@@ -279,24 +236,18 @@ public class MessageHandler {
       return;
     }
 
-    // Отправляем информацию о текущих настройках, избегая Markdown
     try {
       messageSender.sendTextMessage(chatId, escapeMarkdown(profileService.formatSearchSettings(user)));
     } catch (Exception e) {
-      // В случае ошибки отправляем без форматирования
       messageSender.sendTextMessage(chatId, "Ваши настройки поиска:\n\n" + profileService.formatSearchSettings(user));
     }
 
-    // Показываем кнопки для изменения настроек
     messageSender.sendTextMessageWithKeyboard(
             chatId,
             "Что вы хотите изменить?",
             keyboardService.createSearchSettingsKeyboard());
   }
 
-  /**
-   * Экранирует символы в Markdown
-   */
   private String escapeMarkdown(String text) {
     if (text == null) return "";
     return text
@@ -307,9 +258,6 @@ public class MessageHandler {
             .replace("`", "\\`");
   }
 
-  /**
-   * Уведомляет пользователя о запросе на встречу
-   */
   private void notifyUserAboutMeetingRequest(Long receiverId, Long senderId) {
     System.out.println("DEBUG: Начало отправки уведомления о запросе на встречу от " + senderId + " к " + receiverId);
     User sender = userService.getUserByTelegramId(senderId);
@@ -322,10 +270,8 @@ public class MessageHandler {
 
     System.out.println("DEBUG: Форматирование информации о запросе");
     
-    // Форматируем сообщение о запросе на встречу с очищенным форматированием
     String requestInfo = profileService.formatMeetingRequest(sender, message);
 
-    // Отправляем сообщение с кнопками принятия/отклонения
     System.out.println("DEBUG: Отправка сообщения с кнопками принятия/отклонения");
     try {
       messageSender.sendTextMessageWithKeyboard(
@@ -334,13 +280,11 @@ public class MessageHandler {
               keyboardService.createMeetingRequestKeyboard(senderId));
     } catch (Exception e) {
       System.out.println("DEBUG: Ошибка при отправке уведомления с кнопками: " + e.getMessage());
-      // Запасной вариант без кнопок
       messageSender.sendTextMessage(
               receiverId,
               requestInfo + "\n\nЧтобы ответить, используйте команды:\n/accept_" + senderId + " - принять\n/decline_" + senderId + " - отклонить");
     }
 
-    // Если у отправителя есть фото профиля, отправляем его отдельно
     if (sender.getPhotoFileId() != null && !sender.getPhotoFileId().isEmpty()) {
       System.out.println("DEBUG: Отправка фото профиля отправителя");
       try {
@@ -350,7 +294,6 @@ public class MessageHandler {
       }
     }
 
-    // Если в запросе есть фото, отправляем его отдельно
     String photoFileId = stateManager.getMeetingRequestPhoto(senderId);
     if (photoFileId != null && !photoFileId.isEmpty()) {
       System.out.println("DEBUG: Отправка фото из запроса");

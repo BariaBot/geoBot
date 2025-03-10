@@ -4,9 +4,15 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 
 @Entity
 @Table(name = "users", schema = "public")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class User {
 
   @Id
@@ -17,12 +23,10 @@ public class User {
   private Long telegramId;
 
   private String username;
-  
-  // Добавлены поля возраста и пола
   private Integer age;
   
   @Column(length = 10)
-  private String gender; // "male", "female", "other"
+  private String gender;
   
   private Double latitude;
   private Double longitude;
@@ -41,7 +45,6 @@ public class User {
   @Column(nullable = true, unique = true)
   private String phoneNumber;
   
-  // Поля профиля
   @Column(nullable = true, length = 1000)
   private String description;
   
@@ -49,9 +52,8 @@ public class User {
   private String interests;
   
   @Column(nullable = true)
-  private String photoFileId; // Telegram file ID для фото профиля
+  private String photoFileId;
   
-  // Добавлены настройки фильтрации для поиска
   @Column(nullable = true)
   private Integer minAgePreference;
   
@@ -59,182 +61,11 @@ public class User {
   private Integer maxAgePreference;
   
   @Column(nullable = true, length = 10)
-  private String genderPreference; // "male", "female", "any"
+  private String genderPreference;
   
-  // Индикатор заполненности профиля
   @Column(nullable = false, columnDefinition = "boolean default false")
   private Boolean profileCompleted = false;
   
-  // Геттеры и сеттеры
-  public Long getId() {
-    return id;
-  }
-
-  public void setId(Long id) {
-    this.id = id;
-  }
-
-  public Long getTelegramId() {
-    return telegramId;
-  }
-
-  public void setTelegramId(Long telegramId) {
-    this.telegramId = telegramId;
-  }
-
-  public String getUsername() {
-    return username;
-  }
-
-  public void setUsername(String username) {
-    this.username = username;
-  }
-
-  public Integer getAge() {
-    return age;
-  }
-
-  public void setAge(Integer age) {
-    this.age = age;
-  }
-
-  public String getGender() {
-    return gender;
-  }
-
-  public void setGender(String gender) {
-    this.gender = gender;
-  }
-
-  public Double getLatitude() {
-    return latitude;
-  }
-
-  public void setLatitude(Double latitude) {
-    this.latitude = latitude;
-  }
-
-  public Double getLongitude() {
-    return longitude;
-  }
-
-  public void setLongitude(Double longitude) {
-    this.longitude = longitude;
-  }
-
-  public Boolean getActive() {
-    return active;
-  }
-
-  public void setActive(Boolean active) {
-    this.active = active;
-  }
-
-  public Integer getSearchRadius() {
-    return searchRadius;
-  }
-
-  public void setSearchRadius(Integer searchRadius) {
-    this.searchRadius = searchRadius;
-  }
-
-  public LocalDateTime getLastActive() {
-    return lastActive;
-  }
-
-  public void setLastActive(LocalDateTime lastActive) {
-    this.lastActive = lastActive;
-  }
-
-  public LocalDateTime getDeactivateAt() {
-    return deactivateAt;
-  }
-
-  public void setDeactivateAt(LocalDateTime deactivateAt) {
-    this.deactivateAt = deactivateAt;
-  }
-
-  public String getFirstName() {
-    return firstName;
-  }
-
-  public void setFirstName(String firstName) {
-    this.firstName = firstName;
-  }
-
-  public String getLastName() {
-    return lastName;
-  }
-
-  public void setLastName(String lastName) {
-    this.lastName = lastName;
-  }
-
-  public String getPhoneNumber() {
-    return phoneNumber;
-  }
-
-  public void setPhoneNumber(String phoneNumber) {
-    this.phoneNumber = phoneNumber;
-  }
-
-  public String getDescription() {
-    return description;
-  }
-
-  public void setDescription(String description) {
-    this.description = description;
-  }
-
-  public String getInterests() {
-    return interests;
-  }
-
-  public void setInterests(String interests) {
-    this.interests = interests;
-  }
-
-  public String getPhotoFileId() {
-    return photoFileId;
-  }
-
-  public void setPhotoFileId(String photoFileId) {
-    this.photoFileId = photoFileId;
-  }
-
-  public Integer getMinAgePreference() {
-    return minAgePreference;
-  }
-
-  public void setMinAgePreference(Integer minAgePreference) {
-    this.minAgePreference = minAgePreference;
-  }
-
-  public Integer getMaxAgePreference() {
-    return maxAgePreference;
-  }
-
-  public void setMaxAgePreference(Integer maxAgePreference) {
-    this.maxAgePreference = maxAgePreference;
-  }
-
-  public String getGenderPreference() {
-    return genderPreference;
-  }
-
-  public void setGenderPreference(String genderPreference) {
-    this.genderPreference = genderPreference;
-  }
-
-  public Boolean getProfileCompleted() {
-    return profileCompleted;
-  }
-
-  public void setProfileCompleted(Boolean profileCompleted) {
-    this.profileCompleted = profileCompleted;
-  }
-  
-  // Возвращает отформатированную строку с информацией профиля пользователя
   public String getProfileInfo() {
     StringBuilder profile = new StringBuilder();
     profile.append("📋 Ваш профиль:\n\n");
@@ -243,7 +74,6 @@ public class User {
     profile.append("📛 Фамилия: ").append(lastName != null ? lastName : "Не указано").append("\n");
     profile.append("🔍 Username: ").append(username != null ? "@" + username : "Не указано").append("\n");
     
-    // Добавлена информация о возрасте и поле
     profile.append("🎂 Возраст: ").append(age != null ? age : "Не указан").append("\n");
     profile.append("⚧ Пол: ").append(getGenderDisplay()).append("\n");
     
@@ -262,7 +92,6 @@ public class User {
     profile.append("\n📱 Телефон: ").append(phoneNumber != null ? phoneNumber : "Не указано").append("\n");
     profile.append("🖼 Фото: ").append(photoFileId != null ? "Загружено" : "Не загружено").append("\n");
     
-    // Добавлены настройки поиска
     profile.append("\n🔍 Настройки поиска:\n");
     String ageRange = "Любой";
     if (minAgePreference != null && maxAgePreference != null) {
@@ -278,9 +107,8 @@ public class User {
     return profile.toString();
   }
   
-  // Возвращает процент заполненности профиля
   public int getProfileCompletionPercentage() {
-    int totalFields = 8; // firstName, lastName, username, age, gender, description, interests, photoFileId
+    int totalFields = 8;
     int completedFields = 0;
     
     if (firstName != null && !firstName.isEmpty()) completedFields++;
@@ -295,7 +123,6 @@ public class User {
     return (completedFields * 100) / totalFields;
   }
   
-  // Вспомогательные методы для отображения пола
   public String getGenderDisplay() {
     if (gender == null) return "Не указан";
     return switch (gender) {
@@ -306,7 +133,6 @@ public class User {
     };
   }
   
-  // Вспомогательные методы для отображения предпочтений по полу
   public String getGenderPreferenceDisplay() {
     if (genderPreference == null) return "Любой";
     return switch (genderPreference) {
@@ -317,7 +143,6 @@ public class User {
     };
   }
   
-  // Экранирует специальные символы Markdown
   private String escapeMarkdown(String text) {
     if (text == null) return "";
     return text

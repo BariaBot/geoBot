@@ -38,7 +38,6 @@ public class DatingBot extends TelegramLongPollingBot {
           UserService userService, 
           MeetingService meetingService, 
           ChatService chatService) {
-    // Инициализируем базовые сервисы и компоненты
     this.userStateManager = new UserStateManager();
     this.keyboardService = new KeyboardService();
     ProfileService profileService = new ProfileService(userService, keyboardService);

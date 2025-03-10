@@ -3,12 +3,16 @@ package ru.gang.datingBot.model;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "meeting_requests")
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class MeetingRequest {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -23,16 +27,14 @@ public class MeetingRequest {
   private User receiver;
 
   private String message;
-  private String status = "pending"; // pending, accepted, declined, completed
+  private String status = "pending";
   
-  // Добавляем поле для хранения ID фотографии Telegram
   @Column(nullable = true)
   private String photoFileId;
   
   private LocalDateTime scheduledTime;
   private LocalDateTime createdAt = LocalDateTime.now();
   
-  // Добавлен метод для проверки, есть ли фото в запросе
   public boolean hasPhoto() {
     return photoFileId != null && !photoFileId.isEmpty();
   }

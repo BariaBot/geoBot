@@ -3,15 +3,10 @@ package ru.gang.datingBot.bot;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.List;
+import lombok.Getter;
 
-/**
- * Класс для управления состояниями пользователей в процессе диалога с ботом
- */
 public class UserStateManager {
 
-  /**
-   * Enum для отслеживания состояния разговора с пользователями
-   */
   public enum UserState {
     NONE,
     WAITING_FOR_DESCRIPTION,
@@ -24,86 +19,55 @@ public class UserStateManager {
     WAITING_FOR_GENDER_PREFERENCE,
     WAITING_FOR_MEETING_MESSAGE,
     WAITING_FOR_MEETING_PHOTO,
-    CHATTING // Состояние чата
+    CHATTING
   }
   
-  // Карта для отслеживания текущего состояния каждого пользователя
   private final Map<Long, UserState> userStates = new HashMap<>();
-  
-  // Хранилище для кэширования результатов поиска
   private final Map<Long, List<ru.gang.datingBot.model.User>> nearbyUsersCache = new HashMap<>();
   private final Map<Long, Integer> currentUserIndexCache = new HashMap<>();
-  
-  // Хранилище временных данных для создания запроса на встречу
   private final Map<Long, String> meetingRequestMessages = new HashMap<>();
   private final Map<Long, String> meetingRequestPhotos = new HashMap<>();
   private final Map<Long, Long> meetingRequestTargets = new HashMap<>();
-  
-  // Хранилище настроек геолокации
   private final Map<Long, Integer> userLiveLocationDurations = new HashMap<>();
   private final Map<Long, Integer> userSearchRadius = new HashMap<>();
-  
-  // Хранилище информации о текущем чате
-  private final Map<Long, Long> currentChatUser = new HashMap<>(); // chatId -> targetUserId
-  private final Map<Long, Long> currentChatMeetingRequest = new HashMap<>(); // chatId -> meetingRequestId
+  private final Map<Long, Long> currentChatUser = new HashMap<>();
+  private final Map<Long, Long> currentChatMeetingRequest = new HashMap<>();
 
-  /**
-   * Получить текущее состояние пользователя
-   */
   public UserState getUserState(Long chatId) {
     return userStates.getOrDefault(chatId, UserState.NONE);
   }
 
-  /**
-   * Установить состояние пользователя
-   */
   public void setUserState(Long chatId, UserState state) {
     userStates.put(chatId, state);
   }
 
-  /**
-   * Проверить, находится ли пользователь в указанном состоянии
-   */
   public boolean isUserInState(Long chatId, UserState state) {
     return getUserState(chatId) == state;
   }
 
-  /**
-   * Начать чат между пользователями
-   */
   public void startChatting(Long chatId, Long targetUserId, Long meetingRequestId) {
     setUserState(chatId, UserState.CHATTING);
     currentChatUser.put(chatId, targetUserId);
     currentChatMeetingRequest.put(chatId, meetingRequestId);
   }
 
-  /**
-   * Завершить текущий чат
-   */
   public void endChatting(Long chatId) {
     setUserState(chatId, UserState.NONE);
     currentChatUser.remove(chatId);
     currentChatMeetingRequest.remove(chatId);
   }
   
-  /**
-   * Получить ID пользователя, с которым ведется чат
-   */
   public Long getCurrentChatUser(Long chatId) {
     return currentChatUser.get(chatId);
   }
   
-  /**
-   * Получить ID запроса на встречу, связанного с чатом
-   */
   public Long getCurrentChatMeetingRequest(Long chatId) {
     return currentChatMeetingRequest.get(chatId);
   }
 
-  // Методы для кэша поиска
   public void cacheNearbyUsers(Long chatId, List<ru.gang.datingBot.model.User> users) {
     nearbyUsersCache.put(chatId, users);
-    currentUserIndexCache.put(chatId, 0); // Начинаем с первого пользователя
+    currentUserIndexCache.put(chatId, 0);
   }
 
   public List<ru.gang.datingBot.model.User> getNearbyUsersCache(Long chatId) {
@@ -118,9 +82,6 @@ public class UserStateManager {
     currentUserIndexCache.put(chatId, index);
   }
 
-  /**
-   * Методы для управления запросами на встречу
-   */
   public void saveMeetingRequestMessage(Long chatId, String message) {
     meetingRequestMessages.put(chatId, message);
   }
@@ -151,9 +112,6 @@ public class UserStateManager {
     meetingRequestTargets.remove(chatId);
   }
 
-  /**
-   * Методы для управления настройками геолокации
-   */
   public void saveLocationDuration(Long chatId, Integer hours) {
     userLiveLocationDurations.put(chatId, hours);
   }
