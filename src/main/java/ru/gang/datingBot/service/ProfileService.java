@@ -3,20 +3,43 @@ package ru.gang.datingBot.service;
 import lombok.RequiredArgsConstructor;
 import ru.gang.datingBot.model.User;
 
+/**
+ * Сервис для работы с профилями пользователей и их отображением
+ */
 @RequiredArgsConstructor
 public class ProfileService {
 
   private final UserService userService;
   private final KeyboardService keyboardService;
 
+  /**
+   * Получает отображаемое имя пользователя
+   * Использует только firstName, но не username
+   */
   public String getDisplayName(User user) {
+    StringBuilder displayName = new StringBuilder();
+    
     if (user.getFirstName() != null && !user.getFirstName().isEmpty()) {
-      return user.getFirstName();
-    } else {
+      displayName.append(user.getFirstName());
+    }
+    
+    if (user.getLastName() != null && !user.getLastName().isEmpty()) {
+      if (displayName.length() > 0) {
+        displayName.append(" ");
+      }
+      displayName.append(user.getLastName());
+    }
+    
+    if (displayName.length() == 0) {
       return "Анонимный пользователь";
     }
+    
+    return displayName.toString();
   }
 
+  /**
+   * Возвращает отображаемое название пола
+   */
   public String getGenderDisplay(String gender) {
     if (gender == null) return "Не указан";
     return switch (gender) {
@@ -27,6 +50,9 @@ public class ProfileService {
     };
   }
 
+  /**
+   * Возвращает отображаемое название предпочтения по полу
+   */
   public String getGenderPreferenceDisplay(String genderPref) {
     if (genderPref == null) return "Любой";
     return switch (genderPref) {
@@ -37,6 +63,9 @@ public class ProfileService {
     };
   }
 
+  /**
+   * Форматирует профиль пользователя для отображения в списке ближайших
+   */
   public String formatNearbyUserProfile(User profile, int currentIndex, int totalUsers) {
     String displayName = getDisplayName(profile);
 
@@ -64,6 +93,9 @@ public class ProfileService {
     return profileInfo.toString();
   }
 
+  /**
+   * Форматирует запрос на встречу
+   */
   public String formatMeetingRequest(User sender, String message) {
     String senderName = getDisplayName(sender);
     
@@ -91,6 +123,9 @@ public class ProfileService {
     return requestInfo.toString();
   }
 
+  /**
+   * Форматирует настройки поиска пользователя
+   */
   public String formatSearchSettings(User user) {
     StringBuilder settingsInfo = new StringBuilder();
     settingsInfo.append("🔍 *Ваши настройки поиска:*\n\n");

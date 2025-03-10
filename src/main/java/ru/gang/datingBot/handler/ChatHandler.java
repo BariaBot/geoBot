@@ -14,6 +14,9 @@ import java.util.List;
 
 import lombok.RequiredArgsConstructor;
 
+/**
+ * Обработчик чатов между пользователями
+ */
 @RequiredArgsConstructor
 public class ChatHandler {
 
@@ -24,6 +27,9 @@ public class ChatHandler {
   private final MessageSender messageSender;
   private final KeyboardService keyboardService = new KeyboardService();
 
+  /**
+   * Обрабатывает текстовые сообщения в чате
+   */
   public void processChatMessage(Long chatId, String text) {
     Long targetUserId = stateManager.getCurrentChatUser(chatId);
     Long meetingRequestId = stateManager.getCurrentChatMeetingRequest(chatId);
@@ -54,6 +60,9 @@ public class ChatHandler {
     }
   }
 
+  /**
+   * Обрабатывает отправку фотографий в чате
+   */
   public void processChatPhoto(Long chatId, List<PhotoSize> photos) {
     Long targetUserId = stateManager.getCurrentChatUser(chatId);
     Long meetingRequestId = stateManager.getCurrentChatMeetingRequest(chatId);
@@ -94,6 +103,9 @@ public class ChatHandler {
     }
   }
 
+  /**
+   * Обрабатывает отправку стикеров в чате
+   */
   public void processChatSticker(Long chatId, Object sticker) {
     Long targetUserId = stateManager.getCurrentChatUser(chatId);
     Long meetingRequestId = stateManager.getCurrentChatMeetingRequest(chatId);
@@ -130,6 +142,9 @@ public class ChatHandler {
     }
   }
 
+  /**
+   * Обрабатывает отправку различных типов медиа-сообщений
+   */
   public void processMediaMessage(Long chatId, String mediaType, String fileId, String caption) {
     Long targetUserId = stateManager.getCurrentChatUser(chatId);
     Long meetingRequestId = stateManager.getCurrentChatMeetingRequest(chatId);
@@ -180,6 +195,9 @@ public class ChatHandler {
     }
   }
 
+  /**
+   * Обрабатывает отправку анимаций в чате
+   */
   public void processChatAnimation(Long chatId, Object animation) {
     try {
       java.lang.reflect.Method getFileId = animation.getClass().getMethod("getFileId");
@@ -191,6 +209,9 @@ public class ChatHandler {
     }
   }
 
+  /**
+   * Обрабатывает отправку видео в чате
+   */
   public void processChatVideo(Long chatId, Object video) {
     try {
       java.lang.reflect.Method getFileId = video.getClass().getMethod("getFileId");
@@ -202,6 +223,9 @@ public class ChatHandler {
     }
   }
 
+  /**
+   * Обрабатывает отправку голосовых сообщений в чате
+   */
   public void processChatVoice(Long chatId, Object voice) {
     try {
       java.lang.reflect.Method getFileId = voice.getClass().getMethod("getFileId");
@@ -213,6 +237,9 @@ public class ChatHandler {
     }
   }
 
+  /**
+   * Обрабатывает отправку аудио в чате
+   */
   public void processChatAudio(Long chatId, Object audio) {
     try {
       java.lang.reflect.Method getFileId = audio.getClass().getMethod("getFileId");
@@ -233,6 +260,9 @@ public class ChatHandler {
     }
   }
 
+  /**
+   * Обрабатывает отправку документов в чате
+   */
   public void processChatDocument(Long chatId, Object document) {
     try {
       java.lang.reflect.Method getFileId = document.getClass().getMethod("getFileId");
@@ -253,6 +283,9 @@ public class ChatHandler {
     }
   }
 
+  /**
+   * Инициализирует чат между пользователями
+   */
   public void initializeChat(Long senderUserId, Long receiverUserId, Long meetingRequestId) {
     User sender = userService.getUserByTelegramId(senderUserId);
     User receiver = userService.getUserByTelegramId(receiverUserId);
@@ -278,6 +311,9 @@ public class ChatHandler {
     System.out.println("DEBUG: Чат инициализирован между " + senderUserId + " и " + receiverUserId + " для запроса " + meetingRequestId);
   }
 
+  /**
+   * Завершает текущий чат пользователя
+   */
   public void endCurrentChat(Long chatId) {
     Long targetUserId = stateManager.getCurrentChatUser(chatId);
 
@@ -305,13 +341,28 @@ public class ChatHandler {
     }
   }
 
+  /**
+   * Получает отображаемое имя пользователя для чатов
+   * Использует только firstName и lastName, но не username
+   */
   private String getSenderDisplayName(User user) {
+    StringBuilder displayName = new StringBuilder();
+    
     if (user.getFirstName() != null && !user.getFirstName().isEmpty()) {
-      return user.getFirstName();
-    } else if (user.getUsername() != null && !user.getUsername().isEmpty()) {
-      return "@" + user.getUsername();
-    } else {
+      displayName.append(user.getFirstName());
+    }
+    
+    if (user.getLastName() != null && !user.getLastName().isEmpty()) {
+      if (displayName.length() > 0) {
+        displayName.append(" ");
+      }
+      displayName.append(user.getLastName());
+    }
+    
+    if (displayName.length() == 0) {
       return "Пользователь";
     }
+    
+    return displayName.toString();
   }
 }
