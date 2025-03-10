@@ -1,4 +1,4 @@
-package ru.gang.datingBot.bot;
+package ru.gang.datingBot.service;
 
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;

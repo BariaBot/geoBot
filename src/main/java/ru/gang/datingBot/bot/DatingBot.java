@@ -11,9 +11,7 @@ import ru.gang.datingBot.handler.ChatHandler;
 import ru.gang.datingBot.handler.LocationHandler;
 import ru.gang.datingBot.handler.MessageHandler;
 import ru.gang.datingBot.handler.PhotoHandler;
-import ru.gang.datingBot.service.ChatService;
-import ru.gang.datingBot.service.MeetingService;
-import ru.gang.datingBot.service.UserService;
+import ru.gang.datingBot.service.*;
 
 @Getter
 @Setter

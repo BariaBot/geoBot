@@ -1,8 +1,7 @@
-package ru.gang.datingBot.bot;
+package ru.gang.datingBot.service;
 
 import lombok.RequiredArgsConstructor;
 import ru.gang.datingBot.model.User;
-import ru.gang.datingBot.service.UserService;
 
 @RequiredArgsConstructor
 public class ProfileService {
@@ -11,14 +10,8 @@ public class ProfileService {
   private final KeyboardService keyboardService;
 
   public String getDisplayName(User user) {
-    if (user.getUsername() != null && !user.getUsername().isEmpty()) {
-      return user.getUsername();
-    } else if (user.getFirstName() != null && !user.getFirstName().isEmpty()) {
-      String displayName = user.getFirstName();
-      if (user.getLastName() != null && !user.getLastName().isEmpty()) {
-        displayName += " " + user.getLastName();
-      }
-      return displayName;
+    if (user.getFirstName() != null && !user.getFirstName().isEmpty()) {
+      return user.getFirstName();
     } else {
       return "Анонимный пользователь";
     }
@@ -46,11 +39,9 @@ public class ProfileService {
 
   public String formatNearbyUserProfile(User profile, int currentIndex, int totalUsers) {
     String displayName = getDisplayName(profile);
-    String username = profile.getUsername() != null ? "@" + profile.getUsername() : "Нет username";
 
     StringBuilder profileInfo = new StringBuilder();
     profileInfo.append("✨ ").append(displayName).append(" рядом!");
-    profileInfo.append("\n📱 Username: ").append(username);
 
     if (profile.getAge() != null) {
       profileInfo.append("\n\n🎂 Возраст: ").append(profile.getAge());
@@ -75,11 +66,9 @@ public class ProfileService {
 
   public String formatMeetingRequest(User sender, String message) {
     String senderName = getDisplayName(sender);
-    String username = sender.getUsername() != null ? "@" + sender.getUsername() : "Нет username";
     
     StringBuilder requestInfo = new StringBuilder();
     requestInfo.append("✨ ").append(senderName).append(" отправил вам запрос на встречу!");
-    requestInfo.append("\n📱 Username: ").append(username);
 
     if (sender.getAge() != null) {
       requestInfo.append("\n\n🎂 Возраст: ").append(sender.getAge());

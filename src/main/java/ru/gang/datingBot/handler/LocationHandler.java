@@ -2,7 +2,7 @@ package ru.gang.datingBot.handler;
 
 import lombok.Setter;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import ru.gang.datingBot.bot.KeyboardService;
+import ru.gang.datingBot.service.KeyboardService;
 import ru.gang.datingBot.bot.MessageSender;
 import ru.gang.datingBot.bot.UserStateManager;
 import ru.gang.datingBot.model.User;

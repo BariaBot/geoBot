@@ -1,11 +1,9 @@
 package ru.gang.datingBot.handler;
 
 import org.telegram.telegrambots.meta.api.objects.PhotoSize;
-import ru.gang.datingBot.bot.KeyboardService;
+import ru.gang.datingBot.service.KeyboardService;
 import ru.gang.datingBot.bot.MessageSender;
 import ru.gang.datingBot.bot.UserStateManager;
-import ru.gang.datingBot.model.ChatMessage;
-import ru.gang.datingBot.model.MeetingRequest;
 import ru.gang.datingBot.model.User;
 import ru.gang.datingBot.service.ChatService;
 import ru.gang.datingBot.service.MeetingService;
@@ -13,7 +11,7 @@ import ru.gang.datingBot.service.UserService;
 
 import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
+
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor

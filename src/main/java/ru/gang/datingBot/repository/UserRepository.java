@@ -21,10 +21,10 @@ public interface UserRepository extends JpaRepository<User, Long> {
     AND longitude IS NOT NULL 
     AND (6371 * acos(cos(radians(:lat)) * cos(radians(latitude)) * 
     cos(radians(longitude) - radians(:lon)) + sin(radians(:lat)) * 
-    sin(radians(latitude)))) < :radius
+    sin(radians(latitude)))) <= :radius
     AND (:minAge IS NULL OR age >= :minAge)
     AND (:maxAge IS NULL OR age <= :maxAge)
-    AND (:gender IS NULL OR gender = :gender)
+    AND (:gender IS NULL OR gender = :gender OR :gender = 'any')
     """, nativeQuery = true)
   List<User> findUsersNearbyWithFilters(
       @Param("lat") double lat, 

@@ -1,9 +1,9 @@
 package ru.gang.datingBot.handler;
 
 import org.telegram.telegrambots.meta.api.objects.PhotoSize;
-import ru.gang.datingBot.bot.KeyboardService;
+import ru.gang.datingBot.service.KeyboardService;
 import ru.gang.datingBot.bot.MessageSender;
-import ru.gang.datingBot.bot.ProfileService;
+import ru.gang.datingBot.service.ProfileService;
 import ru.gang.datingBot.bot.UserStateManager;
 import ru.gang.datingBot.bot.UserStateManager.UserState;
 import ru.gang.datingBot.model.User;

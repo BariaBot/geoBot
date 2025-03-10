@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 import ru.gang.datingBot.bot.DatingBot;
-import ru.gang.datingBot.bot.KeyboardService;
+import ru.gang.datingBot.service.KeyboardService;
 import ru.gang.datingBot.bot.MessageSender;
 import ru.gang.datingBot.bot.UserStateManager;
 import ru.gang.datingBot.repository.ChatMessageRepository;
