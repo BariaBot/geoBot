@@ -164,9 +164,9 @@ public class ProfileService {
   
   public String getReadablePlanType(String planType) {
     return switch (planType) {
+      case "week" -> "1 неделя";
+      case "2weeks" -> "2 недели";
       case "month" -> "1 месяц";
-      case "3months" -> "3 месяца";
-      case "year" -> "1 год";
       default -> planType;
     };
   }

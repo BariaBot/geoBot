@@ -160,15 +160,15 @@ public class KeyboardService {
     List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
 
     List<InlineKeyboardButton> row1 = new ArrayList<>();
-    row1.add(createButton("1 месяц - 199₽", "vip_plan_month"));
+    row1.add(createButton("1 неделя - 490₽", "vip_plan_week"));
     rowsInline.add(row1);
 
     List<InlineKeyboardButton> row2 = new ArrayList<>();
-    row2.add(createButton("3 месяца - 499₽", "vip_plan_3months"));
+    row2.add(createButton("2 недели - 890₽", "vip_plan_2weeks"));
     rowsInline.add(row2);
 
     List<InlineKeyboardButton> row3 = new ArrayList<>();
-    row3.add(createButton("1 год - 1499₽", "vip_plan_year"));
+    row3.add(createButton("1 месяц - 1590₽", "vip_plan_month"));
     rowsInline.add(row3);
 
     markupInline.setKeyboard(rowsInline);

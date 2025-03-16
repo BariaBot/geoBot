@@ -1,6 +1,8 @@
 package ru.gang.datingBot.handler;
 
 import lombok.RequiredArgsConstructor;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import ru.gang.datingBot.bot.MessageSender;
 import ru.gang.datingBot.bot.UserStateManager;
 import ru.gang.datingBot.model.Subscription;
@@ -11,6 +13,8 @@ import ru.gang.datingBot.service.SubscriptionService;
 import ru.gang.datingBot.service.UserService;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 @RequiredArgsConstructor
@@ -61,6 +65,7 @@ public class VipHandler {
     public void processVipPlanSelection(Long chatId, String planType) {
         Double price = subscriptionService.getSubscriptionPrice(planType);
         String readablePlanType = profileService.getReadablePlanType(planType);
+        String paymentLink = subscriptionService.getPaymentLink(planType);
         
         if (price <= 0) {
             messageSender.sendTextMessage(chatId, "⚠️ Выбран неверный тарифный план. Пожалуйста, выберите план из предложенных вариантов.");
@@ -71,18 +76,32 @@ public class VipHandler {
             // Создаем подписку в статусе "pending"
             Subscription subscription = subscriptionService.createSubscription(chatId, planType);
             
-            // Отправляем подтверждение и информацию об оплате (эмуляция)
+            // Создаем кнопку со ссылкой на оплату
+            InlineKeyboardMarkup paymentKeyboard = new InlineKeyboardMarkup();
+            List<List<InlineKeyboardButton>> rows = new ArrayList<>();
+            
+            InlineKeyboardButton payButton = new InlineKeyboardButton();
+            payButton.setText("💳 Оплатить " + readablePlanType + " за " + price.intValue() + "₽");
+            payButton.setUrl(paymentLink);
+            
+            List<InlineKeyboardButton> row = new ArrayList<>();
+            row.add(payButton);
+            rows.add(row);
+            
+            paymentKeyboard.setKeyboard(rows);
+            
+            // Отправляем сообщение с ссылкой на оплату
             String confirmationMessage = String.format(
                 "🔄 Вы выбрали тарифный план «%s» за %.0f руб.\n\n" +
-                "Для завершения подписки, пожалуйста, подтвердите оплату, нажав на кнопку ниже.\n\n" +
-                "ID заказа: %d",
-                readablePlanType, price, subscription.getId()
+                "Для активации VIP-статуса, пожалуйста, нажмите кнопку ниже чтобы произвести оплату.\n\n" +
+                "После успешной оплаты ваш VIP-статус будет автоматически активирован.",
+                readablePlanType, price
             );
             
             messageSender.sendTextMessageWithKeyboard(
                     chatId,
                     confirmationMessage,
-                    keyboardService.createPaymentConfirmationKeyboard(subscription.getId())
+                    paymentKeyboard
             );
             
         } catch (Exception e) {
