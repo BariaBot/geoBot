@@ -1,8 +1,8 @@
 package ru.gang.datingBot.bot;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import lombok.Getter;
 
 public class UserStateManager {
@@ -22,16 +22,16 @@ public class UserStateManager {
     CHATTING
   }
   
-  private final Map<Long, UserState> userStates = new HashMap<>();
-  private final Map<Long, List<ru.gang.datingBot.model.User>> nearbyUsersCache = new HashMap<>();
-  private final Map<Long, Integer> currentUserIndexCache = new HashMap<>();
-  private final Map<Long, String> meetingRequestMessages = new HashMap<>();
-  private final Map<Long, String> meetingRequestPhotos = new HashMap<>();
-  private final Map<Long, Long> meetingRequestTargets = new HashMap<>();
-  private final Map<Long, Integer> userLiveLocationDurations = new HashMap<>();
-  private final Map<Long, Integer> userSearchRadius = new HashMap<>();
-  private final Map<Long, Long> currentChatUser = new HashMap<>();
-  private final Map<Long, Long> currentChatMeetingRequest = new HashMap<>();
+  private final Map<Long, UserState> userStates = new ConcurrentHashMap<>();
+  private final Map<Long, List<ru.gang.datingBot.model.User>> nearbyUsersCache = new ConcurrentHashMap<>();
+  private final Map<Long, Integer> currentUserIndexCache = new ConcurrentHashMap<>();
+  private final Map<Long, String> meetingRequestMessages = new ConcurrentHashMap<>();
+  private final Map<Long, String> meetingRequestPhotos = new ConcurrentHashMap<>();
+  private final Map<Long, Long> meetingRequestTargets = new ConcurrentHashMap<>();
+  private final Map<Long, Integer> userLiveLocationDurations = new ConcurrentHashMap<>();
+  private final Map<Long, Integer> userSearchRadius = new ConcurrentHashMap<>();
+  private final Map<Long, Long> currentChatUser = new ConcurrentHashMap<>();
+  private final Map<Long, Long> currentChatMeetingRequest = new ConcurrentHashMap<>();
 
   public UserState getUserState(Long chatId) {
     return userStates.getOrDefault(chatId, UserState.NONE);
