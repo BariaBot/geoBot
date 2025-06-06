@@ -76,10 +76,14 @@ public class UserService {
     System.out.println("Проверка активности пользователей...");
     List<User> expiredUsers = userRepository.findExpiredUsers(LocalDateTime.now());
     System.out.println("Найдено " + expiredUsers.size() + " пользователей с истекшим временем активности");
+
     for (User user : expiredUsers) {
-      user.setDeactivateAt(LocalDateTime.now().plusDays(30));
+      // Деактивируем пользователя, если срок его активности истёк
+      user.setActive(false);
+      user.setDeactivateAt(LocalDateTime.now());
       userRepository.save(user);
-      System.out.println("Продлена активность пользователя " + user.getTelegramId() + " на 30 дней");
+
+      System.out.println("Пользователь " + user.getTelegramId() + " деактивирован");
     }
   }
 
