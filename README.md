@@ -22,3 +22,14 @@ mvn package
 ```bash
 java -jar target/datingBot-1.0.100.jar
 ```
+
+## Запуск в Docker
+
+Для запуска приложения и базы данных PostgreSQL можно воспользоваться `docker-compose`.
+Соберите и поднимите сервисы командой:
+
+```bash
+docker-compose up --build
+```
+
+Перед первым запуском убедитесь, что задали переменные окружения `BOT_USERNAME`, `BOT_TOKEN` и `YANDEX_API_KEY` (например в файле `.env`).

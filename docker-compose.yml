@@ -1,0 +1,26 @@
+version: '3.8'
+services:
+  db:
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_DB: dating_bot_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - db_data:/var/lib/postgresql/data
+  app:
+    build: .
+    depends_on:
+      - db
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/dating_bot_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      BOT_USERNAME: ${BOT_USERNAME:-GeoGreet_bot}
+      BOT_TOKEN: ${BOT_TOKEN}
+      YANDEX_API_KEY: ${YANDEX_API_KEY}
+    ports:
+      - "8080:8080"
+volumes:
+  db_data:
