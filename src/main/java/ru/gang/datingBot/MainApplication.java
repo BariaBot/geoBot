@@ -10,7 +10,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 import ru.gang.datingBot.bot.DatingBot;
-import ru.gang.datingBot.service.KeyboardService;
 import ru.gang.datingBot.bot.MessageSender;
 import ru.gang.datingBot.bot.UserStateManager;
 import ru.gang.datingBot.repository.ChatMessageRepository;
@@ -34,10 +33,6 @@ public class MainApplication {
     return new UserStateManager();
   }
 
-  @Bean
-  public KeyboardService keyboardService() {
-    return new KeyboardService();
-  }
 
   @Bean
   public ApplicationRunner initBot(DatingBot datingBot) {
@@ -77,10 +72,17 @@ public class MainApplication {
           UserService userService,
           @Lazy MeetingService meetingService,
           ChatService chatService,
-          SubscriptionService subscriptionService) {
-    
-    // Создаем DatingBot с необходимыми зависимостями
+          SubscriptionService subscriptionService,
+          UserStateManager userStateManager,
+          KeyboardService keyboardService,
+          ProfileService profileService,
+          MessageSender messageSender) {
+
     return new DatingBot(
+            userStateManager,
+            keyboardService,
+            profileService,
+            messageSender,
             userService,
             meetingService,
             chatService,

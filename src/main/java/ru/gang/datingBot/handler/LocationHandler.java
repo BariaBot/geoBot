@@ -17,7 +17,7 @@ public class LocationHandler {
   private final UserService userService;
   private final UserStateManager stateManager;
   private final MessageSender messageSender;
-  private final KeyboardService keyboardService = new KeyboardService();
+  private final KeyboardService keyboardService;
     
   @Setter
   private CallbackQueryHandler callbackQueryHandler;
