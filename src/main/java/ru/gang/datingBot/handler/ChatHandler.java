@@ -13,10 +13,15 @@ import ru.gang.datingBot.service.UserService;
 import java.util.Comparator;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 public class ChatHandler {
+
+  private static final Logger log = LoggerFactory.getLogger(ChatHandler.class);
 
   private final UserService userService;
   private final MeetingService meetingService;
@@ -63,9 +68,9 @@ public class ChatHandler {
               targetUserId,
               "💬 " + senderName + ": " + text);
 
-      System.out.println("DEBUG: Сообщение отправлено от " + chatId + " к " + targetUserId + ": " + text);
+      log.debug("Сообщение отправлено от " + chatId + " к " + targetUserId + ": " + text);
     } catch (Exception e) {
-      System.out.println("DEBUG: Ошибка при отправке сообщения: " + e.getMessage());
+      log.error("Ошибка при отправке сообщения: " + e.getMessage());
       messageSender.sendTextMessage(chatId, "❌ Произошла ошибка при отправке сообщения.");
     }
   }
@@ -90,7 +95,7 @@ public class ChatHandler {
     }
 
     String fileId = largestPhoto.getFileId();
-    System.out.println("DEBUG: Получено фото в чате с fileId: " + fileId);
+    log.debug("Получено фото в чате с fileId: " + fileId);
 
     try {
       chatService.sendMessage(chatId, targetUserId, meetingRequestId, "📸 Фото", fileId);
@@ -103,9 +108,9 @@ public class ChatHandler {
               fileId,
               "📸 Фото от " + senderName);
 
-      System.out.println("DEBUG: Фото отправлено от " + chatId + " к " + targetUserId);
+      log.debug("Фото отправлено от " + chatId + " к " + targetUserId);
     } catch (Exception e) {
-      System.out.println("DEBUG: Ошибка при отправке фото: " + e.getMessage());
+      log.error("Ошибка при отправке фото: " + e.getMessage());
       messageSender.sendTextMessage(chatId, "❌ Произошла ошибка при отправке фото.");
     }
   }
@@ -125,12 +130,12 @@ public class ChatHandler {
       java.lang.reflect.Method getFileId = sticker.getClass().getMethod("getFileId");
       fileId = (String) getFileId.invoke(sticker);
     } catch (Exception e) {
-      System.out.println("DEBUG: Ошибка при получении fileId стикера: " + e.getMessage());
+      log.error("Ошибка при получении fileId стикера: " + e.getMessage());
       messageSender.sendTextMessage(chatId, "❌ Не удалось обработать стикер.");
       return;
     }
 
-    System.out.println("DEBUG: Получен стикер в чате с fileId: " + fileId);
+    log.debug("Получен стикер в чате с fileId: " + fileId);
 
     try {
       chatService.sendMessage(chatId, targetUserId, meetingRequestId, "sticker", fileId);
@@ -139,9 +144,9 @@ public class ChatHandler {
 
       messageSender.sendSticker(targetUserId, fileId);
 
-      System.out.println("DEBUG: Стикер отправлен от " + chatId + " к " + targetUserId);
+      log.debug("Стикер отправлен от " + chatId + " к " + targetUserId);
     } catch (Exception e) {
-      System.out.println("DEBUG: Ошибка при отправке стикера: " + e.getMessage());
+      log.error("Ошибка при отправке стикера: " + e.getMessage());
       messageSender.sendTextMessage(chatId, "❌ Произошла ошибка при отправке стикера.");
     }
   }
@@ -189,9 +194,9 @@ public class ChatHandler {
           messageSender.sendTextMessage(targetUserId, "📎 " + senderName + " отправил вам медиафайл типа " + mediaType);
       }
 
-      System.out.println("DEBUG: Медиафайл типа " + mediaType + " отправлен от " + chatId + " к " + targetUserId);
+      log.debug("Медиафайл типа " + mediaType + " отправлен от " + chatId + " к " + targetUserId);
     } catch (Exception e) {
-      System.out.println("DEBUG: Ошибка при отправке медиафайла: " + e.getMessage());
+      log.error("Ошибка при отправке медиафайла: " + e.getMessage());
       messageSender.sendTextMessage(chatId, "❌ Произошла ошибка при отправке медиафайла.");
     }
   }
@@ -202,7 +207,7 @@ public class ChatHandler {
       String fileId = (String) getFileId.invoke(animation);
       processMediaMessage(chatId, "animation", fileId, "GIF");
     } catch (Exception e) {
-      System.out.println("DEBUG: Ошибка при обработке анимации: " + e.getMessage());
+      log.error("Ошибка при обработке анимации: " + e.getMessage());
       messageSender.sendTextMessage(chatId, "❌ Не удалось обработать анимацию.");
     }
   }
@@ -213,7 +218,7 @@ public class ChatHandler {
       String fileId = (String) getFileId.invoke(video);
       processMediaMessage(chatId, "video", fileId, "Видео");
     } catch (Exception e) {
-      System.out.println("DEBUG: Ошибка при обработке видео: " + e.getMessage());
+      log.error("Ошибка при обработке видео: " + e.getMessage());
       messageSender.sendTextMessage(chatId, "❌ Не удалось обработать видео.");
     }
   }
@@ -224,7 +229,7 @@ public class ChatHandler {
       String fileId = (String) getFileId.invoke(voice);
       processMediaMessage(chatId, "voice", fileId, "Голосовое сообщение");
     } catch (Exception e) {
-      System.out.println("DEBUG: Ошибка при обработке голосового сообщения: " + e.getMessage());
+      log.error("Ошибка при обработке голосового сообщения: " + e.getMessage());
       messageSender.sendTextMessage(chatId, "❌ Не удалось обработать голосовое сообщение.");
     }
   }
@@ -244,7 +249,7 @@ public class ChatHandler {
       String caption = (title != null && !title.isEmpty()) ? "Аудио: " + title : "Аудио";
       processMediaMessage(chatId, "audio", fileId, caption);
     } catch (Exception e) {
-      System.out.println("DEBUG: Ошибка при обработке аудио: " + e.getMessage());
+      log.error("Ошибка при обработке аудио: " + e.getMessage());
       messageSender.sendTextMessage(chatId, "❌ Не удалось обработать аудио.");
     }
   }
@@ -264,7 +269,7 @@ public class ChatHandler {
       String caption = (fileName != null && !fileName.isEmpty()) ? "Документ: " + fileName : "Документ";
       processMediaMessage(chatId, "document", fileId, caption);
     } catch (Exception e) {
-      System.out.println("DEBUG: Ошибка при обработке документа: " + e.getMessage());
+      log.error("Ошибка при обработке документа: " + e.getMessage());
       messageSender.sendTextMessage(chatId, "❌ Не удалось обработать документ.");
     }
   }
@@ -291,7 +296,7 @@ public class ChatHandler {
     stateManager.startChatting(senderUserId, receiverUserId, meetingRequestId);
     stateManager.startChatting(receiverUserId, senderUserId, meetingRequestId);
 
-    System.out.println("DEBUG: Чат инициализирован между " + senderUserId + " и " + receiverUserId + " для запроса " + meetingRequestId);
+    log.debug("Чат инициализирован между " + senderUserId + " и " + receiverUserId + " для запроса " + meetingRequestId);
   }
 
   public void endCurrentChat(Long chatId) {
@@ -317,7 +322,7 @@ public class ChatHandler {
               targetUserId,
               userName + " завершил(а) чат. Вы можете начать новый чат в любое время.");
     } catch (Exception e) {
-      System.out.println("DEBUG: Ошибка при уведомлении о завершении чата: " + e.getMessage());
+      log.error("Ошибка при уведомлении о завершении чата: " + e.getMessage());
     }
   }
 }

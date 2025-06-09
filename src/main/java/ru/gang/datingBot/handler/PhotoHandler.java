@@ -10,6 +10,9 @@ import ru.gang.datingBot.model.User;
 import ru.gang.datingBot.service.MeetingService;
 import ru.gang.datingBot.service.UserService;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
@@ -17,6 +20,8 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 public class PhotoHandler {
+
+  private static final Logger log = LoggerFactory.getLogger(PhotoHandler.class);
 
   private final UserService userService;
   private final MeetingService meetingService;
@@ -36,7 +41,7 @@ public class PhotoHandler {
     }
 
     String fileId = largestPhoto.getFileId();
-    System.out.println("DEBUG: Получено фото с fileId: " + fileId);
+    log.debug("Получено фото с fileId: " + fileId);
 
     switch (currentState) {
       case WAITING_FOR_PHOTO:
@@ -57,7 +62,7 @@ public class PhotoHandler {
   }
 
   private void processProfilePhoto(Long chatId, String fileId) {
-    System.out.println("DEBUG: Обновление фото профиля для пользователя " + chatId);
+    log.debug("Обновление фото профиля для пользователя " + chatId);
     userService.updateUserPhoto(chatId, fileId);
 
     int completionPercentage = userService.getProfileCompletionPercentage(chatId);
@@ -73,14 +78,14 @@ public class PhotoHandler {
   }
 
   private void processMeetingPhoto(Long chatId, String fileId) {
-    System.out.println("DEBUG: Обработка фото для запроса на встречу от пользователя " + chatId);
+    log.debug("Обработка фото для запроса на встречу от пользователя " + chatId);
     stateManager.saveMeetingRequestPhoto(chatId, fileId);
 
     Long targetUserId = stateManager.getMeetingRequestTarget(chatId);
     String message = stateManager.getMeetingRequestMessage(chatId);
 
     if (targetUserId != null && message != null) {
-      System.out.println("DEBUG: Отправка запроса на встречу с фото от " + chatId + " к " + targetUserId);
+      log.debug("Отправка запроса на встречу с фото от " + chatId + " к " + targetUserId);
       try {
         meetingService.sendMeetingRequest(chatId, targetUserId, message, LocalDateTime.now().plusHours(1), fileId);
 
@@ -93,11 +98,11 @@ public class PhotoHandler {
 
         stateManager.clearMeetingRequestData(chatId);
       } catch (Exception e) {
-        System.out.println("DEBUG: Ошибка при отправке запроса на встречу: " + e.getMessage());
+        log.error("Ошибка при отправке запроса на встречу", e);
         messageSender.sendTextMessage(chatId, "❌ Произошла ошибка. Пожалуйста, попробуйте снова.");
       }
     } else {
-      System.out.println("DEBUG: Ошибка - targetUserId или message равны null");
+      log.error("Ошибка - targetUserId или message равны null");
       messageSender.sendTextMessage(chatId, "❌ Произошла ошибка. Пожалуйста, попробуйте снова.");
     }
 
@@ -105,12 +110,12 @@ public class PhotoHandler {
   }
 
   private void notifyUserAboutMeetingRequest(Long receiverId, Long senderId) {
-    System.out.println("DEBUG: Отправка уведомления о запросе на встречу к " + receiverId + " от " + senderId);
+    log.debug("Отправка уведомления о запросе на встречу к " + receiverId + " от " + senderId);
     User sender = userService.getUserByTelegramId(senderId);
     String message = stateManager.getMeetingRequestMessage(senderId);
 
     if (sender == null || message == null) {
-      System.out.println("DEBUG: Ошибка - отправитель или сообщение не найдены");
+      log.error("Ошибка - отправитель или сообщение не найдены");
       return;
     }
 
@@ -134,9 +139,9 @@ public class PhotoHandler {
         messageSender.sendPhoto(receiverId, photoFileId, "📸 Фото к запросу на встречу");
       }
       
-      System.out.println("DEBUG: Уведомление о запросе на встречу успешно отправлено");
+      log.debug("Уведомление о запросе на встречу успешно отправлено");
     } catch (Exception e) {
-      System.out.println("DEBUG: Ошибка при отправке уведомления: " + e.getMessage());
+      log.error("Ошибка при отправке уведомления", e);
       messageSender.sendTextMessage(
               receiverId,
               requestInfo + "\n\nЧтобы ответить, используйте команды:\n/accept_" + senderId + " - принять\n/decline_" + senderId + " - отклонить");

@@ -10,9 +10,13 @@ import ru.gang.datingBot.service.UserService;
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @RequiredArgsConstructor
 public class LocationHandler {
+
+  private static final Logger log = LoggerFactory.getLogger(LocationHandler.class);
 
   private final UserService userService;
   private final UserStateManager stateManager;
@@ -44,7 +48,7 @@ public class LocationHandler {
               keyboardService.createMainKeyboard());
 
       List<User> nearbyUsers = userService.findNearbyUsers(chatId, latitude, longitude, radius);
-      System.out.println("DEBUG: Найдено пользователей поблизости: " + (nearbyUsers != null ? nearbyUsers.size() : 0));
+      log.debug("Найдено пользователей поблизости: " + (nearbyUsers != null ? nearbyUsers.size() : 0));
 
       stateManager.cacheNearbyUsers(chatId, nearbyUsers);
 
@@ -74,7 +78,7 @@ public class LocationHandler {
             keyboardService.createMainKeyboard());
 
     if (callbackQueryHandler != null) {
-      System.out.println("DEBUG: Вызываем показ профиля первого пользователя");
+      log.debug("Вызываем показ профиля первого пользователя");
       try {
         Thread.sleep(500);
       } catch (InterruptedException e) {
@@ -82,7 +86,7 @@ public class LocationHandler {
       }
       callbackQueryHandler.showCurrentNearbyUser(chatId);
     } else {
-      System.out.println("DEBUG: callbackQueryHandler равен null, не могу показать профиль");
+      log.debug("callbackQueryHandler равен null, не могу показать профиль");
       messageSender.sendTextMessageWithKeyboard(
               chatId,
               "⚠️ Не удалось отобразить профиль пользователя. Пожалуйста, обновите геолокацию позже.",

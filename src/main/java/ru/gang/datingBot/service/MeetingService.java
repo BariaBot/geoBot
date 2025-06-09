@@ -8,6 +8,8 @@ import ru.gang.datingBot.model.MeetingRequest;
 import ru.gang.datingBot.model.User;
 import ru.gang.datingBot.repository.MeetingRepository;
 import ru.gang.datingBot.repository.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -15,6 +17,7 @@ import java.util.stream.Collectors;
 
 @Service
 public class MeetingService {
+  private static final Logger log = LoggerFactory.getLogger(MeetingService.class);
   private final MeetingRepository meetingRepository;
   private final UserRepository userRepository;
   private final MessageSender messageSender;
@@ -39,7 +42,7 @@ public class MeetingService {
    * Отправка запроса на встречу с фото
    */
   public MeetingRequest sendMeetingRequest(Long senderId, Long receiverId, String message, LocalDateTime scheduledTime, String photoFileId) {
-    System.out.println("DEBUG: Создание запроса на встречу от " + senderId + " к " + receiverId);
+    log.debug("Создание запроса на встречу от {} к {}", senderId, receiverId);
     User sender = userRepository.findByTelegramId(senderId)
         .orElseThrow(() -> new IllegalArgumentException("Отправитель не найден: " + senderId));
     User receiver = userRepository.findByTelegramId(receiverId)
@@ -57,9 +60,9 @@ public class MeetingService {
       request.setPhotoFileId(photoFileId);
     }
 
-    System.out.println("DEBUG: Сохранение запроса на встречу в базу данных");
+    log.debug("Сохранение запроса на встречу в базу данных");
     MeetingRequest savedRequest = meetingRepository.save(request);
-    System.out.println("DEBUG: Запрос на встречу сохранен с ID " + savedRequest.getId());
+    log.debug("Запрос на встречу сохранен с ID {}", savedRequest.getId());
     
     return savedRequest;
   }
@@ -98,7 +101,7 @@ public class MeetingService {
         .orElseThrow(() -> new IllegalArgumentException("Запрос не найден"));
     request.setStatus("accepted");
     meetingRepository.save(request);
-    System.out.println("DEBUG: Запрос на встречу с ID " + requestId + " принят");
+    log.debug("Запрос на встречу с ID {} принят", requestId);
   }
 
   /**
@@ -109,7 +112,7 @@ public class MeetingService {
         .orElseThrow(() -> new IllegalArgumentException("Запрос не найден"));
     request.setStatus("declined");
     meetingRepository.save(request);
-    System.out.println("DEBUG: Запрос на встречу с ID " + requestId + " отклонен");
+    log.debug("Запрос на встречу с ID {} отклонен", requestId);
   }
 
   /**

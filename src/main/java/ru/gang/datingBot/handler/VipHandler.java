@@ -11,6 +11,8 @@ import ru.gang.datingBot.service.KeyboardService;
 import ru.gang.datingBot.service.ProfileService;
 import ru.gang.datingBot.service.SubscriptionService;
 import ru.gang.datingBot.service.UserService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -19,6 +21,8 @@ import java.util.Map;
 
 @RequiredArgsConstructor
 public class VipHandler {
+
+    private static final Logger log = LoggerFactory.getLogger(VipHandler.class);
 
     private final UserService userService;
     private final SubscriptionService subscriptionService;
@@ -105,7 +109,7 @@ public class VipHandler {
             );
             
         } catch (Exception e) {
-            System.out.println("DEBUG: Ошибка при создании подписки: " + e.getMessage());
+            log.error("Ошибка при создании подписки: {}", e.getMessage(), e);
             messageSender.sendTextMessage(chatId, "❌ Произошла ошибка при оформлении подписки. Пожалуйста, попробуйте позже.");
         }
     }
@@ -138,7 +142,7 @@ public class VipHandler {
             );
             
         } catch (Exception e) {
-            System.out.println("DEBUG: Ошибка при подтверждении оплаты: " + e.getMessage());
+            log.error("Ошибка при подтверждении оплаты: {}", e.getMessage(), e);
             messageSender.sendTextMessage(chatId, "❌ Произошла ошибка при активации VIP-статуса. Пожалуйста, обратитесь в поддержку.");
         }
     }
@@ -157,7 +161,7 @@ public class VipHandler {
             );
             
         } catch (Exception e) {
-            System.out.println("DEBUG: Ошибка при отмене оплаты: " + e.getMessage());
+            log.error("Ошибка при отмене оплаты: {}", e.getMessage(), e);
             messageSender.sendTextMessage(chatId, "❌ Произошла ошибка при отмене оплаты. Пожалуйста, попробуйте снова.");
         }
     }

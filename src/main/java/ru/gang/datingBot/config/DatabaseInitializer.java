@@ -7,20 +7,24 @@ import ru.gang.datingBot.model.User;
 import ru.gang.datingBot.repository.UserRepository;
 
 import java.time.LocalDateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Component
 public class DatabaseInitializer {
+
+    private static final Logger log = LoggerFactory.getLogger(DatabaseInitializer.class);
 
     @Autowired
     private UserRepository userRepository;
 
     @PostConstruct
     public void initializeDatabase() {
-        System.out.println("Инициализация базы данных...");
+        log.info("Инициализация базы данных...");
 
         // Проверяем, пуста ли таблица users
         if (userRepository.count() == 0) {
-            System.out.println("База пуста, создаю тестового пользователя");
+            log.info("База пуста, создаю тестового пользователя");
 
             User testUser = new User();
             testUser.setTelegramId(123456789L);
@@ -34,9 +38,9 @@ public class DatabaseInitializer {
             testUser.setSearchRadius(5);
 
             userRepository.save(testUser);
-            System.out.println("Тестовый пользователь создан с ID: " + testUser.getId());
+            log.info("Тестовый пользователь создан с ID: {}", testUser.getId());
         } else {
-            System.out.println("В базе уже есть записи, пропускаю инициализацию");
+            log.info("В базе уже есть записи, пропускаю инициализацию");
         }
     }
 }

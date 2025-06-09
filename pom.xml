@@ -105,6 +105,11 @@
       <version>${spring-boot.version}</version>
       <scope>test</scope>
     </dependency>
+    <!-- Логирование SLF4J -->
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+    </dependency>
   </dependencies>
 
   <build>

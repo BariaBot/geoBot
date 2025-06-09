@@ -13,9 +13,13 @@ import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage
 import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @RequiredArgsConstructor
 public class MessageSender {
+
+  private static final Logger log = LoggerFactory.getLogger(MessageSender.class);
 
   private final DatingBot bot;
 
@@ -54,8 +58,7 @@ public class MessageSender {
     try {
       bot.execute(photoMessage);
     } catch (TelegramApiException e) {
-      System.out.println("DEBUG: Ошибка при отправке фото: " + e.getMessage());
-      e.printStackTrace();
+      log.error("Ошибка при отправке фото: {}", e.getMessage(), e);
       if (caption != null && !caption.isEmpty()) {
         sendTextMessage(chatId, caption);
       }
@@ -75,8 +78,7 @@ public class MessageSender {
     try {
       bot.execute(photoMessage);
     } catch (TelegramApiException e) {
-      System.out.println("DEBUG: Ошибка при отправке фото с Markdown: " + e.getMessage());
-      e.printStackTrace();
+      log.error("Ошибка при отправке фото с Markdown: {}", e.getMessage(), e);
       if (caption != null && !caption.isEmpty()) {
         sendMarkdownMessage(chatId, caption);
       }
@@ -91,8 +93,7 @@ public class MessageSender {
     try {
       bot.execute(stickerMessage);
     } catch (TelegramApiException e) {
-      System.out.println("DEBUG: Ошибка при отправке стикера: " + e.getMessage());
-      e.printStackTrace();
+      log.error("Ошибка при отправке стикера: {}", e.getMessage(), e);
       sendTextMessage(chatId, "⚠️ Не удалось отправить стикер");
     }
   }
@@ -109,8 +110,7 @@ public class MessageSender {
     try {
       bot.execute(animationMessage);
     } catch (TelegramApiException e) {
-      System.out.println("DEBUG: Ошибка при отправке анимации: " + e.getMessage());
-      e.printStackTrace();
+      log.error("Ошибка при отправке анимации: {}", e.getMessage(), e);
       if (caption != null && !caption.isEmpty()) {
         sendTextMessage(chatId, caption);
       }
@@ -129,8 +129,7 @@ public class MessageSender {
     try {
       bot.execute(videoMessage);
     } catch (TelegramApiException e) {
-      System.out.println("DEBUG: Ошибка при отправке видео: " + e.getMessage());
-      e.printStackTrace();
+      log.error("Ошибка при отправке видео: {}", e.getMessage(), e);
       if (caption != null && !caption.isEmpty()) {
         sendTextMessage(chatId, caption);
       }
@@ -149,8 +148,7 @@ public class MessageSender {
     try {
       bot.execute(voiceMessage);
     } catch (TelegramApiException e) {
-      System.out.println("DEBUG: Ошибка при отправке голосового сообщения: " + e.getMessage());
-      e.printStackTrace();
+      log.error("Ошибка при отправке голосового сообщения: {}", e.getMessage(), e);
       if (caption != null && !caption.isEmpty()) {
         sendTextMessage(chatId, caption);
       }
@@ -169,8 +167,7 @@ public class MessageSender {
     try {
       bot.execute(audioMessage);
     } catch (TelegramApiException e) {
-      System.out.println("DEBUG: Ошибка при отправке аудио: " + e.getMessage());
-      e.printStackTrace();
+      log.error("Ошибка при отправке аудио: {}", e.getMessage(), e);
       if (caption != null && !caption.isEmpty()) {
         sendTextMessage(chatId, caption);
       }
@@ -189,8 +186,7 @@ public class MessageSender {
     try {
       bot.execute(documentMessage);
     } catch (TelegramApiException e) {
-      System.out.println("DEBUG: Ошибка при отправке документа: " + e.getMessage());
-      e.printStackTrace();
+      log.error("Ошибка при отправке документа: {}", e.getMessage(), e);
       if (caption != null && !caption.isEmpty()) {
         sendTextMessage(chatId, caption);
       }
@@ -202,8 +198,7 @@ public class MessageSender {
       bot.execute(new DeleteMessage(chatId.toString(), messageId));
     } catch (TelegramApiException e) {
       if (!e.getMessage().contains("message to delete not found")) {
-        System.out.println("DEBUG: Ошибка при удалении сообщения: " + e.getMessage());
-        e.printStackTrace();
+        log.error("Ошибка при удалении сообщения: {}", e.getMessage(), e);
       }
     }
   }
@@ -212,8 +207,7 @@ public class MessageSender {
     try {
       bot.execute(message);
     } catch (TelegramApiException e) {
-      System.out.println("DEBUG: Ошибка при отправке сообщения: " + e.getMessage());
-      e.printStackTrace();
+      log.error("Ошибка при отправке сообщения: {}", e.getMessage(), e);
       
       if (e.getMessage().contains("can't parse entities")) {
         try {
@@ -224,9 +218,9 @@ public class MessageSender {
           plainMessage.setParseMode(null);
           
           bot.execute(plainMessage);
-          System.out.println("DEBUG: Сообщение отправлено без разметки");
+          log.debug("Сообщение отправлено без разметки");
         } catch (TelegramApiException e2) {
-          System.out.println("DEBUG: Не удалось отправить даже без разметки: " + e2.getMessage());
+          log.error("Не удалось отправить даже без разметки: {}", e2.getMessage(), e2);
         }
       }
     }

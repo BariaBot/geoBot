@@ -8,6 +8,8 @@ import ru.gang.datingBot.model.Subscription;
 import ru.gang.datingBot.model.User;
 import ru.gang.datingBot.repository.SubscriptionRepository;
 import ru.gang.datingBot.repository.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -17,6 +19,8 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 public class SubscriptionService {
+
+    private static final Logger log = LoggerFactory.getLogger(SubscriptionService.class);
 
     private final SubscriptionRepository subscriptionRepository;
     private final UserRepository userRepository;
@@ -197,7 +201,7 @@ public class SubscriptionService {
     @Scheduled(cron = "0 0 * * * *") // Каждый час
     @Transactional
     public void deactivateExpiredVipStatuses() {
-        System.out.println("Проверка истекших VIP-статусов...");
+        log.info("Проверка истекших VIP-статусов...");
         LocalDateTime now = LocalDateTime.now();
         
         List<User> users = userRepository.findAll();
@@ -212,6 +216,6 @@ public class SubscriptionService {
             }
         }
         
-        System.out.println("Деактивировано " + count + " истекших VIP-статусов");
+        log.info("Деактивировано {} истекших VIP-статусов", count);
     }
 }
