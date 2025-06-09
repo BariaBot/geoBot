@@ -9,6 +9,8 @@ import ru.gang.datingBot.model.User;
 import ru.gang.datingBot.service.UserService;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -75,12 +77,9 @@ public class LocationHandler {
 
     if (callbackQueryHandler != null) {
       System.out.println("DEBUG: Вызываем показ профиля первого пользователя");
-      try {
-        Thread.sleep(500);
-      } catch (InterruptedException e) {
-        Thread.currentThread().interrupt();
-      }
-      callbackQueryHandler.showCurrentNearbyUser(chatId);
+      CompletableFuture.runAsync(
+              () -> callbackQueryHandler.showCurrentNearbyUser(chatId),
+              CompletableFuture.delayedExecutor(500, TimeUnit.MILLISECONDS));
     } else {
       System.out.println("DEBUG: callbackQueryHandler равен null, не могу показать профиль");
       messageSender.sendTextMessageWithKeyboard(
