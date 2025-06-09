@@ -33,14 +33,16 @@ public class DatingBot extends TelegramLongPollingBot {
   private final UserStateManager userStateManager;
 
   public DatingBot(
-          UserService userService, 
-          MeetingService meetingService, 
+          UserStateManager userStateManager,
+          KeyboardService keyboardService,
+          ProfileService profileService,
+          MessageSender messageSender,
+          UserService userService,
+          MeetingService meetingService,
           ChatService chatService,
           SubscriptionService subscriptionService) {
-    this.userStateManager = new UserStateManager();
-    this.keyboardService = new KeyboardService();
-    ProfileService profileService = new ProfileService(userService, keyboardService);
-    MessageSender messageSender = new MessageSender(this);
+    this.userStateManager = userStateManager;
+    this.keyboardService = keyboardService;
 
     this.callbackQueryHandler = new CallbackQueryHandler(
             userService,
@@ -52,11 +54,13 @@ public class DatingBot extends TelegramLongPollingBot {
             subscriptionService);
 
     this.chatHandler = new ChatHandler(
-            userService, 
-            meetingService, 
-            chatService, 
-            userStateManager, 
-            messageSender);
+            userService,
+            meetingService,
+            chatService,
+            userStateManager,
+            messageSender,
+            keyboardService,
+            profileService);
 
     this.callbackQueryHandler.setChatHandler(this.chatHandler);
 
@@ -72,13 +76,16 @@ public class DatingBot extends TelegramLongPollingBot {
     this.locationHandler = new LocationHandler(
             userService,
             userStateManager,
-            messageSender);
+            messageSender,
+            keyboardService);
 
     this.photoHandler = new PhotoHandler(
             userService,
             meetingService,
             userStateManager,
-            messageSender);
+            messageSender,
+            keyboardService,
+            profileService);
 
     this.locationHandler.setCallbackQueryHandler(this.callbackQueryHandler);
   }

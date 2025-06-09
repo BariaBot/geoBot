@@ -1,10 +1,12 @@
 package ru.gang.datingBot.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 import ru.gang.datingBot.model.User;
 
 import java.time.LocalDateTime;
 
+@Service
 @RequiredArgsConstructor
 public class ProfileService {
 

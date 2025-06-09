@@ -27,6 +27,8 @@ public class PhotoHandler {
   private final MeetingService meetingService;
   private final UserStateManager stateManager;
   private final MessageSender messageSender;
+  private final KeyboardService keyboardService;
+  private final ProfileService profileService;
 
   public void processPhotoMessage(Long chatId, List<PhotoSize> photos, Integer messageId) {
     UserState currentState = stateManager.getUserState(chatId);
@@ -56,7 +58,7 @@ public class PhotoHandler {
         messageSender.sendTextMessageWithKeyboard(
                 chatId,
                 "📸 Хотите обновить фото профиля? Используйте команду /edit_profile",
-                new KeyboardService().createMainKeyboard());
+                keyboardService.createMainKeyboard());
         break;
     }
   }
@@ -72,7 +74,7 @@ public class PhotoHandler {
                     "🏆 Ваш профиль заполнен на " + completionPercentage + "%\n\n" +
                     "Чтобы просмотреть свой профиль, используйте команду /profile\n" +
                     "Для редактирования профиля используйте /edit_profile",
-            new KeyboardService().createMainKeyboard());
+            keyboardService.createMainKeyboard());
 
     stateManager.setUserState(chatId, UserState.NONE);
   }
@@ -94,7 +96,7 @@ public class PhotoHandler {
         messageSender.sendTextMessageWithKeyboard(
                 chatId,
                 "✅ Запрос на встречу с фото отправлен!",
-                new KeyboardService().createMainKeyboard());
+                keyboardService.createMainKeyboard());
 
         stateManager.clearMeetingRequestData(chatId);
       } catch (Exception e) {
@@ -119,10 +121,8 @@ public class PhotoHandler {
       return;
     }
 
-    KeyboardService keyboardService = new KeyboardService();
-    ProfileService profileService = new ProfileService(userService, keyboardService);
-    
     String requestInfo = profileService.formatMeetingRequest(sender, message);
+
 
     try {
       messageSender.sendTextMessageWithKeyboard(

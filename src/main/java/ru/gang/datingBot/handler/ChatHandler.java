@@ -28,22 +28,8 @@ public class ChatHandler {
   private final ChatService chatService;
   private final UserStateManager stateManager;
   private final MessageSender messageSender;
-  private final KeyboardService keyboardService = new KeyboardService();
+  private final KeyboardService keyboardService;
   private final ProfileService profileService;
-
-  public ChatHandler(
-          UserService userService,
-          MeetingService meetingService,
-          ChatService chatService,
-          UserStateManager stateManager,
-          MessageSender messageSender) {
-    this.userService = userService;
-    this.meetingService = meetingService;
-    this.chatService = chatService;
-    this.stateManager = stateManager;
-    this.messageSender = messageSender;
-    this.profileService = new ProfileService(userService, keyboardService);
-  }
 
   public void processChatMessage(Long chatId, String text) {
     Long targetUserId = stateManager.getCurrentChatUser(chatId);
