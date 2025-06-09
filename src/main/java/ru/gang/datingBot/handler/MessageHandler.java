@@ -10,9 +10,13 @@ import ru.gang.datingBot.model.User;
 import ru.gang.datingBot.service.MeetingService;
 import ru.gang.datingBot.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @RequiredArgsConstructor
 public class MessageHandler {
+
+  private static final Logger log = LoggerFactory.getLogger(MessageHandler.class);
 
   private final UserService userService;
   private final MeetingService meetingService;
@@ -148,7 +152,7 @@ public class MessageHandler {
         return;
 
       case WAITING_FOR_MEETING_MESSAGE:
-        System.out.println("DEBUG: Сохраняем сообщение для запроса на встречу: " + text);
+        log.debug("Сохраняем сообщение для запроса на встречу: " + text);
         stateManager.saveMeetingRequestMessage(chatId, text);
         messageSender.sendTextMessage(chatId, "✅ Сообщение сохранено! Хотите добавить фото к запросу? (отправьте фото или напишите \"нет\")");
         stateManager.setUserState(chatId, UserStateManager.UserState.WAITING_FOR_MEETING_PHOTO);
@@ -160,7 +164,7 @@ public class MessageHandler {
           String message = stateManager.getMeetingRequestMessage(chatId);
 
           if (targetUserId != null && message != null) {
-            System.out.println("DEBUG: Отправляем запрос на встречу от " + chatId + " к " + targetUserId);
+            log.debug("Отправляем запрос на встречу от " + chatId + " к " + targetUserId);
             meetingService.sendMeetingRequest(chatId, targetUserId, message, LocalDateTime.now().plusHours(1));
 
             notifyUserAboutMeetingRequest(targetUserId, chatId);
@@ -172,7 +176,7 @@ public class MessageHandler {
 
             stateManager.clearMeetingRequestData(chatId);
           } else {
-            System.out.println("DEBUG: Ошибка отправки запроса, targetUserId: " + targetUserId + ", message: " + message);
+            log.error("Ошибка отправки запроса, targetUserId: " + targetUserId + ", message: " + message);
             messageSender.sendTextMessage(chatId, "❌ Произошла ошибка. Пожалуйста, попробуйте снова.");
           }
 
@@ -313,51 +317,51 @@ public class MessageHandler {
   }
 
   private void notifyUserAboutMeetingRequest(Long receiverId, Long senderId) {
-    System.out.println("DEBUG: Начало отправки уведомления о запросе на встречу от " + senderId + " к " + receiverId);
+    log.debug("Начало отправки уведомления о запросе на встречу от " + senderId + " к " + receiverId);
     User sender = userService.getUserByTelegramId(senderId);
     String message = stateManager.getMeetingRequestMessage(senderId);
 
     if (sender == null || message == null) {
-      System.out.println("DEBUG: Ошибка - отправитель или сообщение не найдены");
+      log.error("Ошибка - отправитель или сообщение не найдены");
       return;
     }
 
-    System.out.println("DEBUG: Форматирование информации о запросе");
+    log.debug("Форматирование информации о запросе");
     
     String requestInfo = profileService.formatMeetingRequest(sender, message);
 
-    System.out.println("DEBUG: Отправка сообщения с кнопками принятия/отклонения");
+    log.debug("Отправка сообщения с кнопками принятия/отклонения");
     try {
       messageSender.sendTextMessageWithKeyboard(
               receiverId,
               requestInfo,
               keyboardService.createMeetingRequestKeyboard(senderId));
     } catch (Exception e) {
-      System.out.println("DEBUG: Ошибка при отправке уведомления с кнопками: " + e.getMessage());
+      log.error("Ошибка при отправке уведомления с кнопками: " + e.getMessage());
       messageSender.sendTextMessage(
               receiverId,
               requestInfo + "\n\nЧтобы ответить, используйте команды:\n/accept_" + senderId + " - принять\n/decline_" + senderId + " - отклонить");
     }
 
     if (sender.getPhotoFileId() != null && !sender.getPhotoFileId().isEmpty()) {
-      System.out.println("DEBUG: Отправка фото профиля отправителя");
+      log.debug("Отправка фото профиля отправителя");
       try {
         messageSender.sendPhoto(receiverId, sender.getPhotoFileId(), null);
       } catch (Exception e) {
-        System.out.println("DEBUG: Ошибка при отправке фото профиля: " + e.getMessage());
+        log.error("Ошибка при отправке фото профиля: " + e.getMessage());
       }
     }
 
     String photoFileId = stateManager.getMeetingRequestPhoto(senderId);
     if (photoFileId != null && !photoFileId.isEmpty()) {
-      System.out.println("DEBUG: Отправка фото из запроса");
+      log.debug("Отправка фото из запроса");
       try {
         messageSender.sendPhoto(receiverId, photoFileId, "📸 Фото к запросу на встречу");
       } catch (Exception e) {
-        System.out.println("DEBUG: Ошибка при отправке фото запроса: " + e.getMessage());
+        log.error("Ошибка при отправке фото запроса: " + e.getMessage());
       }
     }
     
-    System.out.println("DEBUG: Уведомление о запросе на встречу отправлено");
+    log.debug("Уведомление о запросе на встречу отправлено");
   }
 }

@@ -11,11 +11,15 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Service
 @Getter
 @RequiredArgsConstructor
 public class UserService {
+
+  private static final Logger log = LoggerFactory.getLogger(UserService.class);
 
   private final UserRepository userRepository;
 
@@ -62,20 +66,22 @@ public class UserService {
 
     userRepository.save(user);
 
-    System.out.println("✅ Обновлено местоположение для: " + telegramId +
-        " (lat: " + lat + ", lon: " + lon + 
-        ", username: " + (user.getUsername() != null ? user.getUsername() : "не установлен") +
-        ", firstName: " + user.getFirstName() + 
-        ", lastName: " + user.getLastName() + 
-        ", phone: " + user.getPhoneNumber() + 
-        ", active: " + user.getActive() + ")");
+    log.info("✅ Обновлено местоположение для: {} (lat: {}, lon: {}, username: {}, firstName: {}, lastName: {}, phone: {}, active: {})",
+        telegramId,
+        lat,
+        lon,
+        (user.getUsername() != null ? user.getUsername() : "не установлен"),
+        user.getFirstName(),
+        user.getLastName(),
+        user.getPhoneNumber(),
+        user.getActive());
   }
 
   @Scheduled(fixedRate = 600000)
   public void deactivateExpiredUsers() {
-    System.out.println("Проверка активности пользователей...");
+    log.info("Проверка активности пользователей...");
     List<User> expiredUsers = userRepository.findExpiredUsers(LocalDateTime.now());
-    System.out.println("Найдено " + expiredUsers.size() + " пользователей с истекшим временем активности");
+    log.info("Найдено {} пользователей с истекшим временем активности", expiredUsers.size());
 
     for (User user : expiredUsers) {
       // Деактивируем пользователя, если срок его активности истёк
@@ -83,7 +89,7 @@ public class UserService {
       user.setDeactivateAt(LocalDateTime.now());
       userRepository.save(user);
 
-      System.out.println("Пользователь " + user.getTelegramId() + " деактивирован");
+      log.info("Пользователь {} деактивирован", user.getTelegramId());
     }
   }
 
@@ -103,28 +109,30 @@ public class UserService {
     }
 
     // Отладочная информация
-    System.out.println("DEBUG: Поиск пользователей с параметрами:");
-    System.out.println("DEBUG: currentUserId=" + currentUserId);
-    System.out.println("DEBUG: lat=" + lat + ", lon=" + lon + ", radius=" + radius);
-    System.out.println("DEBUG: minAge=" + minAge + ", maxAge=" + maxAge + ", gender=" + gender);
+    log.debug("Поиск пользователей с параметрами:");
+    log.debug("currentUserId={}", currentUserId);
+    log.debug("lat={}, lon={}, radius={}", lat, lon, radius);
+    log.debug("minAge={}, maxAge={}, gender={}", minAge, maxAge, gender);
 
     List<User> users = userRepository.findUsersNearbyWithFilters(lat, lon, radius, currentUserId, minAge, maxAge, gender);
 
-    System.out.println("Найдено пользователей: " + (users != null ? users.size() : 0));
+    log.debug("Найдено пользователей: {}", (users != null ? users.size() : 0));
     if (users != null && !users.isEmpty()) {
       for (User user : users) {
-        System.out.println(" - " + user.getTelegramId() + " | " +
-            (user.getUsername() != null ? user.getUsername() : "без username") +
-            " | " + (user.getFirstName() != null ? user.getFirstName() : "") +
-            " | lat: " + user.getLatitude() + " lon: " + user.getLongitude() +
-            " | active: " + user.getActive() +
-            " | vip: " + (user.getIsVip() != null && user.getIsVip() ? "да" : "нет"));
+        log.debug(" - {} | {} | {} | lat: {} lon: {} | active: {} | vip: {}",
+            user.getTelegramId(),
+            (user.getUsername() != null ? user.getUsername() : "без username"),
+            (user.getFirstName() != null ? user.getFirstName() : ""),
+            user.getLatitude(),
+            user.getLongitude(),
+            user.getActive(),
+            (user.getIsVip() != null && user.getIsVip() ? "да" : "нет"));
       }
     } else {
-      System.out.println("DEBUG: SQL запрос не вернул ни одного пользователя. Пробуем без фильтров.");
+      log.debug("SQL запрос не вернул ни одного пользователя. Пробуем без фильтров.");
       // Если не найдено, пробуем искать без фильтров по возрасту и полу
       users = userRepository.findUsersNearbyWithFilters(lat, lon, radius, currentUserId, null, null, null);
-      System.out.println("DEBUG: Без фильтров найдено пользователей: " + (users != null ? users.size() : 0));
+      log.debug("Без фильтров найдено пользователей: {}", (users != null ? users.size() : 0));
     }
 
     // Сортировка результатов: VIP пользователи в начале списка
@@ -175,7 +183,7 @@ public class UserService {
         .orElseThrow(() -> new IllegalArgumentException("Пользователь не найден"));
     user.setActive(false);
     userRepository.save(user);
-    System.out.println("DEBUG: Пользователь " + telegramId + " деактивирован вручную");
+    log.debug("Пользователь {} деактивирован вручную", telegramId);
   }
   
   @Transactional
@@ -225,8 +233,8 @@ public class UserService {
     user.setMaxAgePreference(maxAge);
     user.setGenderPreference(genderPreference);
     userRepository.save(user);
-    System.out.println("DEBUG: Обновлены настройки поиска для пользователя " + telegramId + 
-                      ": возраст " + minAge + "-" + maxAge + ", пол " + genderPreference);
+    log.debug("Обновлены настройки поиска для пользователя {}: возраст {}-{}, пол {}",
+            telegramId, minAge, maxAge, genderPreference);
   }
   
   private void updateProfileCompleteness(User user) {
@@ -242,7 +250,7 @@ public class UserService {
       user.setProfileCompleted(isComplete);
     } catch (Exception e) {
       user.setProfileCompleted(false);
-      System.err.println("Ошибка обновления полноты профиля: " + e.getMessage());
+      log.error("Ошибка обновления полноты профиля: {}", e.getMessage(), e);
     }
   }
   
