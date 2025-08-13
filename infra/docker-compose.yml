@@ -1,0 +1,22 @@
+version: '3.8'
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432"
+  backend:
+    build: ../apps/backend
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+  frontend:
+    build: ../apps/frontend
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend

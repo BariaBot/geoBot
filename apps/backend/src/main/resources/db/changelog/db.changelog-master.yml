@@ -1,0 +1,346 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1
+      author: system
+      changes:
+        - sql: CREATE EXTENSION IF NOT EXISTS postgis;
+  - changeSet:
+      id: 2
+      author: system
+      changes:
+        - createTable:
+            tableName: users
+            columns:
+              - column:
+                  name: id
+                  type: BIGSERIAL
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: telegram_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: username
+                  type: VARCHAR(255)
+              - column:
+                  name: created_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  constraints:
+                    nullable: false
+  - changeSet:
+      id: 3
+      author: system
+      changes:
+        - createTable:
+            tableName: profiles
+            columns:
+              - column:
+                  name: user_id
+                  type: BIGINT
+                  constraints:
+                    primaryKey: true
+                    references: users(id)
+                    foreignKeyName: fk_profiles_user
+              - column:
+                  name: gender
+                  type: VARCHAR(20)
+              - column:
+                  name: birthday
+                  type: DATE
+              - column:
+                  name: bio
+                  type: TEXT
+              - column:
+                  name: photo_id
+                  type: BIGINT
+              - column:
+                  name: is_vip
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+              - column:
+                  name: vip_until
+                  type: TIMESTAMP WITH TIME ZONE
+              - column:
+                  name: city
+                  type: VARCHAR(255)
+
+  - changeSet:
+      id: 4
+      author: system
+      changes:
+        - createTable:
+            tableName: geo
+            columns:
+              - column:
+                  name: user_id
+                  type: BIGINT
+                  constraints:
+                    primaryKey: true
+                    references: users(id)
+                    foreignKeyName: fk_geo_user
+              - column:
+                  name: point
+                  type: geography(Point,4326)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  constraints:
+                    nullable: false
+        - sql: CREATE INDEX idx_geo_point ON geo USING GIST (point);
+  - changeSet:
+      id: 5
+      author: system
+      changes:
+        - createTable:
+            tableName: likes
+            columns:
+              - column:
+                  name: id
+                  type: BIGSERIAL
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: from_user_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+                    references: users(id)
+                    foreignKeyName: fk_likes_from_user
+              - column:
+                  name: to_user_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+                    references: users(id)
+                    foreignKeyName: fk_likes_to_user
+              - column:
+                  name: created_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: likes
+            columnNames: from_user_id, to_user_id
+            constraintName: uc_likes_from_to
+  - changeSet:
+      id: 6
+      author: system
+      changes:
+        - createTable:
+            tableName: matches
+            columns:
+              - column:
+                  name: id
+                  type: BIGSERIAL
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: user1_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+                    references: users(id)
+                    foreignKeyName: fk_matches_user1
+              - column:
+                  name: user2_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+                    references: users(id)
+                    foreignKeyName: fk_matches_user2
+              - column:
+                  name: created_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: matches
+            columnNames: user1_id, user2_id
+            constraintName: uc_matches_pair
+  - changeSet:
+      id: 7
+      author: system
+      changes:
+        - createTable:
+            tableName: meeting_requests
+            columns:
+              - column:
+                  name: id
+                  type: BIGSERIAL
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: sender_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+                    references: users(id)
+                    foreignKeyName: fk_meeting_sender
+              - column:
+                  name: receiver_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+                    references: users(id)
+                    foreignKeyName: fk_meeting_receiver
+              - column:
+                  name: when_ts
+                  type: TIMESTAMP WITH TIME ZONE
+                  constraints:
+                    nullable: false
+              - column:
+                  name: place
+                  type: VARCHAR(255)
+              - column:
+                  name: note
+                  type: TEXT
+              - column:
+                  name: status
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  constraints:
+                    nullable: false
+        - createIndex:
+            tableName: meeting_requests
+            indexName: idx_meeting_receiver
+            columns:
+              - column:
+                  name: receiver_id
+
+  - changeSet:
+      id: 8
+      author: system
+      changes:
+        - createTable:
+            tableName: chat_messages
+            columns:
+              - column:
+                  name: id
+                  type: BIGSERIAL
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: match_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+                    references: matches(id)
+                    foreignKeyName: fk_chat_match
+              - column:
+                  name: from_user_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+                    references: users(id)
+                    foreignKeyName: fk_chat_from_user
+              - column:
+                  name: body
+                  type: TEXT
+                  constraints:
+                    nullable: false
+                - column:
+                    name: created_at
+                    type: TIMESTAMP WITH TIME ZONE
+                    constraints:
+                      nullable: false
+        - createIndex:
+            tableName: chat_messages
+            indexName: idx_chat_match_created
+            columns:
+              - column:
+                  name: match_id
+              - column:
+                  name: created_at
+
+  - changeSet:
+      id: 9
+      author: system
+      changes:
+        - createTable:
+            tableName: subscriptions
+            columns:
+              - column:
+                  name: id
+                  type: BIGSERIAL
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: user_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+                    references: users(id)
+                    foreignKeyName: fk_sub_user
+              - column:
+                  name: plan_code
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: started_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  constraints:
+                    nullable: false
+              - column:
+                  name: expires_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  constraints:
+                    nullable: false
+
+  - changeSet:
+      id: 10
+      author: system
+      changes:
+        - createTable:
+            tableName: payments
+            columns:
+              - column:
+                  name: id
+                  type: BIGSERIAL
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: user_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+                    references: users(id)
+                    foreignKeyName: fk_pay_user
+              - column:
+                  name: provider
+                  type: VARCHAR(30)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: amount_stars
+                  type: INT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: ext_id
+                  type: VARCHAR(255)
+              - column:
+                  name: created_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  constraints:
+                    nullable: false
+

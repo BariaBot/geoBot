@@ -1,18 +1,5 @@
-# Maven build directory
-/target/
-
-# IntelliJ IDEA files
-/.idea/
-*.iml
-
-# Logs
+node_modules/
+**/node_modules/
+**/dist/
+target/
 *.log
-
-# Temporary files
-*.tmp
-.DS_Store
-
-# Eclipse files
-.classpath
-.project
-.settings/
