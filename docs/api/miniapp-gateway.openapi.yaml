@@ -1,0 +1,232 @@
+openapi: 3.1.0
+info:
+  title: WAU Dating Mini App Gateway API
+  version: 0.1.0
+  description: >-
+    REST API слой между Telegram Mini App и core сервисом. Все запросы, кроме webhook-ов,
+    требуют заголовок `x-telegram-init-data` с оригинальным initData строкой.
+servers:
+  - url: https://miniapp-gateway.example.com/api/v1
+    description: Production (после миграции)
+  - url: https://{env}.railway.app/api/v1
+    description: Railway environments
+    variables:
+      env:
+        default: wau-miniapp
+
+components:
+  securitySchemes:
+    TelegramInitData:
+      type: apiKey
+      in: header
+      name: x-telegram-init-data
+
+  schemas:
+    Profile:
+      type: object
+      required: [telegramId, name, bio, interests, birthday, location]
+      properties:
+        telegramId:
+          type: integer
+        name:
+          type: string
+          maxLength: 80
+        bio:
+          type: string
+          nullable: true
+        interests:
+          type: array
+          items:
+            type: string
+        birthday:
+          type: string
+          format: date
+          nullable: true
+        location:
+          anyOf:
+            - $ref: '#/components/schemas/ProfileLocation'
+            - type: 'null'
+    ProfileLocation:
+      type: object
+      required: [latitude, longitude]
+      properties:
+        city:
+          type: string
+          nullable: true
+        latitude:
+          type: number
+          format: double
+        longitude:
+          type: number
+          format: double
+    ProfileUpdateRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+        bio:
+          type: string
+        interests:
+          type: array
+          items:
+            type: string
+        birthday:
+          type: string
+          format: date
+        location:
+          $ref: '#/components/schemas/ProfileLocation'
+    SwipeRequest:
+      type: object
+      required: [targetTelegramId, direction]
+      properties:
+        targetTelegramId:
+          type: integer
+        direction:
+          type: string
+          enum: [like, dislike, superlike]
+    SwipeResponse:
+      type: object
+      required: [matched]
+      properties:
+        matched:
+          type: boolean
+        matchId:
+          type: string
+          nullable: true
+    SwipeQueueItem:
+      type: object
+      required: [profile]
+      properties:
+        profile:
+          $ref: '#/components/schemas/Profile'
+        distanceKm:
+          type: number
+          format: double
+          nullable: true
+    SwipeQueue:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/SwipeQueueItem'
+    PaymentIntentRequest:
+      type: object
+      required: [productCode, quantity]
+      properties:
+        productCode:
+          type: string
+        quantity:
+          type: integer
+          minimum: 1
+    PaymentIntentResponse:
+      type: object
+      required: [invoiceUrl, payload]
+      properties:
+        invoiceUrl:
+          type: string
+          format: uri
+        payload:
+          type: object
+        user:
+          type: object
+          description: Payload Telegram user data для дебага.
+
+security:
+  - TelegramInitData: []
+
+paths:
+  /profiles/me:
+    get:
+      summary: Получить профиль текущего пользователя
+      responses:
+        '200':
+          description: Текущий профиль
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Profile'
+    put:
+      summary: Обновить профиль текущего пользователя
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProfileUpdateRequest'
+      responses:
+        '200':
+          description: Обновлённый профиль
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Profile'
+
+  /swipes:
+    post:
+      summary: Отправить свайп
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SwipeRequest'
+      responses:
+        '200':
+          description: Результат свайпа
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SwipeResponse'
+
+  /swipes/queue:
+    get:
+      summary: Получить очередь кандидатов для свайпа
+      responses:
+        '200':
+          description: Очередь карточек
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SwipeQueue'
+
+  /payments/stars/intents:
+    post:
+      summary: Создать запрос на покупку через Stars
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentIntentRequest'
+      responses:
+        '200':
+          description: Информация для платежа
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentIntentResponse'
+
+  /payments/stars/webhook:
+    post:
+      summary: Webhook от Telegram Stars/TON
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Подтверждение обработки
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
