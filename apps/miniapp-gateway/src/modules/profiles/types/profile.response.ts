@@ -1,12 +1,18 @@
+export interface ProfileLocation {
+  latitude: number
+  longitude: number
+  updatedAt: string
+}
+
 export interface ProfileResponse {
   telegramId: number
-  name: string
-  bio: string
-  interests: string[]
+  displayName: string
+  bio: string | null
+  gender: string | null
   birthday: string | null
-  location: {
-    city: string
-    latitude: number
-    longitude: number
-  } | null
+  city: string | null
+  vip: boolean
+  vipUntil: string | null
+  location: ProfileLocation | null
+  interests: string[]
 }

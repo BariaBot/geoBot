@@ -485,3 +485,33 @@ databaseChangeLog:
             columns:
               - column:
                   name: match_id
+  - changeSet:
+      id: 12
+      author: miniapp
+      changes:
+        - createTable:
+            tableName: profile_interests
+            columns:
+              - column:
+                  name: id
+                  type: BIGSERIAL
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: user_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+                    references: users(id)
+                    foreignKeyName: fk_profile_interests_user
+              - column:
+                  name: value
+                  type: VARCHAR(64)
+                  constraints:
+                    nullable: false
+        - createIndex:
+            tableName: profile_interests
+            indexName: idx_profile_interests_user
+            columns:
+              - column:
+                  name: user_id

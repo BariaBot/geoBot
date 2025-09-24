@@ -16,7 +16,7 @@ public class AuthController {
     @PostMapping("/telegram")
     public ResponseEntity<TokenResponse> auth(@RequestBody TelegramAuthRequest request) {
         // TODO validate initData
-        User user = userService.getOrCreate(request.telegramId(), request.username());
+        User user = userService.ensureUserExists(request.telegramId(), request.username());
         String token = jwtService.generate(user.getTelegramId());
         return ResponseEntity.ok(new TokenResponse(token));
     }

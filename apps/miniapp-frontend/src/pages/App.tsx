@@ -3,13 +3,21 @@ import { init } from '@telegram-apps/sdk';
 import { useTelegramBridge } from '../hooks/useTelegramBridge';
 import { useProfileStore } from '../store/profile';
 import { LoaderScreen } from '../components/LoaderScreen';
+import { ProfileForm } from '../components/ProfileForm';
+import { useSwipeFeed } from '../hooks/useSwipeFeed';
+import { SwipeDeck } from '../components/SwipeDeck';
 
 const TELEGRAM_INIT_TIMEOUT_MS = 4000;
 
+type ActiveTab = 'discover' | 'profile';
+
 const App = () => {
   const [ready, setReady] = useState(false);
+  const [activeTab, setActiveTab] = useState<ActiveTab>('discover');
   const { initBridge, bridgeReady, themeParams } = useTelegramBridge();
-  const initialiseProfile = useProfileStore((store) => store.initialiseFromDeviceStorage);
+  const profileStore = useProfileStore();
+  const { status, profile, draft, updateDraft, submitDraft, initialise, error } = profileStore;
+  const swipeFeed = useSwipeFeed(status === 'ready' && Boolean(profile?.telegramId));
 
   useEffect(() => {
     const controller = new AbortController();
@@ -20,11 +28,11 @@ const App = () => {
       setReady(true);
     }, TELEGRAM_INIT_TIMEOUT_MS);
 
-    const initialise = async () => {
+    const initialiseBridge = async () => {
       try {
         await initBridge(controller.signal);
         if (!controller.signal.aborted) {
-          await initialiseProfile();
+          await initialise();
           setReady(true);
         }
       } finally {
@@ -32,28 +40,88 @@ const App = () => {
       }
     };
 
-    initialise();
+    void initialiseBridge();
 
     return () => {
       controller.abort();
       cleanupInit();
       clearTimeout(timeout);
     };
-  }, [initBridge, initialiseProfile]);
+  }, [initBridge, initialise]);
 
-  if (!ready || !bridgeReady) {
+  const loading = !ready || !bridgeReady || status === 'loading';
+
+  if (loading) {
     return <LoaderScreen theme={themeParams} />;
   }
+
+  const showOnboarding = !profile || !profile.displayName?.trim();
 
   return (
     <div className="app-shell" data-theme={themeParams?.isDark ? 'dark' : 'light'}>
       <header className="app-shell__header">
         <h1>WAU Dating</h1>
-        <p>Свайпай, чтобы встретить лучших людей рядом.</p>
+        <p>Свайпай, знакомься и встречай тех, кто рядом.</p>
       </header>
       <main className="app-shell__content">
-        {/* TODO: заменить на навигацию по реальным маршрутам */}
-        <p>Экран главной ленты появится здесь.</p>
+        {showOnboarding ? (
+          <section className="onboarding">
+            <h2>Расскажи о себе</h2>
+            <p>Заполним профиль, чтобы рекомендации стали точнее.</p>
+            <ProfileForm
+              draft={draft}
+              status={status}
+              error={error}
+              ctaLabel="Продолжить"
+              onChange={(partial) => { void profileStore.updateDraft(partial); }}
+              onSubmit={async () => {
+                await submitDraft();
+              }}
+            />
+          </section>
+        ) : (
+          <section className="app-tabs">
+            <nav className="app-tabs__nav">
+              <button
+                type="button"
+                className={activeTab === 'discover' ? 'app-tabs__button app-tabs__button--active' : 'app-tabs__button'}
+                onClick={() => setActiveTab('discover')}
+              >
+                Лента
+              </button>
+              <button
+                type="button"
+                className={activeTab === 'profile' ? 'app-tabs__button app-tabs__button--active' : 'app-tabs__button'}
+                onClick={() => setActiveTab('profile')}
+              >
+                Профиль
+              </button>
+            </nav>
+            <div className="app-tabs__body">
+              {activeTab === 'discover' ? (
+                <SwipeDeck
+                  items={swipeFeed.items}
+                  loading={swipeFeed.loading}
+                  error={swipeFeed.error}
+                  onRefresh={() => swipeFeed.refresh()}
+                  onLike={(item) => swipeFeed.swipeLike(item)}
+                  onSkip={() => swipeFeed.skip()}
+                />
+              ) : (
+                <ProfileForm
+                  draft={draft}
+                  status={status}
+                  error={error}
+                  ctaLabel="Сохранить"
+                  onChange={(partial) => { void updateDraft(partial); }}
+                  onSubmit={async () => {
+                    await submitDraft();
+                  }}
+                />
+              )}
+            </div>
+          </section>
+        )}
       </main>
     </div>
   );
