@@ -135,7 +135,7 @@ Telegram Client → React Mini App (Vite + @telegram-apps/sdk + tma.js)
 2. ✅ *Готово* — подготовлен OpenAPI драфт (`docs/api/miniapp-gateway.openapi.yaml`).
 3. ✅ *Готово* — развёрнут NestJS gateway с валидацией `initData` и прокси на core моки.
 4. ✅ *Готово* — добавлены стартовые Liquibase изменения (`profile_media`, `star_transactions`, `match_events`).
-5. ⏳ Назначить дизайн-спринт Mini App UI и зафиксировать таймлайн.
+5. ⏳ Завершить UI-блок Mini App (issues #58–#65 вместо дизайн-спринта).
 
 ## 11. Progress Snapshot (обновлено 23.09.2025)
 - Frontend scaffold (`apps/miniapp-frontend`) собран на Vite + React с Telegram SDK и Zustand, включает базовый launcher экран.
