@@ -9,6 +9,7 @@
 - Gateway проксирует профиль и свайпы на core, `/swipes/feed` и `/swipes/like` отдают актуальные данные, dislike обрабатывается на клиенте.
 - Mini App получила онбординг, редактор профиля, состояние свайпов, сохранение черновика в storage и простые аналитические события.
 - Закрыт Issue #51: протестированы Liquibase миграции (`mvn -f apps/backend/pom.xml clean test`), обновлена документация `deployment-and-migration.md` по changeSet 11.
+- Обновлён workflow `ci-lite`: базовая ветка подкачивается с глубиной 50 коммитов и проверяется `git merge-base`, чтобы diff-cover не падал на пушах/PR.
 
 ## Текущее состояние
 - PR #45 открыт, CI зелёное кроме авто-мержа: починен workflow `enable-auto-merge` (добавлено указание номера PR), ждём перезапуска.
@@ -19,8 +20,8 @@
 - `npm run build` в `apps/miniapp-frontend` и `apps/miniapp-gateway` зелёные.
 
 ## Следующие шаги
-1. Докатить обновлённый workflow `ci-lite` до стабильного состояния на `main` (Issue #52).
-2. Продолжить по плану `docs/telegram-mini-app-roadmap.md`: завести Issue на «Назначить дизайн-спринт Mini App UI».
+1. Прогнать обновлённый workflow `ci-lite`, убедиться, что diff-cover проходит, и закрыть Issue #52.
+2. Переформатировать Issue #50 под конкретные UI-задачи roadmap’а (без дизайн-спринта) и разложить работу на понятные дев-таски.
 - Настроить локальный Docker (или Testcontainers mock) для стабильного прогона интеграционных тестов core в CI.
 - Доработать dislike/undo и матчинг в gateway/core, добавить push уведомления (Phase 2+).
 
