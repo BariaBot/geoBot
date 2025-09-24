@@ -4,17 +4,17 @@
 - Обновлён `main` до `89a88a2` и создана ветка `feature/issue-43-contributing-workflow`.
 - Закоммичены `docs: add contributing workflow guidance` и `feat(miniapp): scaffold frontend and gateway` (документация, шаблоны, проекты miniapp-frontend/miniapp-gateway, базовый `application.yml`).
 - Открыт Issue #44 и Pull Request #45 (`feat(miniapp): scaffold frontend and gateway`).
-- Liquibase изменения по `profile_media`/`star_transactions`/`match_events` перенесены в stash `temp-liquibase`.
+- Создана ветка `feature/liquibase-payments`, применён stash `temp-liquibase` в `db.changelog-master.yml`, `mvn clean test` проходит локально.
 
 ## Текущее состояние
 - PR #45 открыт, CI зелёное кроме авто-мержа: починен workflow `enable-auto-merge` (добавлено указание номера PR), ждём перезапуска.
-- `mvn test` локально всё ещё падает из-за JDK (`ExceptionInInitializerError`), требуется проверить `JAVA_HOME`.
+- `mvn clean test` на локальной машине проходит; без `clean` Jacoco может оставлять старые классы и валиться на дубль `SecurityConfig.class`.
 - Стартовые проекты miniapp-frontend и miniapp-gateway проходят `npm run lint` и `npm run build`.
-- В stash `temp-liquibase` хранятся изменения схемы под платежи/матчи; они ещё не вынесены в отдельную ветку.
+- Liquibase миграции вынесены в ветку `feature/liquibase-payments`, stash очищен.
 
 ## Следующие шаги
-1. Починить окружение для `mvn -f apps/backend/pom.xml test` (проверить/задать JDK 17 из `tools/`) и перезапустить проверки в PR #45.
-2. Подготовить ветку для stash `temp-liquibase`, оформить отдельный Issue+PR.
+1. Обновить CI/скрипты, чтобы запускать `mvn -f apps/backend/pom.xml clean test` или почистить причину дублирования `SecurityConfig.class`.
+2. Подготовить Issue и PR для ветки `feature/liquibase-payments` с миграциями.
 3. Продолжить по плану `docs/telegram-mini-app-roadmap.md`: завести Issue на «Назначить дизайн-спринт Mini App UI».
 4. Включить auto-merge на PR #45 после зелёных проверок.
 
