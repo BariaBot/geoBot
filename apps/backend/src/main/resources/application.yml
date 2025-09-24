@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: dating-miniapp-core
+  jackson:
+    serialization:
+      WRITE_DATES_AS_TIMESTAMPS: false
+    property-naming-strategy: SNAKE_CASE
+server:
+  port: 8080
+  servlet:
+    context-path: /api/v1
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "health,info,prometheus"

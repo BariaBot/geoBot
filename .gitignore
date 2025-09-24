@@ -7,3 +7,18 @@ target/
 .m2/
 *.iml
 .DS_Store
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Local tooling bundles
+.tools/
+tools/
+certs/
+*.tar.gz
+*.zip
+
+# Misc artifacts
+webapps.html
