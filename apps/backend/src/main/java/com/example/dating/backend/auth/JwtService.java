@@ -20,8 +20,8 @@ public class JwtService {
 
     public String generate(Long telegramId) {
         return Jwts.builder()
-                .subject(String.valueOf(telegramId))
-                .expiration(new Date(System.currentTimeMillis() + 15 * 60 * 1000))
+                .setSubject(String.valueOf(telegramId))
+                .setExpiration(new Date(System.currentTimeMillis() + 15 * 60 * 1000))
                 .signWith(key())
                 .compact();
     }

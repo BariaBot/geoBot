@@ -31,6 +31,7 @@ public class SecurityConfig {
         http.csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(HttpMethod.POST, "/api/auth/telegram").permitAll()
+                .requestMatchers("/actuator/**").permitAll()
                 .requestMatchers("/ws/**").permitAll()
                 .anyRequest().authenticated())
             .addFilterBefore(new JwtFilter(), UsernamePasswordAuthenticationFilter.class)

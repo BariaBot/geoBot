@@ -6,12 +6,14 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
 
+import com.example.dating.backend.support.PostgisIntegrationTest;
+
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-class HealthEndpointTest {
+class HealthEndpointTest extends PostgisIntegrationTest {
 
     @Autowired
     MockMvc mockMvc;
@@ -19,7 +21,6 @@ class HealthEndpointTest {
     @Test
     void healthIsUp() throws Exception {
         mockMvc.perform(get("/actuator/health"))
-               .andExpect(status().isOk());
+                .andExpect(status().isOk());
     }
 }
-
