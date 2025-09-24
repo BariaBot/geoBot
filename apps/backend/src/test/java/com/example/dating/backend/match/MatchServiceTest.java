@@ -5,16 +5,17 @@ import com.example.dating.backend.user.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.example.dating.backend.support.PostgisIntegrationTest;
 
 import java.time.OffsetDateTime;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest(properties = {
-        "spring.liquibase.enabled=false",
-        "spring.jpa.hibernate.ddl-auto=create-drop"
-})
-class MatchServiceTest {
+@SpringBootTest
+@Transactional
+class MatchServiceTest extends PostgisIntegrationTest {
 
     @Autowired
     MatchService matchService;
