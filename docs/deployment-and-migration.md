@@ -15,6 +15,7 @@
 1. Terraform modules drafted for Selectel and Yandex Cloud (network, compute, managed DB, object storage).
 2. Container images parameterized (registry URL via env). Avoid Railway-specific features.
 3. Database migrations (Liquibase) tested on vanilla Postgres/PostGIS.
+   - ChangeSet 11 (profile media, star transactions, match events) уже на продвинутом сценарии; после каждого мержа проверяйте `mvn -f apps/backend/pom.xml clean test` и актуализируйте changelog документацию.
 4. Observability stack (Prometheus/Grafana/OTel collector) containerized for portability.
 5. Backups: automatic daily dump of Postgres to S3-compatible storage (MinIO/Yandex Object Storage).
 
