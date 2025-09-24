@@ -1,6 +1,7 @@
 import {
   IsArray,
   IsDateString,
+  IsNumber,
   IsOptional,
   IsString,
   Length,
@@ -9,13 +10,27 @@ import {
 
 export class UpdateProfileDto {
   @IsString()
-  @Length(1, 80)
-    name!: string
+  @Length(2, 64)
+    displayName!: string
 
   @IsOptional()
   @IsString()
-  @MaxLength(512)
+  @MaxLength(1024)
     bio?: string
+
+  @IsOptional()
+  @IsString()
+  @Length(1, 20)
+    gender?: string
+
+  @IsOptional()
+  @IsDateString()
+    birthday?: string
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+    city?: string
 
   @IsOptional()
   @IsArray()
@@ -23,13 +38,10 @@ export class UpdateProfileDto {
     interests?: string[]
 
   @IsOptional()
-  @IsDateString()
-    birthday?: string
+  @IsNumber({ allowNaN: false, allowInfinity: false })
+    latitude?: number
 
   @IsOptional()
-    location?: {
-    city?: string
-    latitude: number
-    longitude: number
-  }
+  @IsNumber({ allowNaN: false, allowInfinity: false })
+    longitude?: number
 }

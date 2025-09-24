@@ -11,17 +11,17 @@ type TelegramRequest = Parameters<typeof getTelegramUser>[0]
 export class SwipesController {
   constructor (private readonly swipesService: SwipesService) {}
 
-  @Get('queue')
-  async getQueue (@Req() request: TelegramRequest, @Query('limit') limit?: string) {
+  @Get('feed')
+  async getFeed (@Req() request: TelegramRequest, @Query('limit') limit?: string) {
     const parsedLimit = typeof limit === 'string' ? Number(limit) : undefined
-    const queueLimit = parsedLimit !== undefined && Number.isInteger(parsedLimit) && parsedLimit > 0
+    const feedLimit = parsedLimit !== undefined && Number.isInteger(parsedLimit) && parsedLimit > 0
       ? parsedLimit
       : undefined
 
-    return this.swipesService.getQueue(getTelegramUser(request), queueLimit)
+    return this.swipesService.fetchFeed(getTelegramUser(request), feedLimit)
   }
 
-  @Post()
+  @Post('decision')
   async swipe (@Req() request: TelegramRequest, @Body() body: SwipeDto) {
     return this.swipesService.swipe(getTelegramUser(request), body)
   }

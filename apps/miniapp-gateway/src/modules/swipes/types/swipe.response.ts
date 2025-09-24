@@ -1,4 +1,4 @@
 export interface SwipeResponse {
-  matched: boolean
-  matchId?: string
+  match: boolean
+  targetTelegramId: number
 }
