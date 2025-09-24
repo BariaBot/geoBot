@@ -2,19 +2,21 @@
 
 ## Сделано
 - Обновлён `main` до `89a88a2` и создана ветка `feature/issue-43-contributing-workflow`.
-- Закоммичен `docs: add contributing workflow guidance` (CONTRIBUTING, README, Issue/PR шаблоны, roadmap/runbooks).
+- Закоммичены `docs: add contributing workflow guidance` и `feat(miniapp): scaffold frontend and gateway` (документация, шаблоны, проекты miniapp-frontend/miniapp-gateway, базовый `application.yml`).
+- Открыт Issue #44 и Pull Request #45 (`feat(miniapp): scaffold frontend and gateway`).
 - Liquibase изменения по `profile_media`/`star_transactions`/`match_events` перенесены в stash `temp-liquibase`.
 
 ## Текущее состояние
-- Ветка `feature/issue-43-contributing-workflow` опережает `main` на 1 коммит; PR ещё не открыт (нужен номер Issue).
-- Существуют неотслеживаемые каталоги: `apps/miniapp-frontend`, `apps/miniapp-gateway`, `certs/`, `tools/`, `webapps.html`, `apps/backend/src/main/resources/application.yml`, `AGENTS.md` — требуют инвентаризации.
-- В stash хранится `temp-liquibase` с расширениями схемы; не забыть применить на ветке для мини-апп платежей/матчей.
+- PR #45 открыт, CI зелёное кроме авто-мержа: починен workflow `enable-auto-merge` (добавлено указание номера PR), ждём перезапуска.
+- `mvn test` локально всё ещё падает из-за JDK (`ExceptionInInitializerError`), требуется проверить `JAVA_HOME`.
+- Стартовые проекты miniapp-frontend и miniapp-gateway проходят `npm run lint` и `npm run build`.
+- В stash `temp-liquibase` хранятся изменения схемы под платежи/матчи; они ещё не вынесены в отдельную ветку.
 
 ## Следующие шаги
-1. Оформить Issue под документацию (№ уточнить) и открыть PR из `feature/issue-43-contributing-workflow`, указав `Closes #ID`.
-2. Разобрать неотслеживаемые каталоги: решить, какие идут в отдельные PR (микросервисы mini app, certs/tools) и почистить временные артефакты.
-3. Создать задачy на реализацию stash `temp-liquibase` (новая ветка от `main`).
-4. Продолжить по плану `docs/telegram-mini-app-roadmap.md`: завести Issue на «Назначить дизайн-спринт Mini App UI».
+1. Починить окружение для `mvn -f apps/backend/pom.xml test` (проверить/задать JDK 17 из `tools/`) и перезапустить проверки в PR #45.
+2. Подготовить ветку для stash `temp-liquibase`, оформить отдельный Issue+PR.
+3. Продолжить по плану `docs/telegram-mini-app-roadmap.md`: завести Issue на «Назначить дизайн-спринт Mini App UI».
+4. Включить auto-merge на PR #45 после зелёных проверок.
 
 ## Контроль задач
 - Базовый прогресс и «на чём остановились» отражаем в этом файле `docs/session-notes-2025-09-24.md`; обновлять в конце каждой сессии.
