@@ -30,5 +30,6 @@ public abstract class PostgisIntegrationTest {
         registry.add("spring.datasource.password", POSTGRES::getPassword);
         registry.add("spring.jpa.hibernate.ddl-auto", () -> "create-drop");
         registry.add("spring.liquibase.enabled", () -> "false");
+        registry.add("server.servlet.context-path", () -> "");
     }
 }

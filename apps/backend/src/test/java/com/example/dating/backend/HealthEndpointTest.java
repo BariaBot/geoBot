@@ -21,6 +21,6 @@ class HealthEndpointTest extends PostgisIntegrationTest {
     @Test
     void healthIsUp() throws Exception {
         mockMvc.perform(get("/actuator/health"))
-               .andExpect(status().isOk());
+                .andExpect(status().isOk());
     }
 }
