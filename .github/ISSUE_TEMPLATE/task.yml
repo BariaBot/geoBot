@@ -1,0 +1,39 @@
+name: Задача
+description: Зафиксировать работу, по которой будет открыт Pull Request
+title: "[Task] \u003cкраткое описание\u003e"
+labels:
+  - task
+body:
+  - type: textarea
+    id: goal
+    attributes:
+      label: Что нужно сделать
+      description: Сформулируй цель и скоуп задачи.
+      placeholder: "Настроить автоматический auto-merge для PR после прохождения проверок"
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Критерии приёмки
+      description: Опиши, как мы поймём, что задача выполнена.
+      placeholder: "- GitHub auto-merge включается без ошибок\n- Документация по процессу обновлена"
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Дополнительные заметки
+      description: Ссылки, контекст, связанные документы.
+      placeholder: "См. docs/CONTRIBUTING.md"
+      render: markdown
+    validations:
+      required: false
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Мини-чеклист перед закрытием
+      options:
+        - label: Обновлён `docs/CONTRIBUTING.md`, если процесс менялся
+        - label: Написаны или обновлены тесты
+        - label: Все обязательные проверки в CI зелёные
