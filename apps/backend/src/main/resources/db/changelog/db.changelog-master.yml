@@ -344,3 +344,144 @@ databaseChangeLog:
                   constraints:
                     nullable: false
 
+  - changeSet:
+      id: 11
+      author: miniapp
+      changes:
+        - createTable:
+            tableName: profile_media
+            columns:
+              - column:
+                  name: id
+                  type: BIGSERIAL
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: user_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+                    references: users(id)
+                    foreignKeyName: fk_profile_media_user
+              - column:
+                  name: telegram_file_id
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: media_type
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: position
+                  type: SMALLINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: is_primary
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+              - column:
+                  name: created_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: profile_media
+            columnNames: user_id, position
+            constraintName: uq_profile_media_slot
+        - createIndex:
+            tableName: profile_media
+            indexName: idx_profile_media_user
+            columns:
+              - column:
+                  name: user_id
+        - createTable:
+            tableName: star_transactions
+            columns:
+              - column:
+                  name: id
+                  type: BIGSERIAL
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: user_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+                    references: users(id)
+                    foreignKeyName: fk_star_tx_user
+              - column:
+                  name: product_code
+                  type: VARCHAR(64)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: stars_amount
+                  type: INT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: ton_amount
+                  type: NUMERIC(18, 8)
+              - column:
+                  name: status
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: external_id
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: metadata
+                  type: JSONB
+              - column:
+                  name: created_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  constraints:
+                    nullable: false
+        - createIndex:
+            tableName: star_transactions
+            indexName: idx_star_tx_user_created
+            columns:
+              - column:
+                  name: user_id
+              - column:
+                  name: created_at
+        - createTable:
+            tableName: match_events
+            columns:
+              - column:
+                  name: id
+                  type: BIGSERIAL
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: match_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+                    references: matches(id)
+                    foreignKeyName: fk_match_events_match
+              - column:
+                  name: event_type
+                  type: VARCHAR(40)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: payload
+                  type: JSONB
+              - column:
+                  name: created_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  constraints:
+                    nullable: false
+        - createIndex:
+            tableName: match_events
+            indexName: idx_match_events_match
+            columns:
+              - column:
+                  name: match_id
