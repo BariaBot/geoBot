@@ -1,20 +1,20 @@
 # Session Notes — 2025-09-24
 
 ## Сделано
-- Merged PR #42 `ci-lite setup` в `main`, GitHub авто-merge работает c правилами `ci-lite-main`.
-- Создано `docs/CONTRIBUTING.md` с регламентом веток, Issue и тестов; обновлено оглавление `docs/README.md`.
-- Настроены шаблоны: Issue form `.github/ISSUE_TEMPLATE/task.yml`, PR шаблон `.github/pull_request_template.md`.
-- Проверены CI проверки (`mvn test`, `npm run lint`, `npm run typecheck`) — всё зелёное на последнем прогоне.
+- Обновлён `main` до `89a88a2` и создана ветка `feature/issue-43-contributing-workflow`.
+- Закоммичен `docs: add contributing workflow guidance` (CONTRIBUTING, README, Issue/PR шаблоны, roadmap/runbooks).
+- Liquibase изменения по `profile_media`/`star_transactions`/`match_events` перенесены в stash `temp-liquibase`.
 
 ## Текущее состояние
-- Локальная ветка `ci-lite-setup` остаётся на `32a2e61` с неотслеживаемыми файлами; перед новой работой нужно перейти на `main` и обновиться.
-- Правило `ci-lite-main` активное: требует merge через PR, запрещает удаление и non-fast-forward — workflow описан в CONTRIBUTING.
-- Документация и шаблоны добавлены, но ещё не закоммичены; изменения лежат в рабочем дереве.
+- Ветка `feature/issue-43-contributing-workflow` опережает `main` на 1 коммит; PR ещё не открыт (нужен номер Issue).
+- Существуют неотслеживаемые каталоги: `apps/miniapp-frontend`, `apps/miniapp-gateway`, `certs/`, `tools/`, `webapps.html`, `apps/backend/src/main/resources/application.yml`, `AGENTS.md` — требуют инвентаризации.
+- В stash хранится `temp-liquibase` с расширениями схемы; не забыть применить на ветке для мини-апп платежей/матчей.
 
 ## Следующие шаги
-1. Зафиксировать изменения (Contributing + шаблоны) через новый PR от ветки `main` (`feature/issue-XX-contributing-workflow`).
-2. Продолжить по плану из `docs/telegram-mini-app-roadmap.md`, создав соответствующие Issue на каждую активную задачу.
-3. Почистить локальное рабочее дерево: удалить или перенести неотслеживаемые каталоги, перейти на `main`.
+1. Оформить Issue под документацию (№ уточнить) и открыть PR из `feature/issue-43-contributing-workflow`, указав `Closes #ID`.
+2. Разобрать неотслеживаемые каталоги: решить, какие идут в отдельные PR (микросервисы mini app, certs/tools) и почистить временные артефакты.
+3. Создать задачy на реализацию stash `temp-liquibase` (новая ветка от `main`).
+4. Продолжить по плану `docs/telegram-mini-app-roadmap.md`: завести Issue на «Назначить дизайн-спринт Mini App UI».
 
 ## Контроль задач
 - Базовый прогресс и «на чём остановились» отражаем в этом файле `docs/session-notes-2025-09-24.md`; обновлять в конце каждой сессии.
