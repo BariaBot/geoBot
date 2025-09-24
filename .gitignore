@@ -3,3 +3,7 @@ node_modules/
 **/dist/
 target/
 *.log
+.idea/
+.m2/
+*.iml
+.DS_Store

@@ -1,0 +1,79 @@
+name: ci-lite
+
+on:
+  push:
+    branches-ignore:
+      - main
+  pull_request:
+    branches:
+      - '**'
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: apps/frontend/package-lock.json
+      - name: Install frontend dependencies
+        working-directory: apps/frontend
+        run: npm ci
+      - name: Run frontend lint
+        working-directory: apps/frontend
+        run: npm run lint
+
+  typecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: apps/frontend/package-lock.json
+      - name: Install frontend dependencies
+        working-directory: apps/frontend
+        run: npm ci
+      - name: Run TypeScript typecheck
+        working-directory: apps/frontend
+        run: npm run typecheck
+      - name: Use Temurin JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: maven
+      - name: Compile backend sources
+        run: mvn -B -ntp -DskipTests=true -f apps/backend/pom.xml compile
+
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Use Temurin JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: maven
+      - name: Run backend tests with coverage
+        run: mvn -B -ntp -f apps/backend/pom.xml test
+      - name: Install diff-cover
+        if: github.event_name == 'pull_request'
+        run: python -m pip install diff-cover==9.1.1
+      - name: Fetch base branch
+        if: github.event_name == 'pull_request'
+        run: git fetch origin ${{ github.event.pull_request.base.ref }} --depth=1
+      - name: Enforce diff coverage threshold
+        if: github.event_name == 'pull_request'
+        run: diff-cover target/site/jacoco/jacoco.xml --compare-branch origin/${{ github.event.pull_request.base.ref }} --fail-under=60

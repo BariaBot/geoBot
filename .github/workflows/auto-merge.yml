@@ -1,0 +1,23 @@
+name: enable-auto-merge
+
+on:
+  pull_request_target:
+    types:
+      - opened
+      - ready_for_review
+      - reopened
+      - synchronize
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  enable:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Enable auto-merge for PR
+        uses: peter-evans/enable-pull-request-automerge@v3
+        with:
+          token: ${{ secrets.AUTOMERGE_TOKEN }}
+          merge-method: merge
