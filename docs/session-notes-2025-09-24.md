@@ -1,5 +1,14 @@
 # Session Notes — 2025-09-24
 
+## 2025-09-25
+- Закрыта задача #61: добавлены undo/dislike для очереди свайпов.
+  - Backend: `MiniAppSwipeService` хранит историю, поддерживает undo и покрыт тестом `MiniAppSwipeServiceTest`.
+  - Gateway: `/swipes/queue` и `/swipes` возвращают обновлённую очередь и принимают `direction` (`like|dislike|superlike|undo`).
+  - Frontend: внедрён `useSwipeQueue`, переработан `SwipeDeck` с кнопками undo/dislike, обновлены стили и OpenAPI.
+- PR #75 (`feat(swipes): add undo-enabled mini-app queue`) смёржен автоматически после успешных `ci-lite` и `enable-auto-merge`.
+- Прогнаны `mvn -f apps/backend/pom.xml test`, `npm run build` (frontend/gateway); `npm run lint` (frontend) по-прежнему падает на исторических предупреждениях, новых ошибок не добавляли.
+- Следующая задача — Issue #62. Работаем по той же схеме: ветка → реализация → тесты → `gh pr create` → ждём CI/auto-merge → обновляем `main` и заметки.
+
 ## Сделано
 - Обновлён `main` до `89a88a2` и создана ветка `feature/issue-43-contributing-workflow`.
 - Закоммичены `docs: add contributing workflow guidance` и `feat(miniapp): scaffold frontend and gateway` (документация, шаблоны, проекты miniapp-frontend/miniapp-gateway, базовый `application.yml`).
