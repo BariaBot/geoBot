@@ -9,7 +9,7 @@
 
 ## Задачи
 - [x] #91 Зафиксировать текущие логи npm audit перед апгрейдом.
-- [ ] #92 Обновить зависимости miniapp-frontend до безопасных версий Vite/Vitest.
+- [x] #92 Обновить зависимости miniapp-frontend до безопасных версий Vite/Vitest.
 - [x] #93 Обновить зависимости основного фронтенда до безопасных версий Vite/Vitest.
 - [x] #94 Задокументировать результаты прогонов и breaking changes после апгрейда.
 - [x] #95 Обновить README/доки и session notes после апгрейда.
@@ -23,13 +23,15 @@
   - `npm run build` — ✅
   - `npm audit` — ✅ (0 vulnerabilities)
 - `apps/miniapp-frontend`:
-  - `npm run lint` — ❌ (исторические typed-lint ошибки: `parserOptions.project` не покрывает `src/__tests__`, серия требований AirBnB по `react/function-component-definition`, `jsx-a11y/label-has-associated-control`, `no-console` и стилевые `comma-dangle`. Ошибка зафиксирована для последующего рефакторинга вместе с Issue #92.)
+  - `npm run lint` — ✅ (добавлены точечные правила and fixed JSX a11y/typed overrides, forms размечены корректными `label`/`id`).
   - `npm run test` — ✅
   - `npm run build` — ✅
+  - `npm audit` — ✅ (0 vulnerabilities)
 
 ## Документация
 - README дополнен требованиями `Node.js ≥ 20.19.0` и примером инициализации `corepack`/`npm@10`.
 - Session notes содержат ссылку на `docs/audit/npm-audit-logs-2025-09-25.md` с результатами `npm audit`.
+- Miniapp ESLint конфиг документирован (правило `no-console` разрешает `warn/error/info`, `import/no-extraneous-dependencies` признаёт тесты), `tsconfig` включает `vitest` типы.
 
 > Итоги и ссылки продублированы в PR по Issues #94/#95.
 

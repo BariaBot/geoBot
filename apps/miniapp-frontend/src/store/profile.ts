@@ -1,5 +1,7 @@
 import { create } from 'zustand';
-import { fetchProfile, updateProfile, type ProfilePayload, type ProfileResponse } from '../api/profile';
+import {
+  fetchProfile, updateProfile, type ProfilePayload, type ProfileResponse,
+} from '../api/profile';
 import { withDeviceStorage } from '../services/deviceStorage';
 import { trackEvent } from '../utils/analytics';
 
@@ -30,7 +32,7 @@ interface ProfileState {
 const DEFAULT_DRAFT: ProfileDraft = {
   displayName: '',
   bio: '',
-  interests: []
+  interests: [],
 };
 
 export const useProfileStore = create<ProfileState>((set, get) => ({
@@ -38,7 +40,7 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
   draft: DEFAULT_DRAFT,
   status: 'idle',
   error: undefined,
-  async initialise () {
+  async initialise() {
     set({ status: 'loading', error: undefined });
 
     const draftFromStorage = await withDeviceStorage(async (storage) => {
@@ -65,14 +67,14 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
       set({ status: 'error', error: error instanceof Error ? error.message : 'Unknown error' });
     }
   },
-  async updateDraft (partial) {
+  async updateDraft(partial) {
     const nextDraft = { ...get().draft, ...partial };
     set({ draft: nextDraft });
     await withDeviceStorage(async (storage) => {
       storage.set(DRAFT_STORAGE_KEY, JSON.stringify(nextDraft));
     });
   },
-  async submitDraft () {
+  async submitDraft() {
     const current = get();
     if (current.status === 'submitting') return;
 
@@ -86,7 +88,7 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
       city: current.draft.city,
       interests: current.draft.interests,
       latitude: current.draft.latitude,
-      longitude: current.draft.longitude
+      longitude: current.draft.longitude,
     };
 
     try {
@@ -101,9 +103,9 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
       set({ status: 'error', error: error instanceof Error ? error.message : 'Unknown error' });
     }
   },
-  resetError () {
+  resetError() {
     set({ error: undefined, status: get().profile ? 'ready' : 'idle' });
-  }
+  },
 }));
 
 function deriveDraft(profile: ProfileResponse, existing: ProfileDraft): ProfileDraft {
@@ -117,6 +119,6 @@ function deriveDraft(profile: ProfileResponse, existing: ProfileDraft): ProfileD
     city: profile.city ?? existing.city,
     interests: profile.interests?.length ? profile.interests : existing.interests,
     latitude: profile.location?.latitude ?? existing.latitude,
-    longitude: profile.location?.longitude ?? existing.longitude
+    longitude: profile.location?.longitude ?? existing.longitude,
   };
 }

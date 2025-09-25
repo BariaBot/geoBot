@@ -28,6 +28,22 @@ module.exports = {
         namedComponents: 'arrow-function',
         unnamedComponents: 'arrow-function'
       }
+    ],
+    'react/require-default-props': 'off',
+    'no-console': ['warn', { allow: ['warn', 'error', 'info'] }],
+    'import/no-extraneous-dependencies': [
+      'error',
+      {
+        devDependencies: ['**/__tests__/**', '**/test/**']
+      }
+    ],
+    '@typescript-eslint/no-use-before-define': [
+      'error',
+      {
+        functions: false,
+        classes: false,
+        variables: true
+      }
     ]
   }
 };

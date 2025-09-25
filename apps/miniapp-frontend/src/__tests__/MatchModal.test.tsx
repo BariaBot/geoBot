@@ -59,4 +59,3 @@ describe('MatchModal', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 });
-

@@ -22,4 +22,3 @@ export async function sendMatchInvite(payload: MatchInvitePayload): Promise<void
     throw error;
   }
 }
-

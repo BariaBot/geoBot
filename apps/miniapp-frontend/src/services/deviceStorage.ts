@@ -26,9 +26,11 @@ const localStorageAdapter: SimpleStorage = {
     } catch (error) {
       console.warn('localStorage delete failed', error);
     }
-  }
+  },
 };
 
-export async function withDeviceStorage<T>(callback: (storage: SimpleStorage) => Promise<T> | T): Promise<T> {
-  return await callback(localStorageAdapter);
+export async function withDeviceStorage<T>(
+  callback: (storage: SimpleStorage) => Promise<T> | T,
+): Promise<T> {
+  return callback(localStorageAdapter);
 }

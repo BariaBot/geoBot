@@ -158,8 +158,10 @@ const buildPaletteTokens = (mode: ThemeMode, theme: ThemeSnapshot | null): Theme
   };
 };
 
-const flattenDefinition = (definition: ThemeDefinition, path: TokenPath = []): TokenEntry[] => Object
-  .entries(definition)
+const flattenDefinition = (
+  definition: ThemeDefinition,
+  path: TokenPath = [],
+): TokenEntry[] => Object.entries(definition)
   .flatMap(([key, value]) => {
     const currentPath = [...path, key];
 
@@ -172,13 +174,17 @@ const flattenDefinition = (definition: ThemeDefinition, path: TokenPath = []): T
 
 const createVarName = (path: TokenPath) => `${ROOT_PREFIX}${path.join('-')}`;
 
-const buildCSSVariables = (definition: ThemeDefinition) => flattenDefinition(definition)
-  .reduce<Record<string, TokenValue>>((acc, entry) => {
+function buildCSSVariables(definition: ThemeDefinition): Record<string, TokenValue> {
+  return flattenDefinition(definition).reduce<Record<string, TokenValue>>((acc, entry) => {
     acc[createVarName(entry.path)] = entry.value;
     return acc;
   }, {});
+}
 
-export const resolveThemeDefinition = (mode: ThemeMode, theme: ThemeSnapshot | null): ThemeDefinition => {
+export const resolveThemeDefinition = (
+  mode: ThemeMode,
+  theme: ThemeSnapshot | null,
+): ThemeDefinition => {
   const base = baseTokens[mode];
 
   return {
@@ -187,9 +193,12 @@ export const resolveThemeDefinition = (mode: ThemeMode, theme: ThemeSnapshot | n
   };
 };
 
-export const resolveCSSVariables = (mode: ThemeMode, theme: ThemeSnapshot | null) => buildCSSVariables(
-  resolveThemeDefinition(mode, theme),
-);
+export function resolveCSSVariables(
+  mode: ThemeMode,
+  theme: ThemeSnapshot | null,
+): Record<string, TokenValue> {
+  return buildCSSVariables(resolveThemeDefinition(mode, theme));
+}
 
 export const resolveThemeMode = (theme: ThemeSnapshot | null): ThemeMode => {
   if (theme?.isDark) {

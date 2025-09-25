@@ -31,15 +31,15 @@ export interface ProfileResponse {
 }
 
 export async function fetchProfile(): Promise<ProfileResponse> {
-  return await apiRequest<ProfileResponse>('/profiles/me', {
-    credentials: 'include'
+  return apiRequest<ProfileResponse>('/profiles/me', {
+    credentials: 'include',
   });
 }
 
 export async function updateProfile(payload: ProfilePayload): Promise<ProfileResponse> {
-  return await apiRequest<ProfileResponse>('/profiles/me', {
+  return apiRequest<ProfileResponse>('/profiles/me', {
     method: 'PUT',
     body: JSON.stringify(payload),
-    credentials: 'include'
+    credentials: 'include',
   });
 }
