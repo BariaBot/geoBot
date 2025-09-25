@@ -6,18 +6,41 @@ import {
   it,
   vi,
 } from 'vitest';
+import type { CloudStorage } from '@tma.js/sdk';
+import { initCloudStorage } from '@tma.js/sdk';
 import DeviceStorage, {
   DeviceStorageError,
+  __internal as deviceStorageInternal,
   withDeviceStorage,
 } from '../services/deviceStorage';
+
+type CloudStorageInitResult = [CloudStorage, () => void];
+
+const cloudStorageInitBehavior: { impl: () => CloudStorageInitResult } = {
+  impl: () => {
+    throw new Error('CloudStorage unavailable for tests');
+  },
+};
+
+vi.mock('@tma.js/sdk', async () => {
+  const actual = await vi.importActual<typeof import('@tma.js/sdk')>('@tma.js/sdk');
+  return {
+    ...actual,
+    initCloudStorage: vi.fn(() => cloudStorageInitBehavior.impl()),
+  };
+});
 
 describe('DeviceStorage (miniapp)', () => {
   const originalTelegram = (window as any).Telegram;
 
   beforeEach(() => {
     window.localStorage.clear();
-    vi.restoreAllMocks();
     (window as any).Telegram = undefined;
+    deviceStorageInternal.resetCloudStorageCache();
+    vi.mocked(initCloudStorage).mockClear();
+    cloudStorageInitBehavior.impl = () => {
+      throw new Error('CloudStorage unavailable for tests');
+    };
   });
 
   afterEach(() => {
@@ -37,59 +60,56 @@ describe('DeviceStorage (miniapp)', () => {
   });
 
   it('supports CloudStorage CRUD operations', async () => {
-    const setItem = vi.fn(
-      (
-        key: string,
-        value: string,
-        cb: (err?: Error | null, result?: boolean) => void,
-      ) => cb(null, true),
-    );
-    const getItem = vi.fn(
-      (key: string, cb: (err?: Error | null, result?: string) => void) => cb(null, 'cloud-value'),
-    );
-    const removeItem = vi.fn(
-      (key: string, cb: (err?: Error | null, result?: boolean) => void) => cb(null, true),
-    );
+    const deleteMock = vi.fn().mockResolvedValue(undefined);
+    const getMock = vi.fn().mockImplementation(async (keys: string[]) => ({
+      [keys[0]]: 'cloud-value',
+    }));
+    const setMock = vi.fn().mockResolvedValue(undefined);
+    const supportsMock = vi.fn(() => true);
 
-    (window as any).Telegram = {
-      WebApp: {
-        CloudStorage: { setItem, getItem, removeItem },
-      },
-    };
+    cloudStorageInitBehavior.impl = () => ([
+      {
+        delete: deleteMock,
+        get: getMock,
+        set: setMock,
+        supports: supportsMock,
+      } as unknown as CloudStorage,
+      vi.fn(),
+    ]);
+
+    (window as any).Telegram = { WebApp: {} };
 
     expect(DeviceStorage.isCloudStorageAvailable()).toBe(true);
 
     await DeviceStorage.setItem('draft', 'cloud-value');
-    expect(setItem).toHaveBeenCalledWith(
-      'draft',
-      'cloud-value',
-      expect.any(Function),
-    );
+    expect(setMock).toHaveBeenCalledWith('draft', 'cloud-value');
 
     const value = await DeviceStorage.getItem('draft');
     expect(value).toBe('cloud-value');
 
     await DeviceStorage.removeItem('draft');
-    expect(removeItem).toHaveBeenCalledWith('draft', expect.any(Function));
+    expect(deleteMock).toHaveBeenCalledWith('draft');
   });
 
   it('propagates CloudStorage errors', async () => {
-    const error = new Error('CloudStorage failure');
-    const setItem = vi.fn(
-      (key: string, value: string, cb: (err?: Error | null) => void) => cb(error),
-    );
+    const cloudError = new Error('CloudStorage failure');
+    cloudStorageInitBehavior.impl = () => ([
+      {
+        delete: vi.fn(),
+        get: vi.fn(),
+        set: vi.fn().mockRejectedValue(cloudError),
+        supports: vi.fn(() => true),
+      } as unknown as CloudStorage,
+      vi.fn(),
+    ]);
 
-    (window as any).Telegram = {
-      WebApp: {
-        CloudStorage: {
-          setItem,
-          getItem: vi.fn(),
-          removeItem: vi.fn(),
-        },
-      },
-    };
+    (window as any).Telegram = { WebApp: {} };
 
-    await expect(DeviceStorage.setItem('draft', 'value')).rejects.toBe(error);
+    await expect(DeviceStorage.setItem('draft', 'value')).rejects.toMatchObject({
+      message: 'Не удалось сохранить значение',
+      name: 'DeviceStorageError',
+      cause: cloudError,
+    });
     expect(window.localStorage.getItem('draft')).toBeNull();
   });
 
