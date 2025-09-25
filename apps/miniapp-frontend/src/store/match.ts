@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { withDeviceStorage } from '../services/deviceStorage';
+import DeviceStorage, { DeviceStorageError } from '../services/deviceStorage';
 import { trackEvent } from '../utils/analytics';
 import { sendMatchInvite } from '../api/notifications';
 
@@ -33,25 +33,25 @@ function buildMatchKey(match: MatchDetails): string {
 }
 
 async function persistSeenKeys(keys: Set<string>): Promise<void> {
-  await withDeviceStorage(async (storage) => {
-    storage.set(SEEN_MATCHES_KEY, JSON.stringify(Array.from(keys)));
-  });
+  try {
+    await DeviceStorage.setJSON(SEEN_MATCHES_KEY, Array.from(keys));
+  } catch (error) {
+    console.warn('Failed to persist seen match keys', error);
+  }
 }
 
 async function loadSeenKeys(): Promise<Set<string>> {
-  return withDeviceStorage(async (storage) => {
-    const raw = storage.get(SEEN_MATCHES_KEY);
-    if (!raw) {
-      return new Set<string>();
+  try {
+    const stored = await DeviceStorage.getJSON<string[]>(SEEN_MATCHES_KEY);
+    return stored ? new Set(stored) : new Set<string>();
+  } catch (error) {
+    if (error instanceof DeviceStorageError) {
+      console.warn('Failed to load matches from DeviceStorage', error);
+    } else {
+      console.warn('Unexpected error while loading matches', error);
     }
-    try {
-      const parsed = JSON.parse(raw) as string[];
-      return new Set(parsed);
-    } catch (error) {
-      console.warn('Failed to parse stored matches', error);
-      return new Set<string>();
-    }
-  });
+    return new Set<string>();
+  }
 }
 
 function triggerMatchHaptic(): void {
