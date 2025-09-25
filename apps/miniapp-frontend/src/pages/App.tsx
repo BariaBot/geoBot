@@ -4,7 +4,7 @@ import { useTelegramBridge } from '../hooks/useTelegramBridge';
 import { useProfileStore } from '../store/profile';
 import { LoaderScreen } from '../components/LoaderScreen';
 import { ProfileForm } from '../components/ProfileForm';
-import { useSwipeFeed } from '../hooks/useSwipeFeed';
+import { useSwipeQueue } from '../hooks/useSwipeQueue';
 import { SwipeDeck } from '../components/SwipeDeck';
 
 const TELEGRAM_INIT_TIMEOUT_MS = 4000;
@@ -17,7 +17,7 @@ const App = () => {
   const { initBridge, bridgeReady, themeParams } = useTelegramBridge();
   const profileStore = useProfileStore();
   const { status, profile, draft, updateDraft, submitDraft, initialise, error } = profileStore;
-  const swipeFeed = useSwipeFeed(status === 'ready' && Boolean(profile?.telegramId));
+  const swipeQueue = useSwipeQueue(status === 'ready' && Boolean(profile?.telegramId));
 
   useEffect(() => {
     const controller = new AbortController();
@@ -100,12 +100,14 @@ const App = () => {
             <div className="app-tabs__body">
               {activeTab === 'discover' ? (
                 <SwipeDeck
-                  items={swipeFeed.items}
-                  loading={swipeFeed.loading}
-                  error={swipeFeed.error}
-                  onRefresh={() => swipeFeed.refresh()}
-                  onLike={(item) => swipeFeed.swipeLike(item)}
-                  onSkip={() => swipeFeed.skip()}
+                  items={swipeQueue.items}
+                  loading={swipeQueue.loading}
+                  error={swipeQueue.error ?? null}
+                  undoAvailable={swipeQueue.undoAvailable}
+                  onRefresh={() => swipeQueue.refresh()}
+                  onLike={(item) => swipeQueue.swipeLike(item)}
+                  onDislike={(item) => swipeQueue.swipeDislike(item)}
+                  onUndo={() => swipeQueue.undo()}
                 />
               ) : (
                 <ProfileForm

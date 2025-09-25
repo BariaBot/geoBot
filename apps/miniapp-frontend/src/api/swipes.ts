@@ -1,40 +1,56 @@
 import { apiRequest } from './client';
 
-export interface SwipeFeedItem {
+export type SwipeDirection = 'like' | 'dislike' | 'superlike' | 'undo';
+
+export interface ProfileLocationDto {
+  cityName: string | null;
+  latitude: number | null;
+  longitude: number | null;
+}
+
+export interface SwipeProfileDto {
   telegramId: number;
-  displayName: string;
+  name: string;
   bio: string | null;
-  city: string | null;
-  gender: string | null;
-  distanceMeters: number | null;
-  lastSeen: string | null;
   interests: string[];
+  birthday: string | null;
+  location: ProfileLocationDto | null;
+  updatedAt: string;
 }
 
-export interface SwipeFeedResponse {
-  timestamp: string;
-  items: SwipeFeedItem[];
+export interface SwipeQueueItemDto {
+  profile: SwipeProfileDto;
+  distanceKm: number | null;
 }
 
-export interface SwipeResponse {
-  match: boolean;
-  targetTelegramId: number;
+export interface SwipeQueueDto {
+  items: SwipeQueueItemDto[];
+  undoAvailable: boolean;
 }
 
-export async function fetchSwipeFeed(limit?: number): Promise<SwipeFeedResponse> {
-  const searchParams = typeof limit === 'number' && Number.isInteger(limit) && limit > 0
-    ? `?limit=${limit}`
-    : '';
+export interface SwipeDecisionResponseDto {
+  matched: boolean;
+  matchId: string | null;
+  createdAt: string;
+  queue: SwipeQueueDto;
+}
 
-  return await apiRequest<SwipeFeedResponse>(`/swipes/feed${searchParams}`, {
-    credentials: 'include'
+export function fetchSwipeQueue(): Promise<SwipeQueueDto> {
+  return apiRequest<SwipeQueueDto>('/swipes/queue', {
+    credentials: 'include',
   });
 }
 
-export async function sendSwipe(targetTelegramId: number): Promise<SwipeResponse> {
-  return await apiRequest<SwipeResponse>('/swipes/like', {
+export function sendSwipeDecision(
+  direction: SwipeDirection,
+  targetTelegramId?: number,
+): Promise<SwipeDecisionResponseDto> {
+  return apiRequest<SwipeDecisionResponseDto>('/swipes', {
     method: 'POST',
     credentials: 'include',
-    body: JSON.stringify({ targetTelegramId })
+    body: JSON.stringify({
+      direction,
+      targetTelegramId,
+    }),
   });
 }

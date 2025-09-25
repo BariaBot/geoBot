@@ -220,7 +220,17 @@ body, html, #root {
   font-weight: 600;
 }
 
-.swipe-card__button--skip {
+.swipe-card__button--undo {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: inherit;
+}
+
+.swipe-card__button--undo:disabled {
+  opacity: 0.4;
+}
+
+.swipe-card__button--dislike {
   background: rgba(255, 255, 255, 0.08);
   color: inherit;
 }
