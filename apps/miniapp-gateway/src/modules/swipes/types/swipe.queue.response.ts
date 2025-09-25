@@ -1,10 +1,25 @@
-import type { ProfileResponse } from '../../profiles/types/profile.response'
-
-export interface SwipeQueueItem {
-  profile: ProfileResponse
-  distanceKm?: number | null
+export interface ProfileLocationDto {
+  cityName: string | null
+  latitude: number | null
+  longitude: number | null
 }
 
-export interface SwipeQueueResponse {
-  items: SwipeQueueItem[]
+export interface SwipeProfileDto {
+  telegramId: number
+  name: string
+  bio: string | null
+  interests: string[]
+  birthday: string | null
+  location: ProfileLocationDto | null
+  updatedAt: string
+}
+
+export interface SwipeQueueItemDto {
+  profile: SwipeProfileDto
+  distanceKm: number | null
+}
+
+export interface SwipeQueueDto {
+  items: SwipeQueueItemDto[]
+  undoAvailable: boolean
 }

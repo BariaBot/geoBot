@@ -78,22 +78,28 @@ components:
           $ref: '#/components/schemas/ProfileLocation'
     SwipeRequest:
       type: object
-      required: [targetTelegramId, direction]
+      required: [direction]
       properties:
         targetTelegramId:
           type: integer
+          nullable: true
         direction:
           type: string
-          enum: [like, dislike, superlike]
+          enum: [like, dislike, superlike, undo]
     SwipeResponse:
       type: object
-      required: [matched]
+      required: [matched, createdAt, queue]
       properties:
         matched:
           type: boolean
         matchId:
           type: string
           nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        queue:
+          $ref: '#/components/schemas/SwipeQueue'
     SwipeQueueItem:
       type: object
       required: [profile]
@@ -106,12 +112,14 @@ components:
           nullable: true
     SwipeQueue:
       type: object
-      required: [items]
+      required: [items, undoAvailable]
       properties:
         items:
           type: array
           items:
             $ref: '#/components/schemas/SwipeQueueItem'
+        undoAvailable:
+          type: boolean
     PaymentIntentRequest:
       type: object
       required: [productCode, quantity]
@@ -166,7 +174,7 @@ paths:
 
   /swipes:
     post:
-      summary: Отправить свайп
+      summary: Отправить решение по свайпу (like / dislike / undo)
       requestBody:
         required: true
         content:

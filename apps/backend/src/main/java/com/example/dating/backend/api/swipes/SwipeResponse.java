@@ -5,5 +5,6 @@ import java.time.Instant;
 public record SwipeResponse(
     boolean matched,
     String matchId,
-    Instant createdAt
+    Instant createdAt,
+    SwipeQueue queue
 ) {}
