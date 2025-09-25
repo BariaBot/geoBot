@@ -91,6 +91,7 @@ function resolveColors(params: TelegramThemeParams = {}): ThemeTokenMap {
   const borderStrong = toRgba(textPrimary, 0.16);
   const skipColor = toRgba(textPrimary, 0.45);
   const overlaySoft = toRgba(textPrimary, 0.05);
+  const overlayMedium = toRgba(textPrimary, 0.16);
   const overlayStrong = toRgba(textPrimary, 0.8);
 
   return {
@@ -109,6 +110,7 @@ function resolveColors(params: TelegramThemeParams = {}): ThemeTokenMap {
     '--color-skip': skipColor,
     '--color-danger': destructive,
     '--color-overlay-soft': overlaySoft,
+    '--color-overlay-medium': overlayMedium,
     '--color-overlay-strong': overlayStrong,
     '--color-toast-background': overlayStrong,
     '--shadow-xs': `0 1px 2px ${toRgba(textPrimary, 0.08)}`,

@@ -80,85 +80,12 @@ nav a:focus-visible {
   }
 }
 
-.card {
-  max-width: var(--size-card-max-width);
-  margin: 0 auto;
-  background: var(--color-surface-elevated);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
-  overflow: hidden;
-  text-align: center;
-  color: var(--color-text-primary);
-}
 
-.card-body {
-  padding: var(--space-lg);
-}
-
-.card-body h2 {
-  margin: 0 0 var(--space-sm);
-  font-size: var(--font-size-lg);
-  line-height: var(--line-height-tight);
-}
-
-.card-body p {
-  margin: 0;
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-sm);
-}
-
-.card-actions {
+.discovery-card {
   display: flex;
-  justify-content: space-between;
-  padding: var(--space-md) var(--space-xl);
-  gap: var(--space-sm);
-  background: var(--color-surface);
-}
-
-.btn {
-  width: var(--size-action-button);
-  height: var(--size-action-button);
-  border: none;
-  border-radius: var(--radius-pill);
-  font-size: var(--font-size-lg);
-  cursor: pointer;
-  background: var(--color-surface);
-  color: var(--color-text-primary);
-  display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  box-shadow: var(--shadow-xs);
-  transition: transform var(--transition-base), box-shadow var(--transition-base), background var(--transition-base), color var(--transition-base);
-}
-
-.btn.like {
-  color: var(--color-like);
-}
-
-.btn.skip {
-  color: var(--color-skip);
-}
-
-.btn:active {
-  transform: scale(0.94);
-  box-shadow: none;
-}
-
-.btn:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 2px;
-}
-
-.visually-hidden {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
+  gap: var(--space-lg);
 }
 
 .toast-container {

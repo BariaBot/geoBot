@@ -1,14 +1,22 @@
 import { useEffect, useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import Loader from '../components/Loader';
 import UserCard from '../components/UserCard';
 import { useAuthStore } from '../store/useAuthStore';
 import { useToastStore } from '../store/useToastStore';
 
 interface Profile {
   userId: number;
-  user: { username: string };
+  user: {
+    username: string;
+    age?: number;
+    photos?: string[];
+    interests?: string[];
+  };
   bio?: string;
+  age?: number;
+  interests?: string[];
+  photos?: string[];
+  distanceKm?: number;
 }
 
 export default function DiscoveryPage() {
@@ -49,10 +57,37 @@ export default function DiscoveryPage() {
     },
   });
 
-  if (isLoading || !data) return <Loader />;
-  if (data.length === 0) return <main>Никого рядом 😔</main>;
+  if (isLoading || !data) {
+    return (
+      <div className="discovery-card">
+        <UserCard
+          isLoading
+          onLike={() => {}}
+          onSkip={() => {}}
+        />
+      </div>
+    );
+  }
+
+  if (data.length === 0) {
+    return (
+      <div className="discovery-card">
+        <UserCard onLike={() => {}} onSkip={refetch} />
+      </div>
+    );
+  }
 
   const profile = data[0];
+  const photos = profile.photos?.length
+    ? profile.photos
+    : profile.user.photos?.length
+      ? profile.user.photos
+      : [];
+  const interests = profile.interests?.length
+    ? profile.interests
+    : profile.user.interests?.length
+      ? profile.user.interests
+      : [];
 
   const handleSkip = () => {
     showToast('Пропущено');
@@ -60,13 +95,17 @@ export default function DiscoveryPage() {
   };
 
   return (
-    <main>
+    <div className="discovery-card">
       <UserCard
         username={profile.user.username}
+        age={profile.age ?? profile.user.age}
         bio={profile.bio}
+        interests={interests}
+        photos={photos}
+        distanceKm={profile.distanceKm}
         onLike={() => like.mutate(profile.userId)}
         onSkip={handleSkip}
       />
-    </main>
+    </div>
   );
 }
