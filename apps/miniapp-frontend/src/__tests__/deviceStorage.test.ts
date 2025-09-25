@@ -91,7 +91,7 @@ describe('DeviceStorage (miniapp)', () => {
     expect(deleteMock).toHaveBeenCalledWith('draft');
   });
 
-  it('propagates CloudStorage errors', async () => {
+  it('falls back to localStorage when CloudStorage set fails', async () => {
     const cloudError = new Error('CloudStorage failure');
     cloudStorageInitBehavior.impl = () => ([
       {
@@ -105,11 +105,44 @@ describe('DeviceStorage (miniapp)', () => {
 
     (window as any).Telegram = { WebApp: {} };
 
-    await expect(DeviceStorage.setItem('draft', 'value')).rejects.toMatchObject({
-      message: 'Не удалось сохранить значение',
-      name: 'DeviceStorageError',
-      cause: cloudError,
-    });
+    await expect(DeviceStorage.setItem('draft', 'value')).resolves.toBeUndefined();
+    expect(window.localStorage.getItem('draft')).toBe('value');
+  });
+
+  it('uses localStorage when CloudStorage get fails', async () => {
+    window.localStorage.setItem('draft', 'local-value');
+    const cloudError = new Error('CloudStorage failure');
+    cloudStorageInitBehavior.impl = () => ([
+      {
+        delete: vi.fn(),
+        get: vi.fn().mockRejectedValue(cloudError),
+        set: vi.fn(),
+        supports: vi.fn(() => true),
+      } as unknown as CloudStorage,
+      vi.fn(),
+    ]);
+
+    (window as any).Telegram = { WebApp: {} };
+
+    await expect(DeviceStorage.getItem('draft')).resolves.toBe('local-value');
+  });
+
+  it('removes local data when CloudStorage delete fails', async () => {
+    window.localStorage.setItem('draft', 'local-value');
+    const cloudError = new Error('CloudStorage failure');
+    cloudStorageInitBehavior.impl = () => ([
+      {
+        delete: vi.fn().mockRejectedValue(cloudError),
+        get: vi.fn(),
+        set: vi.fn(),
+        supports: vi.fn(() => true),
+      } as unknown as CloudStorage,
+      vi.fn(),
+    ]);
+
+    (window as any).Telegram = { WebApp: {} };
+
+    await expect(DeviceStorage.removeItem('draft')).resolves.toBeUndefined();
     expect(window.localStorage.getItem('draft')).toBeNull();
   });
 
