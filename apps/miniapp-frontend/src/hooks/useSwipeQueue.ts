@@ -6,6 +6,7 @@ import {
   type SwipeDirection,
 } from '../api/swipes';
 import { trackEvent } from '../utils/analytics';
+import { useMatchStore } from '../store/match';
 
 interface SwipeQueueState {
   items: SwipeQueueItemDto[];
@@ -46,7 +47,11 @@ export function useSwipeQueue(enabled = true): SwipeQueueState {
     }
   }, [enabled, loadQueue]);
 
-  const submitSwipe = useCallback(async (direction: SwipeDirection, target?: number) => {
+  const submitSwipe = useCallback(async (
+    direction: SwipeDirection,
+    target?: number,
+    item?: SwipeQueueItemDto,
+  ) => {
     setError(undefined);
     setLoading(true);
     try {
@@ -58,8 +63,14 @@ export function useSwipeQueue(enabled = true): SwipeQueueState {
         case 'like':
         case 'superlike':
           trackEvent('swipe_like', { target });
-          if (response.matched && typeof target === 'number') {
+          if (response.matched && item) {
             trackEvent('swipe_match', { target });
+            await useMatchStore.getState().presentMatch({
+              matchId: response.matchId,
+              targetTelegramId: item.profile.telegramId,
+              name: item.profile.name,
+              createdAt: response.createdAt,
+            });
           }
           break;
         case 'dislike':
@@ -81,7 +92,7 @@ export function useSwipeQueue(enabled = true): SwipeQueueState {
   }, [loadQueue]);
 
   const swipeLike = useCallback(async (item: SwipeQueueItemDto) => {
-    await submitSwipe('like', item.profile.telegramId);
+    await submitSwipe('like', item.profile.telegramId, item);
   }, [submitSwipe]);
 
   const swipeDislike = useCallback(async (item: SwipeQueueItemDto) => {

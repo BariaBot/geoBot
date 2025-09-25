@@ -4,7 +4,8 @@ export type AnalyticsEvent =
   | 'swipe_like'
   | 'swipe_dislike'
   | 'swipe_undo'
-  | 'swipe_match';
+  | 'swipe_match'
+  | 'match_shown';
 
 export function trackEvent(event: AnalyticsEvent, payload?: Record<string, unknown>) {
   console.info('[analytics]', event, payload ?? {});
