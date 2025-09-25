@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import {
   fetchProfile, updateProfile, type ProfilePayload, type ProfileResponse,
 } from '../api/profile';
-import { withDeviceStorage } from '../services/deviceStorage';
+import DeviceStorage, { DeviceStorageError } from '../services/deviceStorage';
 import { trackEvent } from '../utils/analytics';
 
 const DRAFT_STORAGE_KEY = 'wau:profile-draft';
@@ -43,16 +43,16 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
   async initialise() {
     set({ status: 'loading', error: undefined });
 
-    const draftFromStorage = await withDeviceStorage(async (storage) => {
-      const raw = storage.get(DRAFT_STORAGE_KEY);
-      if (!raw) return null;
-      try {
-        return JSON.parse(raw) as ProfileDraft;
-      } catch (error) {
-        console.warn('Failed to parse stored draft', error);
-        return null;
+    let draftFromStorage: ProfileDraft | null = null;
+    try {
+      draftFromStorage = await DeviceStorage.getJSON<ProfileDraft>(DRAFT_STORAGE_KEY);
+    } catch (error) {
+      if (error instanceof DeviceStorageError) {
+        console.warn('Failed to read draft from DeviceStorage', error);
+      } else {
+        console.warn('Unexpected error while reading draft', error);
       }
-    });
+    }
 
     if (draftFromStorage) {
       set({ draft: { ...DEFAULT_DRAFT, ...draftFromStorage } });
@@ -70,9 +70,11 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
   async updateDraft(partial) {
     const nextDraft = { ...get().draft, ...partial };
     set({ draft: nextDraft });
-    await withDeviceStorage(async (storage) => {
-      storage.set(DRAFT_STORAGE_KEY, JSON.stringify(nextDraft));
-    });
+    try {
+      await DeviceStorage.setJSON(DRAFT_STORAGE_KEY, nextDraft);
+    } catch (error) {
+      console.warn('Failed to persist draft', error);
+    }
   },
   async submitDraft() {
     const current = get();
@@ -95,9 +97,11 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
       const profile = await updateProfile(payload);
       set({ profile, draft: deriveDraft(profile, current.draft), status: 'ready' });
       trackEvent('profile_saved', { telegramId: profile.telegramId });
-      await withDeviceStorage(async (storage) => {
-        storage.set(DRAFT_STORAGE_KEY, JSON.stringify(get().draft));
-      });
+      try {
+        await DeviceStorage.setJSON(DRAFT_STORAGE_KEY, get().draft);
+      } catch (error) {
+        console.warn('Failed to persist draft after save', error);
+      }
     } catch (error) {
       console.error('Failed to save profile', error);
       set({ status: 'error', error: error instanceof Error ? error.message : 'Unknown error' });

@@ -15,7 +15,7 @@ React + Vite клиент Telegram Mini App для WAU Dating. Шаблон на
 - Fallback значения определены в `src/theme/base.css`, чтобы SSR/preview рендер имел корректную тему до инициализации Telegram SDK.
 
 ## DeviceStorage
-- Черновики профиля и просмотренных матчей сохраняются через хелпер `withDeviceStorage` (`src/services/deviceStorage.ts`).
+- Черновики профиля и просмотренных матчей сохраняются через `DeviceStorage` (`src/services/deviceStorage.ts`), который сам переключается между CloudStorage и fallback.
 - **Внутри Telegram**: если `window.Telegram.WebApp.CloudStorage` доступен, методы работы с черновиками используют облачное хранилище Telegram.
 - **Локально и в web preview**: автоматически включается fallback на `localStorage`.
 - CloudStorage ограничивает размер записи 1 MB. Перед сериализацией payload проверяется `TextEncoder().encode(value).length`.

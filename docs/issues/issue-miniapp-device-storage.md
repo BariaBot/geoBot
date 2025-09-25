@@ -3,7 +3,7 @@
 ## Контекст
 - Milestone: Sprint 2025-09-24
 - GitHub Issue: https://github.com/jicool91/geoBot/issues/78
-- Issue #65 закрывал базовую заглушку под Telegram DeviceStorage, однако сейчас `withDeviceStorage` использует только `localStorage` и игнорирует CloudStorage из Telegram Mini Apps.
+- Issue #65 закрывал базовую заглушку под Telegram DeviceStorage; текущая реализация уже переключается между CloudStorage и локальным fallback, требуется покрытие тестами и документация.
 - Состояния профиля (`useProfileStore`) и матчей (`useMatchStore`) уже завязаны на асинхронный API, поэтому достаточно подключить реальное хранилище и обработку ошибок без переписывания потребителей.
 - Требуется обеспечить корректную работу в следующих сценариях: WebApp внутри Telegram (основной кейс), Web preview (fallback) и локальная разработка без Telegram SDK.
 
@@ -12,7 +12,7 @@
 - [ ] #86 Реализовать fallback на localStorage и протестировать отказ CloudStorage.
 - [ ] #87 Ограничить размер записей 1 MB и выдавать ошибки.
 - [ ] #88 Логировать ошибки DeviceStorage через trackEvent.
-- [ ] #89 Покрыть DeviceStorage Vitest-тестами (успех/ошибка/fallback).
+- [x] #89 Покрыть DeviceStorage Vitest-тестами (успех/ошибка/fallback).
 - [x] #90 Обновить документацию и session notes по DeviceStorage.
 
 ## Критерии готовности
