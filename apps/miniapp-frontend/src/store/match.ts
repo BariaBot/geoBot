@@ -1,5 +1,8 @@
 import { create } from 'zustand';
-import DeviceStorage, { DeviceStorageError } from '../services/deviceStorage';
+import DeviceStorage, {
+  DeviceStorageError,
+  DEVICE_STORAGE_LIMIT_BYTES,
+} from '../services/deviceStorage';
 import { trackEvent } from '../utils/analytics';
 import { sendMatchInvite } from '../api/notifications';
 
@@ -32,11 +35,18 @@ function buildMatchKey(match: MatchDetails): string {
   return `telegram:${match.targetTelegramId}`;
 }
 
-async function persistSeenKeys(keys: Set<string>): Promise<void> {
+async function persistSeenKeys(keys: Set<string>): Promise<boolean> {
   try {
     await DeviceStorage.setJSON(SEEN_MATCHES_KEY, Array.from(keys));
+    return true;
   } catch (error) {
+    if (error instanceof DeviceStorageError && error.code === 'PAYLOAD_TOO_LARGE') {
+      const limitMb = DEVICE_STORAGE_LIMIT_BYTES / (1024 * 1024);
+      console.warn(`Seen matches list exceeds ${limitMb} MB, skipping persist.`, error);
+      return false;
+    }
     console.warn('Failed to persist seen match keys', error);
+    return false;
   }
 }
 
@@ -86,11 +96,15 @@ export const useMatchStore = create<MatchState>((set, get) => ({
       return;
     }
 
+    const previousSeen = new Set(state.seenKeys);
     const nextSeen = new Set(state.seenKeys);
     nextSeen.add(key);
 
     set({ activeMatch: { ...match, key }, seenKeys: nextSeen });
-    await persistSeenKeys(nextSeen);
+    const persisted = await persistSeenKeys(nextSeen);
+    if (!persisted) {
+      set({ seenKeys: previousSeen });
+    }
 
     triggerMatchHaptic();
     trackEvent('match_shown', {
