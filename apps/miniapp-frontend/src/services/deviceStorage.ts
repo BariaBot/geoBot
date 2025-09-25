@@ -75,6 +75,18 @@ const logWarning = (message: string, error: unknown) => {
   }
 };
 
+const normalizeError = (error: unknown, fallbackMessage: string): Error => {
+  if (error instanceof Error) {
+    return error;
+  }
+
+  const message = typeof error === 'string' && error.length > 0
+    ? error
+    : fallbackMessage;
+
+  return new Error(message);
+};
+
 const isCloudStorageAvailableInternal = (): boolean => Boolean(getCloudStorage());
 const getCloudStorage = (): TelegramCloudStorage | undefined => ensureCloudStorage();
 
@@ -94,18 +106,29 @@ const DeviceStorage = {
   async setItem(key: string, value: string): Promise<void> {
     validatePayloadSize(value);
     const storage = getCloudStorage();
+    const writeLocal = () => localStorageAdapter().setItem(key, value);
     if (storage) {
       try {
         await storage.set(key, value);
         return;
       } catch (error) {
         logWarning('CloudStorage setItem failed', error);
-        throw toDeviceStorageError('Не удалось сохранить значение', error);
+        try {
+          writeLocal();
+          return;
+        } catch (localError) {
+          logWarning('localStorage set failed', localError);
+          const aggregate = new AggregateError(
+            [normalizeError(error, 'CloudStorage setItem failed'), normalizeError(localError, 'localStorage set failed')],
+            'Не удалось сохранить значение',
+          );
+          throw new DeviceStorageError('Не удалось сохранить значение', { cause: aggregate });
+        }
       }
     }
 
     try {
-      localStorageAdapter().setItem(key, value);
+      writeLocal();
     } catch (error) {
       logWarning('localStorage set failed', error);
       throw toDeviceStorageError('localStorage set failed', error);
@@ -114,6 +137,7 @@ const DeviceStorage = {
 
   async getItem(key: string): Promise<string | null> {
     const storage = getCloudStorage();
+    const readLocal = () => localStorageAdapter().getItem(key);
     if (storage) {
       try {
         const values = await storage.get([key]);
@@ -123,12 +147,21 @@ const DeviceStorage = {
         return null;
       } catch (error) {
         logWarning('CloudStorage getItem failed', error);
-        throw toDeviceStorageError('Не удалось получить значение', error);
+        try {
+          return readLocal();
+        } catch (localError) {
+          logWarning('localStorage get failed', localError);
+          const aggregate = new AggregateError(
+            [normalizeError(error, 'CloudStorage getItem failed'), normalizeError(localError, 'localStorage get failed')],
+            'Не удалось получить значение',
+          );
+          throw new DeviceStorageError('Не удалось получить значение', { cause: aggregate });
+        }
       }
     }
 
     try {
-      return localStorageAdapter().getItem(key);
+      return readLocal();
     } catch (error) {
       logWarning('localStorage get failed', error);
       throw toDeviceStorageError('localStorage get failed', error);
@@ -137,18 +170,29 @@ const DeviceStorage = {
 
   async removeItem(key: string): Promise<void> {
     const storage = getCloudStorage();
+    const removeLocal = () => localStorageAdapter().removeItem(key);
     if (storage) {
       try {
         await storage.delete(key);
         return;
       } catch (error) {
         logWarning('CloudStorage removeItem failed', error);
-        throw toDeviceStorageError('Не удалось удалить значение', error);
+        try {
+          removeLocal();
+          return;
+        } catch (localError) {
+          logWarning('localStorage delete failed', localError);
+          const aggregate = new AggregateError(
+            [normalizeError(error, 'CloudStorage removeItem failed'), normalizeError(localError, 'localStorage delete failed')],
+            'Не удалось удалить значение',
+          );
+          throw new DeviceStorageError('Не удалось удалить значение', { cause: aggregate });
+        }
       }
     }
 
     try {
-      localStorageAdapter().removeItem(key);
+      removeLocal();
     } catch (error) {
       logWarning('localStorage delete failed', error);
       throw toDeviceStorageError('localStorage delete failed', error);
