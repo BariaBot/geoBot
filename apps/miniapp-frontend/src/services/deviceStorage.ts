@@ -1,39 +1,56 @@
+import { CloudStorage as TelegramCloudStorage, initCloudStorage } from '@tma.js/sdk';
+
 const ONE_MB = 1024 * 1024;
 
 export class DeviceStorageError extends Error {
-  constructor(message: string) {
-    super(message);
+  constructor(message: string, options?: ErrorOptions) {
+    super(message, options);
     this.name = 'DeviceStorageError';
   }
 }
 
-interface CloudStorageCallback {
-  (error?: Error | null, result?: string | boolean): void;
-}
+let cachedCloudStorage: TelegramCloudStorage | undefined;
+let disposeCloudStorage: (() => void) | undefined;
 
-interface CloudStorage {
-  setItem(key: string, value: string, callback: CloudStorageCallback): void;
-  getItem(key: string, callback: CloudStorageCallback): void;
-  removeItem(key: string, callback: CloudStorageCallback): void;
-}
-
-const getCloudStorage = (): CloudStorage | undefined => {
-  const telegram = (window as any)?.Telegram;
-  const { WebApp } = telegram ?? {};
-  return WebApp?.CloudStorage as CloudStorage | undefined;
+const resetCloudStorageCache = () => {
+  cachedCloudStorage = undefined;
+  if (disposeCloudStorage) {
+    disposeCloudStorage();
+    disposeCloudStorage = undefined;
+  }
 };
 
-const promisify = <T>(handler: (callback: CloudStorageCallback) => void): Promise<T> => (
-  new Promise((resolve, reject) => {
-    handler((error, result) => {
-      if (error) {
-        reject(error);
-        return;
-      }
-      resolve(result as T);
-    });
-  })
-);
+const ensureCloudStorage = (): TelegramCloudStorage | undefined => {
+  if (typeof window === 'undefined') {
+    return undefined;
+  }
+
+  if (cachedCloudStorage) {
+    return cachedCloudStorage;
+  }
+
+  const telegram = (window as any)?.Telegram;
+  if (!telegram?.WebApp) {
+    return undefined;
+  }
+
+  try {
+    const [cloudStorage, cleanup] = initCloudStorage();
+    if (!cloudStorage.supports('set')
+      || !cloudStorage.supports('get')
+      || !cloudStorage.supports('delete')) {
+      cleanup();
+      return undefined;
+    }
+
+    cachedCloudStorage = cloudStorage;
+    disposeCloudStorage = cleanup;
+  } catch (error) {
+    logWarning('CloudStorage init failed', error);
+  }
+
+  return cachedCloudStorage;
+};
 
 const validatePayloadSize = (value: string) => {
   const bytes = new TextEncoder().encode(value);
@@ -59,6 +76,19 @@ const logWarning = (message: string, error: unknown) => {
 };
 
 const isCloudStorageAvailableInternal = (): boolean => Boolean(getCloudStorage());
+const getCloudStorage = (): TelegramCloudStorage | undefined => ensureCloudStorage();
+
+const toDeviceStorageError = (message: string, error: unknown): DeviceStorageError => {
+  if (error instanceof DeviceStorageError) {
+    return error;
+  }
+
+  if (error instanceof Error) {
+    return new DeviceStorageError(message, { cause: error });
+  }
+
+  return new DeviceStorageError(message);
+};
 
 const DeviceStorage = {
   async setItem(key: string, value: string): Promise<void> {
@@ -66,11 +96,11 @@ const DeviceStorage = {
     const storage = getCloudStorage();
     if (storage) {
       try {
-        await promisify<void>((callback) => storage.setItem(key, value, callback));
+        await storage.set(key, value);
         return;
       } catch (error) {
         logWarning('CloudStorage setItem failed', error);
-        throw error instanceof Error ? error : new DeviceStorageError('Не удалось сохранить значение');
+        throw toDeviceStorageError('Не удалось сохранить значение', error);
       }
     }
 
@@ -78,7 +108,7 @@ const DeviceStorage = {
       localStorageAdapter().setItem(key, value);
     } catch (error) {
       logWarning('localStorage set failed', error);
-      throw error instanceof Error ? error : new DeviceStorageError('localStorage set failed');
+      throw toDeviceStorageError('localStorage set failed', error);
     }
   },
 
@@ -86,11 +116,14 @@ const DeviceStorage = {
     const storage = getCloudStorage();
     if (storage) {
       try {
-        const value = await promisify<string | null>((callback) => storage.getItem(key, callback));
-        return value ?? null;
+        const values = await storage.get([key]);
+        if (Object.prototype.hasOwnProperty.call(values, key)) {
+          return values[key];
+        }
+        return null;
       } catch (error) {
         logWarning('CloudStorage getItem failed', error);
-        throw error instanceof Error ? error : new DeviceStorageError('Не удалось получить значение');
+        throw toDeviceStorageError('Не удалось получить значение', error);
       }
     }
 
@@ -98,7 +131,7 @@ const DeviceStorage = {
       return localStorageAdapter().getItem(key);
     } catch (error) {
       logWarning('localStorage get failed', error);
-      throw error instanceof Error ? error : new DeviceStorageError('localStorage get failed');
+      throw toDeviceStorageError('localStorage get failed', error);
     }
   },
 
@@ -106,11 +139,11 @@ const DeviceStorage = {
     const storage = getCloudStorage();
     if (storage) {
       try {
-        await promisify<void>((callback) => storage.removeItem(key, callback));
+        await storage.delete(key);
         return;
       } catch (error) {
         logWarning('CloudStorage removeItem failed', error);
-        throw error instanceof Error ? error : new DeviceStorageError('Не удалось удалить значение');
+        throw toDeviceStorageError('Не удалось удалить значение', error);
       }
     }
 
@@ -118,7 +151,7 @@ const DeviceStorage = {
       localStorageAdapter().removeItem(key);
     } catch (error) {
       logWarning('localStorage delete failed', error);
-      throw error instanceof Error ? error : new DeviceStorageError('localStorage delete failed');
+      throw toDeviceStorageError('localStorage delete failed', error);
     }
   },
 
@@ -148,6 +181,10 @@ const DeviceStorage = {
 };
 
 export default DeviceStorage;
+
+export const __internal = {
+  resetCloudStorageCache,
+};
 
 interface AsyncStorageAdapter {
   get: (key: string) => Promise<string | null>;
