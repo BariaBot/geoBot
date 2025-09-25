@@ -1,53 +1,74 @@
 :root {
   color-scheme: light dark;
-  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  background-color: #0d1117;
-  color: #f0f6fc;
+  font-family: var(--tg-typography-fontFamily);
+  background-color: var(--tg-color-background);
+  color: var(--tg-color-text);
 }
 
-body, html, #root {
+body,
+html {
   margin: 0;
   padding: 0;
   min-height: 100%;
+  background-color: var(--tg-color-background);
+  color: var(--tg-color-text);
+}
+
+#root {
+  min-height: 100%;
+  background-color: var(--tg-color-background);
+  color: var(--tg-color-text);
 }
 
 .app-shell {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  padding: 16px;
-  gap: 16px;
+  padding: var(--tg-spacing-xl);
+  gap: var(--tg-spacing-xl);
 }
 
 .app-shell__header {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--tg-spacing-sm);
+}
+
+.app-shell__header h1 {
+  margin: 0;
+  font-weight: var(--tg-typography-headingWeight);
+}
+
+.app-shell__header p {
+  margin: 0;
+  color: var(--tg-color-textSecondary);
 }
 
 .app-shell__content {
   flex: 1;
   display: flex;
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  padding: 16px;
+  border-radius: var(--tg-radius-xl);
+  background: var(--tg-surface-cardBackground);
+  border: 1px solid var(--tg-surface-cardBorder);
+  padding: var(--tg-spacing-xl);
 }
 
 .loader-screen {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--tg-spacing-lg);
   align-items: center;
   justify-content: center;
   min-height: 100vh;
+  background-color: var(--tg-color-background);
+  color: var(--tg-color-text);
 }
 
 .loader-screen__spinner {
   width: 48px;
   height: 48px;
-  border: 4px solid rgba(255, 255, 255, 0.2);
-  border-top-color: rgba(255, 255, 255, 0.8);
+  border: 4px solid var(--tg-surface-cardBorder);
+  border-top-color: var(--tg-color-accent);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
@@ -60,7 +81,7 @@ body, html, #root {
 .onboarding {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: var(--tg-spacing-xl);
   width: 100%;
 }
 
@@ -68,26 +89,27 @@ body, html, #root {
   display: flex;
   flex-direction: column;
   width: 100%;
-  gap: 16px;
+  gap: var(--tg-spacing-xl);
 }
 
 .app-tabs__nav {
   display: flex;
-  gap: 8px;
+  gap: var(--tg-spacing-md);
 }
 
 .app-tabs__button {
   flex: 1;
-  padding: 12px;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: var(--tg-spacing-lg);
+  border-radius: var(--tg-radius-sm);
+  border: 1px solid var(--tg-surface-cardBorder);
   background: transparent;
   color: inherit;
-  font-weight: 600;
+  font-weight: var(--tg-typography-bodyWeight);
 }
 
 .app-tabs__button--active {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--tg-color-backgroundSecondary);
+  border-color: var(--tg-surface-buttonGhostBorder);
 }
 
 .app-tabs__body {
@@ -99,45 +121,45 @@ body, html, #root {
 .profile-form {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--tg-spacing-lg);
   width: 100%;
 }
 
 .profile-form__field {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--tg-spacing-sm);
 }
 
 .profile-form__field input,
 .profile-form__field textarea {
-  padding: 12px;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(17, 24, 39, 0.6);
+  padding: var(--tg-spacing-lg);
+  border-radius: var(--tg-radius-sm);
+  border: 1px solid var(--tg-surface-cardBorder);
+  background: var(--tg-surface-inputBackground);
   color: inherit;
 }
 
 .profile-form__coarse-loc {
   display: flex;
-  gap: 12px;
+  gap: var(--tg-spacing-lg);
 }
 
 .profile-form__coarse-loc label {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--tg-spacing-sm);
 }
 
 .profile-form__submit {
-  padding: 14px;
-  border-radius: 14px;
+  padding: calc(var(--tg-spacing-lg) + 2px);
+  border-radius: var(--tg-radius-md);
   border: none;
-  background: linear-gradient(135deg, #ff6cab, #7366ff);
-  color: #fff;
+  background: linear-gradient(135deg, var(--tg-gradient-destructiveFrom), var(--tg-gradient-destructiveTo));
+  color: var(--tg-color-destructiveForeground);
   font-size: 16px;
-  font-weight: 600;
+  font-weight: var(--tg-typography-headingWeight);
 }
 
 .profile-form__submit:disabled {
@@ -145,14 +167,14 @@ body, html, #root {
 }
 
 .profile-form__error {
-  color: #ffb4b4;
+  color: var(--tg-color-warning);
   font-size: 14px;
 }
 
 .swipe-deck__placeholder {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--tg-spacing-lg);
   align-items: center;
   justify-content: center;
   text-align: center;
@@ -161,16 +183,16 @@ body, html, #root {
 
 .swipe-deck__placeholder button {
   padding: 10px 16px;
-  border-radius: 12px;
+  border-radius: var(--tg-radius-sm);
   border: none;
-  background: rgba(255, 255, 255, 0.15);
+  background: var(--tg-color-backgroundSecondary);
   color: inherit;
 }
 
 .swipe-card {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--tg-spacing-lg);
   width: 100%;
 }
 
@@ -178,7 +200,11 @@ body, html, #root {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  gap: 8px;
+  gap: var(--tg-spacing-md);
+}
+
+.swipe-card__header h2 {
+  margin: 0;
 }
 
 .swipe-card__bio {
@@ -189,40 +215,40 @@ body, html, #root {
 .swipe-card__meta {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--tg-spacing-xs);
   font-size: 14px;
-  opacity: 0.8;
+  color: var(--tg-color-textSecondary);
 }
 
 .swipe-card__tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: var(--tg-spacing-sm);
 }
 
 .swipe-card__tag {
   padding: 4px 10px;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--tg-radius-pill);
+  border: 1px solid var(--tg-color-border);
   font-size: 13px;
 }
 
 .swipe-card__actions {
   display: flex;
-  gap: 12px;
+  gap: var(--tg-spacing-lg);
 }
 
 .swipe-card__button {
   flex: 1;
-  padding: 12px;
-  border-radius: 16px;
+  padding: var(--tg-spacing-lg);
+  border-radius: var(--tg-radius-lg);
   border: none;
-  font-weight: 600;
+  font-weight: var(--tg-typography-headingWeight);
 }
 
 .swipe-card__button--undo {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: var(--tg-surface-buttonGhostBg);
+  border: 1px solid var(--tg-surface-buttonGhostBorder);
   color: inherit;
 }
 
@@ -231,23 +257,23 @@ body, html, #root {
 }
 
 .swipe-card__button--dislike {
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--tg-color-backgroundSecondary);
   color: inherit;
 }
 
 .swipe-card__button--like {
-  background: linear-gradient(135deg, #6fee9f, #1dd3ff);
-  color: #082032;
+  background: linear-gradient(135deg, var(--tg-gradient-primaryFrom), var(--tg-gradient-primaryTo));
+  color: var(--tg-color-accentForeground);
 }
 
 .swipe-card__error {
-  color: #ffb4b4;
+  color: var(--tg-color-warning);
   font-size: 14px;
 }
 
 .swipe-card__progress {
   font-size: 13px;
-  opacity: 0.7;
+  color: var(--tg-color-textSecondary);
   text-align: center;
 }
 
@@ -257,14 +283,14 @@ body, html, #root {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 24px;
+  padding: var(--tg-spacing-xxl);
   z-index: 1000;
 }
 
 .match-modal__backdrop {
   position: absolute;
   inset: 0;
-  background: rgba(8, 14, 24, 0.72);
+  background: var(--tg-color-overlay);
   backdrop-filter: blur(8px);
 }
 
@@ -272,92 +298,82 @@ body, html, #root {
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: var(--tg-spacing-xl);
   max-width: 480px;
   width: 100%;
-  padding: 24px;
-  border-radius: 24px;
-  background: linear-gradient(165deg, rgba(111, 238, 159, 0.12), rgba(29, 211, 255, 0.12));
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  padding: var(--tg-spacing-xxl);
+  border-radius: var(--tg-radius-modal);
+  background: linear-gradient(165deg, var(--tg-gradient-modalBackgroundFrom), var(--tg-gradient-modalBackgroundTo));
+  border: 1px solid var(--tg-surface-modalBorder);
   color: inherit;
-  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--tg-surface-modalShadow);
 }
 
 .match-modal__header {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--tg-spacing-lg);
 }
 
 .match-modal__badge {
   align-self: flex-start;
   padding: 4px 10px;
-  border-radius: 20px;
+  border-radius: var(--tg-radius-pill);
   font-size: 12px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  background: rgba(255, 255, 255, 0.14);
+  background: var(--tg-surface-badgeBg);
 }
 
 .match-modal__subtitle {
   margin: 0;
   line-height: 1.5;
-  opacity: 0.9;
+  color: var(--tg-color-textSecondary);
 }
 
 .match-modal__actions {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--tg-spacing-lg);
 }
 
 .match-modal__button {
   width: 100%;
-  padding: 14px;
-  border-radius: 16px;
+  padding: var(--tg-spacing-lg);
+  border-radius: var(--tg-radius-lg);
   border: none;
-  font-weight: 600;
+  font-weight: var(--tg-typography-headingWeight);
   font-size: 16px;
 }
 
 .match-modal__button--primary {
-  background: linear-gradient(135deg, #6fee9f, #1dd3ff);
-  color: #082032;
+  background: linear-gradient(135deg, var(--tg-gradient-primaryFrom), var(--tg-gradient-primaryTo));
+  color: var(--tg-color-accentForeground);
 }
 
 .match-modal__button--ghost {
   background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.28);
+  border: 1px solid var(--tg-surface-buttonGhostBorder);
   color: inherit;
 }
 
 .match-modal__hint {
   margin: 0;
   font-size: 12px;
-  opacity: 0.7;
+  color: var(--tg-color-hint);
   text-align: center;
 }
 
-[data-theme='light'] .match-modal__container {
-  background: linear-gradient(165deg, rgba(255, 255, 255, 0.95), rgba(225, 244, 255, 0.9));
-  border: 1px solid rgba(12, 40, 75, 0.08);
-  color: #0b1f33;
-  box-shadow: 0 18px 36px rgba(12, 40, 75, 0.18);
-}
-
-[data-theme='light'] .match-modal__badge {
-  background: rgba(12, 40, 75, 0.08);
-}
-
-[data-theme='light'] .match-modal__button--ghost {
-  border: 1px solid rgba(12, 40, 75, 0.25);
+.match-modal__badge,
+.match-modal__button--ghost {
+  backdrop-filter: blur(6px);
 }
 
 @media (min-width: 640px) and (orientation: landscape) {
   .match-modal__container {
     flex-direction: row;
     align-items: center;
-    gap: 32px;
+    gap: var(--tg-spacing-xxl);
   }
 
   .match-modal__header,
