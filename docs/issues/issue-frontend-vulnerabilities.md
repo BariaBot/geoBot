@@ -8,11 +8,26 @@
 - Нужно выработать план обновления, прогнать тесты и убедиться, что конфигурации Vite/ESLint/Vitest продолжают работать после апгрейда.
 
 ## Задачи
-- [ ] #91 Зафиксировать текущие логи npm audit перед апгрейдом.
+- [x] #91 Зафиксировать текущие логи npm audit перед апгрейдом.
 - [ ] #92 Обновить зависимости miniapp-frontend до безопасных версий Vite/Vitest.
-- [ ] #93 Обновить зависимости основного фронтенда до безопасных версий Vite/Vitest.
-- [ ] #94 Задокументировать результаты прогонов и breaking changes после апгрейда.
+- [x] #93 Обновить зависимости основного фронтенда до безопасных версий Vite/Vitest.
+- [x] #94 Задокументировать результаты прогонов и breaking changes после апгрейда.
 - [ ] #95 Обновить README/доки и session notes после апгрейда.
+
+## Результаты прогонов (2025-09-25)
+- Дополнительных правок в `vite.config.ts`, Vitest конфигурации или ESLint не потребовалось — апгрейд `vite@7.1.7`, `vitest@3.2.4`, `typescript@5.9.2` собрался на штатных настройках.
+- `apps/frontend`:
+  - `npm run lint` — ✅
+  - `npm run typecheck` — ✅
+  - `npm run test` — ✅ (есть предупреждения `zustand` об устаревшем default export, планируется отдельный фикс)
+  - `npm run build` — ✅
+  - `npm audit` — ✅ (0 vulnerabilities)
+- `apps/miniapp-frontend`:
+  - `npm run lint` — ❌ (исторические typed-lint ошибки: `parserOptions.project` не покрывает `src/__tests__`, серия требований AirBnB по `react/function-component-definition`, `jsx-a11y/label-has-associated-control`, `no-console` и стилевые `comma-dangle`. Ошибка зафиксирована для последующего рефакторинга вместе с Issue #92.)
+  - `npm run test` — ✅
+  - `npm run build` — ✅
+
+> Итоги продублированы в PR по Issue #94.
 
 ## Критерии готовности
 - `npm audit` в `apps/frontend` и `apps/miniapp-frontend` завершает работу без уязвимостей.
@@ -24,4 +39,3 @@
 - `apps/miniapp-frontend/package.json`
 - Логи `npm audit --json` от 25.09.2025
 - `docs/session-notes-2025-09-24.md`
-
