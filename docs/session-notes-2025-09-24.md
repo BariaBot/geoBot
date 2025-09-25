@@ -19,6 +19,7 @@
 - 25.09.2025 заведены новые issues: `docs/issues/issue-miniapp-design-tokens.md` (#77), `docs/issues/issue-miniapp-device-storage.md` (#78), `docs/issues/issue-frontend-vulnerabilities.md` (#79).
 - Под каждый из них созданы GitHub Sub-issues #80-#95 с лейблом `task` (токены, DeviceStorage стадии, апгрейд Vite).
 - Зафиксированы `npm audit --json` логи для `apps/frontend` и `apps/miniapp-frontend` (Issue #91) перед апгрейдом Vite; конспект в `docs/audit/npm-audit-logs-2025-09-25.md`.
+- Обновлён основной фронтенд до Vite 7.1.7 / Vitest 3.2.4 / TypeScript 5.9.2 (Issue #93); `npm run lint`, `npm run typecheck`, `npm run test`, `npm run build` проходят, `npm audit` → 0.
 
 ## Сделано
 - Обновлён `main` до `89a88a2` и создана ветка `feature/issue-43-contributing-workflow`.
