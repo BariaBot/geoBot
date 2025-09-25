@@ -1,4 +1,5 @@
 import { CloudStorage as TelegramCloudStorage, initCloudStorage } from '@tma.js/sdk';
+import { trackEvent } from '../utils/analytics';
 
 export const DEVICE_STORAGE_LIMIT_BYTES = 1024 * 1024;
 const DEVICE_STORAGE_LIMIT_MB = DEVICE_STORAGE_LIMIT_BYTES / (1024 * 1024);
@@ -62,12 +63,32 @@ const ensureCloudStorage = (): TelegramCloudStorage | undefined => {
   return cachedCloudStorage;
 };
 
-const validatePayloadSize = (value: string) => {
+const reportDeviceStorageError = (
+  operation: 'set' | 'get' | 'remove' | 'json-parse',
+  stage: 'cloud' | 'local' | 'validation',
+  key: string,
+  error: unknown,
+  extra: Record<string, unknown> = {},
+) => {
+  const cause = error instanceof DeviceStorageError ? error : undefined;
+  trackEvent('device_storage_error', {
+    operation,
+    stage,
+    key,
+    code: cause?.code,
+    message: error instanceof Error ? error.message : String(error),
+    ...extra,
+  });
+};
+
+const validatePayloadSize = (key: string, value: string) => {
   const bytes = new TextEncoder().encode(value);
   const { length } = bytes;
   if (length > DEVICE_STORAGE_LIMIT_BYTES) {
     const limitMessage = `Размер данных превышает ${DEVICE_STORAGE_LIMIT_MB} MB лимит CloudStorage`;
-    throw new DeviceStorageError(limitMessage, { code: 'PAYLOAD_TOO_LARGE' });
+    const error = new DeviceStorageError(limitMessage, { code: 'PAYLOAD_TOO_LARGE' });
+    reportDeviceStorageError('set', 'validation', key, error);
+    throw error;
   }
 };
 
@@ -119,7 +140,7 @@ const toDeviceStorageError = (message: string, error: unknown): DeviceStorageErr
 
 const DeviceStorage = {
   async setItem(key: string, value: string): Promise<void> {
-    validatePayloadSize(value);
+    validatePayloadSize(key, value);
     const storage = getCloudStorage();
     const writeLocal = () => localStorageAdapter().setItem(key, value);
     if (storage) {
@@ -128,11 +149,13 @@ const DeviceStorage = {
         return;
       } catch (error) {
         logWarning('CloudStorage setItem failed', error);
+        reportDeviceStorageError('set', 'cloud', key, error, { recovered: true });
         try {
           writeLocal();
           return;
         } catch (localError) {
           logWarning('localStorage set failed', localError);
+          reportDeviceStorageError('set', 'local', key, localError, { recovered: false });
           const aggregate = new AggregateError(
             [normalizeError(error, 'CloudStorage setItem failed'), normalizeError(localError, 'localStorage set failed')],
             'Не удалось сохранить значение',
@@ -146,6 +169,7 @@ const DeviceStorage = {
       writeLocal();
     } catch (error) {
       logWarning('localStorage set failed', error);
+      reportDeviceStorageError('set', 'local', key, error, { recovered: false });
       throw toDeviceStorageError('localStorage set failed', error);
     }
   },
@@ -162,10 +186,12 @@ const DeviceStorage = {
         return null;
       } catch (error) {
         logWarning('CloudStorage getItem failed', error);
+        reportDeviceStorageError('get', 'cloud', key, error, { recovered: true });
         try {
           return readLocal();
         } catch (localError) {
           logWarning('localStorage get failed', localError);
+          reportDeviceStorageError('get', 'local', key, localError, { recovered: false });
           const aggregate = new AggregateError(
             [normalizeError(error, 'CloudStorage getItem failed'), normalizeError(localError, 'localStorage get failed')],
             'Не удалось получить значение',
@@ -179,6 +205,7 @@ const DeviceStorage = {
       return readLocal();
     } catch (error) {
       logWarning('localStorage get failed', error);
+      reportDeviceStorageError('get', 'local', key, error, { recovered: false });
       throw toDeviceStorageError('localStorage get failed', error);
     }
   },
@@ -192,11 +219,13 @@ const DeviceStorage = {
         return;
       } catch (error) {
         logWarning('CloudStorage removeItem failed', error);
+        reportDeviceStorageError('remove', 'cloud', key, error, { recovered: true });
         try {
           removeLocal();
           return;
         } catch (localError) {
           logWarning('localStorage delete failed', localError);
+          reportDeviceStorageError('remove', 'local', key, localError, { recovered: false });
           const aggregate = new AggregateError(
             [normalizeError(error, 'CloudStorage removeItem failed'), normalizeError(localError, 'localStorage delete failed')],
             'Не удалось удалить значение',
@@ -210,6 +239,7 @@ const DeviceStorage = {
       removeLocal();
     } catch (error) {
       logWarning('localStorage delete failed', error);
+      reportDeviceStorageError('remove', 'local', key, error, { recovered: false });
       throw toDeviceStorageError('localStorage delete failed', error);
     }
   },
@@ -226,6 +256,7 @@ const DeviceStorage = {
       return JSON.parse(raw) as T;
     } catch (error) {
       logWarning('DeviceStorage JSON parse failed', error);
+      reportDeviceStorageError('json-parse', 'local', key, error, { recovered: false });
       throw new DeviceStorageError('Ошибка парсинга JSON из DeviceStorage');
     }
   },

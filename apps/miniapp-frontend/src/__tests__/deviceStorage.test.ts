@@ -14,6 +14,11 @@ import DeviceStorage, {
   __internal as deviceStorageInternal,
   withDeviceStorage,
 } from '../services/deviceStorage';
+import { trackEvent } from '../utils/analytics';
+
+vi.mock('../utils/analytics', () => ({
+  trackEvent: vi.fn(),
+}));
 
 type CloudStorageInitResult = [CloudStorage, () => void];
 
@@ -42,6 +47,7 @@ describe('DeviceStorage (miniapp)', () => {
     cloudStorageInitBehavior.impl = () => {
       throw new Error('CloudStorage unavailable for tests');
     };
+    vi.mocked(trackEvent).mockClear();
   });
 
   afterEach(() => {
@@ -108,6 +114,12 @@ describe('DeviceStorage (miniapp)', () => {
 
     await expect(DeviceStorage.setItem('draft', 'value')).resolves.toBeUndefined();
     expect(window.localStorage.getItem('draft')).toBe('value');
+    expect(trackEvent).toHaveBeenCalledWith('device_storage_error', expect.objectContaining({
+      operation: 'set',
+      stage: 'cloud',
+      key: 'draft',
+      recovered: true,
+    }));
   });
 
   it('uses localStorage when CloudStorage get fails', async () => {
@@ -126,6 +138,12 @@ describe('DeviceStorage (miniapp)', () => {
     (window as any).Telegram = { WebApp: {} };
 
     await expect(DeviceStorage.getItem('draft')).resolves.toBe('local-value');
+    expect(trackEvent).toHaveBeenCalledWith('device_storage_error', expect.objectContaining({
+      operation: 'get',
+      stage: 'cloud',
+      key: 'draft',
+      recovered: true,
+    }));
   });
 
   it('removes local data when CloudStorage delete fails', async () => {
@@ -145,6 +163,12 @@ describe('DeviceStorage (miniapp)', () => {
 
     await expect(DeviceStorage.removeItem('draft')).resolves.toBeUndefined();
     expect(window.localStorage.getItem('draft')).toBeNull();
+    expect(trackEvent).toHaveBeenCalledWith('device_storage_error', expect.objectContaining({
+      operation: 'remove',
+      stage: 'cloud',
+      key: 'draft',
+      recovered: true,
+    }));
   });
 
   it('serialises and parses JSON helpers', async () => {
@@ -163,6 +187,12 @@ describe('DeviceStorage (miniapp)', () => {
       code: 'PAYLOAD_TOO_LARGE',
       message: `Размер данных превышает ${DEVICE_STORAGE_LIMIT_BYTES / (1024 * 1024)} MB лимит CloudStorage`,
     });
+    expect(trackEvent).toHaveBeenCalledWith('device_storage_error', expect.objectContaining({
+      operation: 'set',
+      stage: 'validation',
+      key: 'oversized',
+      code: 'PAYLOAD_TOO_LARGE',
+    }));
   });
 
   it('allows adapters through withDeviceStorage helper', async () => {
