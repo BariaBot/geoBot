@@ -10,7 +10,14 @@ interface ProfileFormProps {
   onSubmit: () => Promise<void>;
 }
 
-export function ProfileForm({ draft, status, error, ctaLabel, onChange, onSubmit }: ProfileFormProps) {
+export const ProfileForm = ({
+  draft,
+  status,
+  error,
+  ctaLabel,
+  onChange,
+  onSubmit,
+}: ProfileFormProps) => {
   const isBusy = status === 'submitting';
 
   const interestsValue = useMemo(() => draft.interests.join(', '), [draft.interests]);
@@ -22,57 +29,75 @@ export function ProfileForm({ draft, status, error, ctaLabel, onChange, onSubmit
 
   return (
     <form className="profile-form" onSubmit={handleSubmit}>
-      <label className="profile-form__field">
+      <label className="profile-form__field" htmlFor="profile-form-name">
         <span>Имя</span>
         <input
+          id="profile-form-name"
           type="text"
           value={draft.displayName}
-          onChange={(event) => onChange({ displayName: event.target.value })}
+          onChange={(event) => {
+            const { value } = event.target;
+            onChange({ displayName: value });
+          }}
           placeholder="Как к тебе обращаться?"
           required
         />
       </label>
 
-      <label className="profile-form__field">
+      <label className="profile-form__field" htmlFor="profile-form-bio">
         <span>Био</span>
         <textarea
+          id="profile-form-bio"
           value={draft.bio}
-          onChange={(event) => onChange({ bio: event.target.value })}
+          onChange={(event) => {
+            const { value } = event.target;
+            onChange({ bio: value });
+          }}
           placeholder="Расскажи о себе"
           maxLength={1024}
           rows={3}
         />
       </label>
 
-      <label className="profile-form__field">
+      <label className="profile-form__field" htmlFor="profile-form-city">
         <span>Город</span>
         <input
+          id="profile-form-city"
           type="text"
           value={draft.city ?? ''}
-          onChange={(event) => onChange({ city: event.target.value })}
+          onChange={(event) => {
+            const { value } = event.target;
+            onChange({ city: value });
+          }}
           placeholder="Москва"
         />
       </label>
 
-      <label className="profile-form__field">
+      <label className="profile-form__field" htmlFor="profile-form-birthday">
         <span>Дата рождения</span>
         <input
+          id="profile-form-birthday"
           type="date"
           value={draft.birthday ?? ''}
-          onChange={(event) => onChange({ birthday: event.target.value })}
+          onChange={(event) => {
+            const { value } = event.target;
+            onChange({ birthday: value });
+          }}
         />
       </label>
 
-      <label className="profile-form__field">
+      <label className="profile-form__field" htmlFor="profile-form-interests">
         <span>Интересы (через запятую)</span>
         <input
+          id="profile-form-interests"
           type="text"
           value={interestsValue}
           onChange={(event) => {
-            const values = event.target.value
+            const { value } = event.target;
+            const values = value
               .split(',')
-              .map((value) => value.trim())
-              .filter((value) => value.length > 0);
+              .map((valuePart) => valuePart.trim())
+              .filter((valuePart) => valuePart.length > 0);
             onChange({ interests: values });
           }}
           placeholder="Путешествия, музыка, бег"
@@ -80,24 +105,32 @@ export function ProfileForm({ draft, status, error, ctaLabel, onChange, onSubmit
       </label>
 
       <div className="profile-form__coarse-loc">
-        <label>
+        <label htmlFor="profile-form-latitude">
           <span>Широта</span>
           <input
+            id="profile-form-latitude"
             type="number"
             inputMode="decimal"
             step="0.0001"
             value={draft.latitude ?? ''}
-            onChange={(event) => onChange({ latitude: event.target.value === '' ? undefined : Number(event.target.value) })}
+            onChange={(event) => {
+              const { value } = event.target;
+              onChange({ latitude: value === '' ? undefined : Number(value) });
+            }}
           />
         </label>
-        <label>
+        <label htmlFor="profile-form-longitude">
           <span>Долгота</span>
           <input
+            id="profile-form-longitude"
             type="number"
             inputMode="decimal"
             step="0.0001"
             value={draft.longitude ?? ''}
-            onChange={(event) => onChange({ longitude: event.target.value === '' ? undefined : Number(event.target.value) })}
+            onChange={(event) => {
+              const { value } = event.target;
+              onChange({ longitude: value === '' ? undefined : Number(value) });
+            }}
           />
         </label>
       </div>
@@ -109,4 +142,4 @@ export function ProfileForm({ draft, status, error, ctaLabel, onChange, onSubmit
       </button>
     </form>
   );
-}
+};

@@ -42,9 +42,11 @@ export function useSwipeQueue(enabled = true): SwipeQueueState {
   }, [enabled]);
 
   useEffect(() => {
-    if (enabled) {
-      void loadQueue();
+    if (!enabled) {
+      return;
     }
+
+    loadQueue();
   }, [enabled, loadQueue]);
 
   const submitSwipe = useCallback(async (

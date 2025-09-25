@@ -15,9 +15,9 @@ export async function apiRequest<T>(input: string, init: RequestOptions = {}): P
       ...init,
       headers: {
         'content-type': 'application/json',
-        ...(init.headers ?? {})
+        ...(init.headers ?? {}),
       },
-      signal: controller.signal
+      signal: controller.signal,
     });
 
     if (!response.ok) {

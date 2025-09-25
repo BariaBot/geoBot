@@ -7,7 +7,9 @@ interface MatchModalProps {
   onOpenChat: () => void;
 }
 
-export function MatchModal({ match, visible, onClose, onOpenChat }: MatchModalProps) {
+export const MatchModal = ({
+  match, visible, onClose, onOpenChat,
+}: MatchModalProps) => {
   if (!visible || !match) {
     return null;
   }
@@ -20,7 +22,11 @@ export function MatchModal({ match, visible, onClose, onOpenChat }: MatchModalPr
           <span className="match-modal__badge">Match</span>
           <h2 id="match-modal-title">Это взаимно! 🎉</h2>
           <p className="match-modal__subtitle">
-            Вы с {match.name} понравились друг другу. Самое время написать первое сообщение.
+            Вы с
+            {' '}
+            <strong>{match.name}</strong>
+            {' '}
+            понравились друг другу. Самое время написать первое сообщение.
           </p>
         </header>
         <footer className="match-modal__actions">
@@ -43,4 +49,4 @@ export function MatchModal({ match, visible, onClose, onOpenChat }: MatchModalPr
       </div>
     </div>
   );
-}
+};

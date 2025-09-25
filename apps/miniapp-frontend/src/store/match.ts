@@ -39,7 +39,7 @@ async function persistSeenKeys(keys: Set<string>): Promise<void> {
 }
 
 async function loadSeenKeys(): Promise<Set<string>> {
-  return await withDeviceStorage(async (storage) => {
+  return withDeviceStorage(async (storage) => {
     const raw = storage.get(SEEN_MATCHES_KEY);
     if (!raw) {
       return new Set<string>();
@@ -112,4 +112,3 @@ export const useMatchStore = create<MatchState>((set, get) => ({
     set({ activeMatch: null });
   },
 }));
-
