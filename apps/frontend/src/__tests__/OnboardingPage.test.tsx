@@ -74,7 +74,7 @@ describe('OnboardingPage', () => {
     expect(await screen.findByText('Добавьте фото')).toBeInTheDocument();
 
     const file = new File(['data'], 'photo.png', { type: 'image/png' });
-    const fileInput = screen.getByLabelText(/Загрузите/, { selector: 'input' });
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
     fireEvent.change(fileInput, { target: { files: [file] } });
 
     await waitFor(() => expect(screen.getByAltText('photo.png')).toBeInTheDocument());

@@ -1,27 +1,21 @@
-import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from 'react';
+import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './OnboardingPage.module.css';
 import { useToastStore } from '../store/useToastStore';
 import { useAuthStore } from '../store/useAuthStore';
 import DeviceStorage, { DeviceStorageError } from '../utils/deviceStorage';
+import { createDraftPhoto, dataUrlToFile, DraftPhoto, maxPhotoSizeBytes } from '../utils/photos';
+import ProfileAboutFields from '../components/profile/ProfileAboutFields';
+import ProfilePhotoManager from '../components/profile/ProfilePhotoManager';
 
 const DRAFT_KEY = 'onboarding-draft';
 const MAX_PHOTOS = 6;
 const MIN_NAME_LENGTH = 2;
 const MIN_AGE = 18;
-const MAX_PHOTO_SIZE = 1 * 1024 * 1024; // 1 MB per photo
 
 type Gender = 'male' | 'female' | 'other' | '';
 
 type LocationMode = 'auto' | 'manual';
-
-type PhotoDraft = {
-  id: string;
-  name: string;
-  type: string;
-  size: number;
-  dataUrl: string;
-};
 
 type OnboardingDraft = {
   step: number;
@@ -31,7 +25,7 @@ type OnboardingDraft = {
   bio: string;
   interests: string;
   goals: string;
-  photos: PhotoDraft[];
+  photos: DraftPhoto[];
   locationMode: LocationMode;
   radiusKm: number;
   city: string;
@@ -68,42 +62,6 @@ const calculateAge = (birthDate: string) => {
   }
   return age;
 };
-
-const decodeBase64 = (base64: string) => {
-  if (typeof window !== 'undefined' && typeof window.atob === 'function') {
-    const binary = window.atob(base64);
-    const bytes = new Uint8Array(binary.length);
-    for (let i = 0; i < binary.length; i += 1) {
-      bytes[i] = binary.charCodeAt(i);
-    }
-    return bytes;
-  }
-
-  if (typeof globalThis.Buffer !== 'undefined') {
-    return Uint8Array.from(globalThis.Buffer.from(base64, 'base64'));
-  }
-
-  throw new Error('Base64 decoding is not supported in this environment');
-};
-
-const dataUrlToFile = async (photo: PhotoDraft): Promise<File> => {
-  const [meta, data] = photo.dataUrl.split(',');
-  if (!meta || !data) {
-    throw new Error('Некорректный формат изображения');
-  }
-  const mimeMatch = /data:(.*);base64/.exec(meta);
-  const mimeType = mimeMatch ? mimeMatch[1] : photo.type;
-  const buffer = decodeBase64(data);
-  return new File([buffer], photo.name, { type: mimeType });
-};
-
-const readFileAsDataUrl = (file: File) =>
-  new Promise<string>((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = () => reject(reader.error ?? new Error('Не удалось прочитать файл'));
-    reader.readAsDataURL(file);
-  });
 
 export default function OnboardingPage() {
   const showToast = useToastStore((s) => s.show);
@@ -245,27 +203,19 @@ export default function OnboardingPage() {
     }
   };
 
-  const handlePhotoUpload = async (event: ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(event.target.files ?? []);
-    if (!files.length) return;
+  const addPhotos = async (files: File[]) => {
     const remainingSlots = MAX_PHOTOS - draft.photos.length;
     const acceptedFiles = files.slice(0, remainingSlots);
-    const photos: PhotoDraft[] = [];
+    const photos: DraftPhoto[] = [];
 
     for (const file of acceptedFiles) {
-      if (file.size > MAX_PHOTO_SIZE) {
+      if (file.size > maxPhotoSizeBytes) {
         showToast(`Файл ${file.name} превышает 1 MB и не будет добавлен.`);
         continue;
       }
       try {
-        const dataUrl = await readFileAsDataUrl(file);
-        photos.push({
-          id: `${file.name}-${file.size}-${Date.now()}-${Math.random().toString(16).slice(2)}`,
-          name: file.name,
-          type: file.type || 'image/jpeg',
-          size: file.size,
-          dataUrl,
-        });
+        const draftPhoto = await createDraftPhoto(file);
+        photos.push(draftPhoto);
       } catch (error) {
         const message = error instanceof Error ? error.message : 'Не удалось прочитать файл';
         showToast(message);
@@ -275,11 +225,10 @@ export default function OnboardingPage() {
     if (photos.length) {
       updateDraft({ photos: [...draft.photos, ...photos] });
     }
-    event.target.value = '';
   };
 
-  const handleRemovePhoto = (id: string) => {
-    updateDraft({ photos: draft.photos.filter((photo) => photo.id !== id) });
+  const handleRemovePhoto = (photo: DraftPhoto) => {
+    updateDraft({ photos: draft.photos.filter((item) => item.id !== photo.id) });
   };
 
   const handleLocationModeToggle = (mode: LocationMode) => {
@@ -321,7 +270,7 @@ export default function OnboardingPage() {
       }
 
       for (const photo of draft.photos) {
-        const file = await dataUrlToFile(photo);
+        const file = await dataUrlToFile(photo.dataUrl, photo.name);
         const formData = new FormData();
         formData.append('file', file);
         const uploadResponse = await fetch('/api/profile/media', {
@@ -405,30 +354,20 @@ export default function OnboardingPage() {
       title: 'Добавьте фото',
       description: 'Минимум одно фото. Чем больше — тем выше шанс получить ответный лайк.',
       render: (
-        <div className={styles.fieldset}>
-          <div className={styles.photoGrid}>
-            {draft.photos.map((photo) => (
-              <div key={photo.id} className={styles.photoTile}>
-                <img src={photo.dataUrl} alt={photo.name} />
-                <button type="button" className={styles.photoRemove} onClick={() => handleRemovePhoto(photo.id)}>
-                  ✕
-                </button>
-              </div>
-            ))}
-            {draft.photos.length < MAX_PHOTOS && (
-              <label className={styles.photoUpload}>
-                <span>Загрузите {draft.photos.length ? 'ещё фото' : 'первое фото'}</span>
-                <span className={styles.badge}>до {MAX_PHOTOS}</span>
-                <input type="file" accept="image/*" multiple onChange={handlePhotoUpload} />
-              </label>
-            )}
-          </div>
+        <>
+          <ProfilePhotoManager
+            photos={draft.photos}
+            maxPhotos={MAX_PHOTOS}
+            onUpload={addPhotos}
+            onRemove={handleRemovePhoto}
+            onReorder={(photos) => updateDraft({ photos })}
+          />
           {errors[1]?.map((err) => (
             <p key={err} className={styles.error}>
               {err}
             </p>
           ))}
-        </div>
+        </>
       ),
       primaryActionLabel: 'Далее',
     },
@@ -436,46 +375,11 @@ export default function OnboardingPage() {
       title: 'Интересы и цели',
       description: 'Эта информация помогает подобрать совместимые анкеты и темы для начала общения.',
       render: (
-        <div className={styles.fieldset}>
-          <label className={styles.label} htmlFor="bio">
-            О себе
-          </label>
-          <textarea
-            id="bio"
-            className={styles.textarea}
-            rows={4}
-            placeholder="Пару предложений о том, чем занимаетесь и что любите."
-            value={draft.bio}
-            onChange={(event) => updateDraft({ bio: event.target.value })}
-          />
-          <label className={styles.label} htmlFor="interests">
-            Интересы (через запятую)
-          </label>
-          <textarea
-            id="interests"
-            className={styles.textarea}
-            rows={3}
-            placeholder="Например: серфинг, джаз, крафтовый кофе"
-            value={draft.interests}
-            onChange={(event) => updateDraft({ interests: event.target.value })}
-          />
-          <label className={styles.label} htmlFor="goals">
-            Цели знакомства
-          </label>
-          <textarea
-            id="goals"
-            className={styles.textarea}
-            rows={3}
-            placeholder="Что вы ищете: общение, путешествия, серьёзные отношения"
-            value={draft.goals}
-            onChange={(event) => updateDraft({ goals: event.target.value })}
-          />
-          {errors[2]?.map((err) => (
-            <p key={err} className={styles.error}>
-              {err}
-            </p>
-          ))}
-        </div>
+        <ProfileAboutFields
+          value={{ bio: draft.bio, interests: draft.interests, goals: draft.goals }}
+          onChange={(value) => updateDraft(value)}
+          errors={errors[2]}
+        />
       ),
       primaryActionLabel: 'Далее',
     },
