@@ -23,6 +23,7 @@
 - Issue #94: задокументированы результаты прогонов для frontend/miniapp-frontend после апгрейда (см. `docs/issues/issue-frontend-vulnerabilities.md`).
 - Issue #95: обновлены требования к Node.js (README, onboarding), session notes ссылаются на `npm audit`.
 - Issue #92: miniapp-frontend переведён на Vite 7.1.7 / Vitest 3.2.4 / TypeScript 5.9.2, ESLint/tsconfig поправлены, `npm run lint`, `npm run test`, `npm run build`, `npm audit` проходят.
+- Issue #90: обновлены инструкции по DeviceStorage (`apps/miniapp-frontend/README.md`, `docs/runbooks/device-storage-debug.md`), session notes дополнили статусы.
 
 ## Сделано
 - Обновлён `main` до `89a88a2` и создана ветка `feature/issue-43-contributing-workflow`.
