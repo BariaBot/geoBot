@@ -1,22 +1,24 @@
 import { useEffect } from 'react';
+import { applyThemeTokens, DEFAULT_THEME_TOKENS } from '../theme/tokens';
+import { getTelegramWebApp, readTelegramTheme } from '../theme/telegramTheme';
 
 export function useTelegramTheme() {
   useEffect(() => {
-    const tg = (window as any).Telegram?.WebApp;
-    if (!tg) return;
+    const root = document.documentElement;
+    applyThemeTokens(root, DEFAULT_THEME_TOKENS);
 
-    const applyTheme = () => {
-      const params = tg.themeParams || {};
-      document.body.style.setProperty('--tg-bg', params.bg_color || '#ffffff');
-      document.body.style.setProperty('--tg-text', params.text_color || '#000000');
-      document.body.style.setProperty('--tg-accent', params.button_color || '#0d6efd');
+    const webApp = getTelegramWebApp();
+    if (!webApp) return undefined;
+
+    const syncTheme = () => {
+      applyThemeTokens(root, readTelegramTheme(webApp));
     };
 
-    tg.onEvent('themeChanged', applyTheme);
-    applyTheme();
+    syncTheme();
+    webApp.onEvent?.('themeChanged', syncTheme);
 
     return () => {
-      tg.offEvent('themeChanged', applyTheme);
+      webApp.offEvent?.('themeChanged', syncTheme);
     };
   }, []);
 }
