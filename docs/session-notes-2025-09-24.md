@@ -7,7 +7,12 @@
   - Frontend: внедрён `useSwipeQueue`, переработан `SwipeDeck` с кнопками undo/dislike, обновлены стили и OpenAPI.
 - PR #75 (`feat(swipes): add undo-enabled mini-app queue`) смёржен автоматически после успешных `ci-lite` и `enable-auto-merge`.
 - Прогнаны `mvn -f apps/backend/pom.xml test`, `npm run build` (frontend/gateway); `npm run lint` (frontend) по-прежнему падает на исторических предупреждениях, новых ошибок не добавляли.
-- Следующая задача — Issue #62. Работаем по той же схеме: ветка → реализация → тесты → `gh pr create` → ждём CI/auto-merge → обновляем `main` и заметки.
+- Закрыта задача #62: матч-экран в miniapp, хаптик, аналитика `match_shown`, webhook-заглушка и Vitest.
+  - Frontend: `MatchModal`, `useMatchStore` с DeviceStorage, `match_shown`, deep link `/chat`, Vitest + RTL `MatchModal.test.tsx`.
+  - Gateway: `POST /notifications/match` проксирует webhook ядру.
+  - Backend: Stub-контроллер `MiniAppNotificationController` логирует вебхук.
+  - Сборки: `npm run test && npm run build` (miniapp-frontend), `npm run build` (miniapp-gateway), `mvn -f apps/backend/pom.xml test`.
+- Следующая задача — Issue #64. Работаем по той же схеме: ветка → реализация → тесты → `gh pr create` → ждём CI/auto-merge → обновляем `main` и заметки.
 
 ## Сделано
 - Обновлён `main` до `89a88a2` и создана ветка `feature/issue-43-contributing-workflow`.

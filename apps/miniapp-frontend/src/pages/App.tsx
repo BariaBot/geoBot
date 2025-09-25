@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { init } from '@telegram-apps/sdk';
 import { useTelegramBridge } from '../hooks/useTelegramBridge';
 import { useProfileStore } from '../store/profile';
@@ -6,6 +6,8 @@ import { LoaderScreen } from '../components/LoaderScreen';
 import { ProfileForm } from '../components/ProfileForm';
 import { useSwipeQueue } from '../hooks/useSwipeQueue';
 import { SwipeDeck } from '../components/SwipeDeck';
+import { useMatchStore } from '../store/match';
+import { MatchModal } from '../components/MatchModal';
 
 const TELEGRAM_INIT_TIMEOUT_MS = 4000;
 
@@ -18,6 +20,15 @@ const App = () => {
   const profileStore = useProfileStore();
   const { status, profile, draft, updateDraft, submitDraft, initialise, error } = profileStore;
   const swipeQueue = useSwipeQueue(status === 'ready' && Boolean(profile?.telegramId));
+  const { activeMatch, dismissMatch, hydrate } = useMatchStore((state) => ({
+    activeMatch: state.activeMatch,
+    dismissMatch: state.dismissMatch,
+    hydrate: state.hydrate,
+  }));
+
+  useEffect(() => {
+    void hydrate();
+  }, [hydrate]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -51,6 +62,26 @@ const App = () => {
 
   const loading = !ready || !bridgeReady || status === 'loading';
 
+  const handleOpenChat = useCallback(() => {
+    if (!activeMatch) return;
+
+    const chatUrl = new URL('/chat', window.location.origin);
+    if (activeMatch.matchId) {
+      chatUrl.searchParams.set('matchId', activeMatch.matchId);
+    }
+    chatUrl.searchParams.set('user', String(activeMatch.targetTelegramId));
+    const telegram = (window as any)?.Telegram?.WebApp;
+
+    if (telegram?.openLink) {
+      // TODO(issue-58): replace deep link once чат страница доступна внутри mini app.
+      telegram.openLink(chatUrl.toString(), { try_instant_view: false });
+    } else {
+      window.open(chatUrl.toString(), '_blank', 'noopener');
+    }
+
+    dismissMatch();
+  }, [activeMatch, dismissMatch]);
+
   if (loading) {
     return <LoaderScreen theme={themeParams} />;
   }
@@ -58,7 +89,8 @@ const App = () => {
   const showOnboarding = !profile || !profile.displayName?.trim();
 
   return (
-    <div className="app-shell" data-theme={themeParams?.isDark ? 'dark' : 'light'}>
+    <>
+      <div className="app-shell" data-theme={themeParams?.isDark ? 'dark' : 'light'}>
       <header className="app-shell__header">
         <h1>WAU Dating</h1>
         <p>Свайпай, знакомься и встречай тех, кто рядом.</p>
@@ -125,7 +157,14 @@ const App = () => {
           </section>
         )}
       </main>
-    </div>
+      </div>
+      <MatchModal
+        match={activeMatch}
+        visible={Boolean(activeMatch)}
+        onClose={dismissMatch}
+        onOpenChat={handleOpenChat}
+      />
+    </>
   );
 };
 
