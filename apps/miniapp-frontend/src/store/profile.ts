@@ -2,7 +2,10 @@ import { create } from 'zustand';
 import {
   fetchProfile, updateProfile, type ProfilePayload, type ProfileResponse,
 } from '../api/profile';
-import DeviceStorage, { DeviceStorageError } from '../services/deviceStorage';
+import DeviceStorage, {
+  DeviceStorageError,
+  DEVICE_STORAGE_LIMIT_BYTES,
+} from '../services/deviceStorage';
 import { trackEvent } from '../utils/analytics';
 
 const DRAFT_STORAGE_KEY = 'wau:profile-draft';
@@ -68,12 +71,26 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
     }
   },
   async updateDraft(partial) {
-    const nextDraft = { ...get().draft, ...partial };
-    set({ draft: nextDraft });
+    const previousDraft = get().draft;
+    const previousStatus = get().status;
+    const nextDraft = { ...previousDraft, ...partial };
+
+    set({ draft: nextDraft, error: undefined });
     try {
       await DeviceStorage.setJSON(DRAFT_STORAGE_KEY, nextDraft);
     } catch (error) {
+      if (error instanceof DeviceStorageError && error.code === 'PAYLOAD_TOO_LARGE') {
+        const limitMb = DEVICE_STORAGE_LIMIT_BYTES / (1024 * 1024);
+        set({
+          draft: previousDraft,
+          status: 'error',
+          error: `Черновик превышает лимит в ${limitMb} MB. Сократите описание или удалите часть данных и попробуйте снова.`,
+        });
+        return;
+      }
+
       console.warn('Failed to persist draft', error);
+      set({ status: previousStatus, draft: previousDraft });
     }
   },
   async submitDraft() {
@@ -100,6 +117,15 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
       try {
         await DeviceStorage.setJSON(DRAFT_STORAGE_KEY, get().draft);
       } catch (error) {
+        if (error instanceof DeviceStorageError && error.code === 'PAYLOAD_TOO_LARGE') {
+          const limitMb = DEVICE_STORAGE_LIMIT_BYTES / (1024 * 1024);
+          set({
+            status: 'error',
+            error: `Черновик превышает лимит в ${limitMb} MB и не был сохранён локально.`,
+          });
+          return;
+        }
+
         console.warn('Failed to persist draft after save', error);
       }
     } catch (error) {

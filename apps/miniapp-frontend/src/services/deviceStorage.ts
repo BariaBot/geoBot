@@ -1,11 +1,21 @@
 import { CloudStorage as TelegramCloudStorage, initCloudStorage } from '@tma.js/sdk';
 
-const ONE_MB = 1024 * 1024;
+export const DEVICE_STORAGE_LIMIT_BYTES = 1024 * 1024;
+const DEVICE_STORAGE_LIMIT_MB = DEVICE_STORAGE_LIMIT_BYTES / (1024 * 1024);
+
+export type DeviceStorageErrorCode = 'PAYLOAD_TOO_LARGE';
+
+interface DeviceStorageErrorOptions extends ErrorOptions {
+  code?: DeviceStorageErrorCode;
+}
 
 export class DeviceStorageError extends Error {
-  constructor(message: string, options?: ErrorOptions) {
+  readonly code?: DeviceStorageErrorCode;
+
+  constructor(message: string, options?: DeviceStorageErrorOptions) {
     super(message, options);
     this.name = 'DeviceStorageError';
+    this.code = options?.code;
   }
 }
 
@@ -55,8 +65,9 @@ const ensureCloudStorage = (): TelegramCloudStorage | undefined => {
 const validatePayloadSize = (value: string) => {
   const bytes = new TextEncoder().encode(value);
   const { length } = bytes;
-  if (length > ONE_MB) {
-    throw new DeviceStorageError('Размер данных превышает 1 MB лимит CloudStorage');
+  if (length > DEVICE_STORAGE_LIMIT_BYTES) {
+    const limitMessage = `Размер данных превышает ${DEVICE_STORAGE_LIMIT_MB} MB лимит CloudStorage`;
+    throw new DeviceStorageError(limitMessage, { code: 'PAYLOAD_TOO_LARGE' });
   }
 };
 
@@ -96,7 +107,11 @@ const toDeviceStorageError = (message: string, error: unknown): DeviceStorageErr
   }
 
   if (error instanceof Error) {
-    return new DeviceStorageError(message, { cause: error });
+    const maybeCode = (error as DeviceStorageError).code;
+    return new DeviceStorageError(message, {
+      cause: error,
+      code: maybeCode,
+    });
   }
 
   return new DeviceStorageError(message);

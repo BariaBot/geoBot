@@ -10,6 +10,7 @@ import type { CloudStorage } from '@tma.js/sdk';
 import { initCloudStorage } from '@tma.js/sdk';
 import DeviceStorage, {
   DeviceStorageError,
+  DEVICE_STORAGE_LIMIT_BYTES,
   __internal as deviceStorageInternal,
   withDeviceStorage,
 } from '../services/deviceStorage';
@@ -157,7 +158,11 @@ describe('DeviceStorage (miniapp)', () => {
 
   it('validates payload size', async () => {
     const oversized = 'x'.repeat(1024 * 1024 + 1);
-    await expect(DeviceStorage.setItem('oversized', oversized)).rejects.toThrow(DeviceStorageError);
+    await expect(DeviceStorage.setItem('oversized', oversized)).rejects.toMatchObject({
+      name: 'DeviceStorageError',
+      code: 'PAYLOAD_TOO_LARGE',
+      message: `Размер данных превышает ${DEVICE_STORAGE_LIMIT_BYTES / (1024 * 1024)} MB лимит CloudStorage`,
+    });
   });
 
   it('allows adapters through withDeviceStorage helper', async () => {
