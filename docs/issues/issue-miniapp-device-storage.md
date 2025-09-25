@@ -13,7 +13,7 @@
 - [ ] #87 Ограничить размер записей 1 MB и выдавать ошибки.
 - [ ] #88 Логировать ошибки DeviceStorage через trackEvent.
 - [ ] #89 Покрыть DeviceStorage Vitest-тестами (успех/ошибка/fallback).
-- [ ] #90 Обновить документацию и session notes по DeviceStorage.
+- [x] #90 Обновить документацию и session notes по DeviceStorage.
 
 ## Критерии готовности
 - При запуске внутри Telegram WebApp черновики сохраняются и восстанавливаются через Telegram CloudStorage; локально всё работает через fallback без ошибок.
@@ -28,4 +28,3 @@
 - `apps/miniapp-frontend/src/utils/analytics.ts`
 - Документы Telegram Mini App CloudStorage
 - `docs/session-notes-2025-09-24.md`
-
