@@ -12,9 +12,10 @@
   - Gateway: `POST /notifications/match` проксирует webhook ядру.
   - Backend: Stub-контроллер `MiniAppNotificationController` логирует вебхук.
   - Сборки: `npm run test && npm run build` (miniapp-frontend), `npm run build` (miniapp-gateway), `mvn -f apps/backend/pom.xml test`.
-- В работу взята задача #77 (дизайн-токены mini app): собран модуль `theme` с генерацией CSS custom properties, `App.tsx` применяет `applyThemeTokens`, а `shared/styles.css` и компоненты переведены на `var(--tg-...)` вместо жёстких значений.
+- В работу взята и завершена задача #77 (дизайн-токены mini app): собран модуль `theme` с генерацией CSS custom properties, `App.tsx` применяет `applyThemeTokens`, а `shared/styles.css` и компоненты переведены на `var(--tg-...)` вместо жёстких значений.
   - Добавлен fallback `theme/base.css`, CSS-переменные прокидываются на `<html>` и `#root`; `LoaderScreen` больше не задаёт цвета инлайном.
   - Создан Vitest `themeTokens.test.ts`, покрывающий `resolveThemeMode`, `applyThemeTokens` и `themeVar`; `npm run test` (miniapp-frontend) проходит, `npm run lint` по-прежнему упирается в исторические предупреждения.
+- PR #99 (`feat(miniapp): apply theme tokens`) открыт для #77, все проверки (`lint`, `tests`, `typecheck`, `enable-auto-merge`) зелёные, авто-мерж завершился 25.09 после CI.
 - 25.09.2025 заведены новые issues: `docs/issues/issue-miniapp-design-tokens.md` (#77), `docs/issues/issue-miniapp-device-storage.md` (#78), `docs/issues/issue-frontend-vulnerabilities.md` (#79).
 - Под каждый из них созданы GitHub Sub-issues #80-#95 с лейблом `task` (токены, DeviceStorage стадии, апгрейд Vite).
 
@@ -40,9 +41,8 @@
 - Undo/dislike в mini app уже задеплоены (PR #75), push уведомления пока ограничены заглушкой `MiniAppNotificationController`.
 
 ## Следующие шаги
-1. Приоритизировать и взять в работу `docs/issues/issue-miniapp-design-tokens.md` (#77, темизация) и `docs/issues/issue-miniapp-device-storage.md` (#78, DeviceStorage); определить исполнителей и сроки.
-2. После старта работ по токенам/DeviceStorage — двигаться к онбордингу и редактору профиля по привычному циклу ветка -> реализация -> тесты -> PR -> обновление заметок.
-- В рамках `docs/issues/issue-frontend-vulnerabilities.md` (#79) выполнить апгрейд Vite/Vitest и убедиться, что `npm audit` возвращает 0 уязвимостей.
+- Зафиксировать `npm audit` лог для фронтендов (#91) и подготовить апгрейд Vite/Vitest в рамках `docs/issues/issue-frontend-vulnerabilities.md` (#79).
+- Взять следующий блок DeviceStorage (#78 — подзадачи #85-#90) после токенов: подключить CloudStorage и fallback, покрыть Vitest.
 - Настроить локальный Docker (или Testcontainers mock) для стабильного прогона интеграционных тестов core в CI.
 - Расширить push уведомления поверх текущей заглушки, когда core будет готов к рассылке (Phase 2+).
 
