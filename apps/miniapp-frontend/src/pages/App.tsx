@@ -8,6 +8,7 @@ import { useSwipeQueue } from '../hooks/useSwipeQueue';
 import { SwipeDeck } from '../components/SwipeDeck';
 import { useMatchStore } from '../store/match';
 import { MatchModal } from '../components/MatchModal';
+import { applyThemeTokens } from '../theme';
 
 const TELEGRAM_INIT_TIMEOUT_MS = 4000;
 
@@ -60,6 +61,10 @@ const App = () => {
     };
   }, [initBridge, initialise]);
 
+  useEffect(() => {
+    applyThemeTokens(themeParams);
+  }, [themeParams]);
+
   const loading = !ready || !bridgeReady || status === 'loading';
 
   const handleOpenChat = useCallback(() => {
@@ -83,14 +88,14 @@ const App = () => {
   }, [activeMatch, dismissMatch]);
 
   if (loading) {
-    return <LoaderScreen theme={themeParams} />;
+    return <LoaderScreen />;
   }
 
   const showOnboarding = !profile || !profile.displayName?.trim();
 
   return (
     <>
-      <div className="app-shell" data-theme={themeParams?.isDark ? 'dark' : 'light'}>
+      <div className="app-shell">
       <header className="app-shell__header">
         <h1>WAU Dating</h1>
         <p>Свайпай, знакомься и встречай тех, кто рядом.</p>

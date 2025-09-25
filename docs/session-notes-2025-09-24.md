@@ -12,7 +12,11 @@
   - Gateway: `POST /notifications/match` проксирует webhook ядру.
   - Backend: Stub-контроллер `MiniAppNotificationController` логирует вебхук.
   - Сборки: `npm run test && npm run build` (miniapp-frontend), `npm run build` (miniapp-gateway), `mvn -f apps/backend/pom.xml test`.
-- Следующая задача — восстановить работу по дизайн-токенам и теме: завести новое issue (преемник #64) и повторить цикл ветка → реализация → тесты → PR → авто-мерж → обновление заметок.
+- В работу взята задача #77 (дизайн-токены mini app): собран модуль `theme` с генерацией CSS custom properties, `App.tsx` применяет `applyThemeTokens`, а `shared/styles.css` и компоненты переведены на `var(--tg-...)` вместо жёстких значений.
+  - Добавлен fallback `theme/base.css`, CSS-переменные прокидываются на `<html>` и `#root`; `LoaderScreen` больше не задаёт цвета инлайном.
+  - Создан Vitest `themeTokens.test.ts`, покрывающий `resolveThemeMode`, `applyThemeTokens` и `themeVar`; `npm run test` (miniapp-frontend) проходит, `npm run lint` по-прежнему упирается в исторические предупреждения.
+- 25.09.2025 заведены новые issues: `docs/issues/issue-miniapp-design-tokens.md` (#77), `docs/issues/issue-miniapp-device-storage.md` (#78), `docs/issues/issue-frontend-vulnerabilities.md` (#79).
+- Под каждый из них созданы GitHub Sub-issues #80-#95 с лейблом `task` (токены, DeviceStorage стадии, апгрейд Vite).
 
 ## Сделано
 - Обновлён `main` до `89a88a2` и создана ветка `feature/issue-43-contributing-workflow`.
@@ -33,13 +37,14 @@
 - Liquibase миграции вынесены в ветку `feature/liquibase-payments`, stash очищен.
 - `mvn -f apps/backend/pom.xml clean test` проходит при запущенном Docker (Testcontainers поднимают PostGIS автоматически).
 - `npm run build` в `apps/miniapp-frontend` и `apps/miniapp-gateway` зелёные.
+- Undo/dislike в mini app уже задеплоены (PR #75), push уведомления пока ограничены заглушкой `MiniAppNotificationController`.
 
 ## Следующие шаги
-1. Завести новые issues под дизайн-токены/темизацию и DeviceStorage (преемники #64 и #65), договориться о приоритетах.
-2. После оформления задач — приступить к фундаменту UI, затем к онбордингу и редактированию профиля.
-- Пройтись по зависимостям: `npm install` сообщает о 4 moderate vulnerabilities — решить, создавать ли отдельную задачу.
+1. Приоритизировать и взять в работу `docs/issues/issue-miniapp-design-tokens.md` (#77, темизация) и `docs/issues/issue-miniapp-device-storage.md` (#78, DeviceStorage); определить исполнителей и сроки.
+2. После старта работ по токенам/DeviceStorage — двигаться к онбордингу и редактору профиля по привычному циклу ветка -> реализация -> тесты -> PR -> обновление заметок.
+- В рамках `docs/issues/issue-frontend-vulnerabilities.md` (#79) выполнить апгрейд Vite/Vitest и убедиться, что `npm audit` возвращает 0 уязвимостей.
 - Настроить локальный Docker (или Testcontainers mock) для стабильного прогона интеграционных тестов core в CI.
-- Доработать dislike/undo и матчинг в gateway/core, добавить push уведомления (Phase 2+).
+- Расширить push уведомления поверх текущей заглушки, когда core будет готов к рассылке (Phase 2+).
 
 ## Новые задачи спринта (24.09–08.10)
 - Milestone `Sprint 2025-09-24` создан в GitHub.

@@ -36,6 +36,7 @@ Telegram Client → React Mini App (Vite + @telegram-apps/sdk + tma.js)
 ### Frontend Mini App
 - React + Vite, TypeScript strict mode, Zustand store, shadcn/ui for components.
 - Integrate `@telegram-apps/sdk` and `tma.js` for safe area, theme, lifecycle, init data mocks.
+- Theme tokens module (`apps/miniapp-frontend/src/theme`) синхронизирует CSS-переменные с Telegram ThemeParams через `applyThemeTokens`; UI использует `var(--tg-...)`/`themeVar(...)` вместо жёстких цветов.
 - DeviceStorage for offline profile drafts; SecureStorage for TON Connect session data.
 - UX specifics: fullscreen mode, swipe gesture opt-out (`web_app_setup_swipe_behavior`), haptic feedback, theme sync, localization (RU/EN).
 

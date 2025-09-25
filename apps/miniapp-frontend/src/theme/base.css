@@ -1,0 +1,53 @@
+:root {
+  --tg-color-text: #f0f6fc;
+  --tg-color-textSecondary: rgba(240, 246, 252, 0.7);
+  --tg-color-hint: rgba(240, 246, 252, 0.6);
+  --tg-color-accent: #6fee9f;
+  --tg-color-accentForeground: #082032;
+  --tg-color-accentGradientFrom: #6fee9f;
+  --tg-color-accentGradientTo: #1dd3ff;
+  --tg-color-destructive: #ff6cab;
+  --tg-color-destructiveForeground: #fff;
+  --tg-color-background: #0d1117;
+  --tg-color-backgroundSecondary: rgba(255, 255, 255, 0.03);
+  --tg-color-border: rgba(255, 255, 255, 0.08);
+  --tg-color-overlay: rgba(8, 14, 24, 0.72);
+  --tg-color-success: #6fee9f;
+  --tg-color-warning: #ffb4b4;
+
+  --tg-surface-background: #0d1117;
+  --tg-surface-cardBackground: rgba(255, 255, 255, 0.03);
+  --tg-surface-cardBorder: rgba(255, 255, 255, 0.08);
+  --tg-surface-buttonGhostBg: rgba(255, 255, 255, 0.05);
+  --tg-surface-buttonGhostBorder: rgba(255, 255, 255, 0.2);
+  --tg-surface-inputBackground: rgba(17, 24, 39, 0.6);
+  --tg-surface-badgeBg: rgba(255, 255, 255, 0.14);
+  --tg-surface-placeholderBg: rgba(255, 255, 255, 0.15);
+  --tg-surface-modalBorder: rgba(255, 255, 255, 0.18);
+  --tg-surface-modalShadow: 0 24px 48px rgba(0, 0, 0, 0.3);
+
+  --tg-gradient-primaryFrom: #6fee9f;
+  --tg-gradient-primaryTo: #1dd3ff;
+  --tg-gradient-destructiveFrom: #ff6cab;
+  --tg-gradient-destructiveTo: #7366ff;
+  --tg-gradient-modalBackgroundFrom: rgba(111, 238, 159, 0.12);
+  --tg-gradient-modalBackgroundTo: rgba(29, 211, 255, 0.12);
+
+  --tg-radius-sm: 12px;
+  --tg-radius-md: 14px;
+  --tg-radius-lg: 16px;
+  --tg-radius-xl: 18px;
+  --tg-radius-pill: 999px;
+  --tg-radius-modal: 24px;
+
+  --tg-spacing-xs: 4px;
+  --tg-spacing-sm: 6px;
+  --tg-spacing-md: 8px;
+  --tg-spacing-lg: 12px;
+  --tg-spacing-xl: 16px;
+  --tg-spacing-xxl: 24px;
+
+  --tg-typography-fontFamily: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --tg-typography-headingWeight: 700;
+  --tg-typography-bodyWeight: 500;
+}
