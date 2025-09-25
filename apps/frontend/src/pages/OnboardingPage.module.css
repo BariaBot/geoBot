@@ -15,6 +15,12 @@
   gap: var(--space-md);
 }
 
+.stepCaption {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
 .progress {
   display: flex;
   justify-content: center;
@@ -38,6 +44,73 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-sm);
+}
+
+.twoColumns {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: var(--space-sm);
+}
+
+.photoGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: var(--space-sm);
+}
+
+.photoTile {
+  position: relative;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--color-overlay-soft);
+  min-height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-muted);
+  text-align: center;
+  padding: var(--space-sm);
+}
+
+.photoTile img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.photoRemove {
+  position: absolute;
+  top: var(--space-2xs);
+  right: var(--space-2xs);
+  border: none;
+  border-radius: var(--radius-pill);
+  background: rgba(0, 0, 0, 0.55);
+  color: var(--color-accent-contrast);
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.photoUpload {
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-md);
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2xs);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  text-align: center;
+  padding: var(--space-sm);
+}
+
+.photoUpload input {
+  display: none;
 }
 
 .label {
@@ -99,6 +172,23 @@
 .helper {
   margin: 0;
   font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.error {
+  font-size: var(--font-size-xs);
+  color: var(--color-danger);
+  margin: 0;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px;
+  border-radius: var(--radius-pill);
+  background: var(--color-overlay-soft);
+  font-size: var(--font-size-xs);
   color: var(--color-text-secondary);
 }
 
