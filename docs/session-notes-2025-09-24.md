@@ -18,6 +18,7 @@
 - PR #99 (`feat(miniapp): apply theme tokens`) открыт для #77, все проверки (`lint`, `tests`, `typecheck`, `enable-auto-merge`) зелёные, авто-мерж завершился 25.09 после CI.
 - 25.09.2025 заведены новые issues: `docs/issues/issue-miniapp-design-tokens.md` (#77), `docs/issues/issue-miniapp-device-storage.md` (#78), `docs/issues/issue-frontend-vulnerabilities.md` (#79).
 - Под каждый из них созданы GitHub Sub-issues #80-#95 с лейблом `task` (токены, DeviceStorage стадии, апгрейд Vite).
+- Зафиксированы `npm audit --json` логи для `apps/frontend` и `apps/miniapp-frontend` (Issue #91) перед апгрейдом Vite; конспект в `docs/audit/npm-audit-logs-2025-09-25.md`.
 
 ## Сделано
 - Обновлён `main` до `89a88a2` и создана ветка `feature/issue-43-contributing-workflow`.
