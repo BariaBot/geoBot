@@ -1,5 +1,6 @@
 import { NavLink, Outlet } from 'react-router-dom';
 import Toast from './Toast';
+import { useVipStore } from '../store/useVipStore';
 
 const navItems = [
   { to: '/', label: 'Поиск', icon: '🔍' },
@@ -10,6 +11,7 @@ const navItems = [
 export default function Layout() {
   const tg = (window as any).Telegram?.WebApp;
   const haptic = () => tg?.HapticFeedback?.impactOccurred('light');
+  const isVip = useVipStore((s) => s.isVip);
 
   return (
     <>
@@ -28,7 +30,10 @@ export default function Layout() {
             className={({ isActive }) => (isActive ? 'active' : undefined)}
           >
             <span className="icon" aria-hidden>{item.icon}</span>
-            <span className="label">{item.label}</span>
+            <span className="label">
+              {item.label}
+              {item.to === '/vip' && isVip && <span className="nav-badge">VIP</span>}
+            </span>
           </NavLink>
         ))}
       </nav>
