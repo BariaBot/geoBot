@@ -11,4 +11,4 @@ ENV NODE_ENV=production
 RUN npm install --global serve@14
 COPY --from=build /app/dist ./dist
 EXPOSE 4173
-CMD ["sh", "-c", "serve -s dist -l 0.0.0.0:${PORT:-4173}"]
+CMD ["sh", "-c", "serve -s dist -l tcp://0.0.0.0:${PORT:-4173}"]
