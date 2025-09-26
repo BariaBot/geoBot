@@ -5,7 +5,7 @@
     "buildCommand": "npm ci && npm run build"
   },
   "deploy": {
-    "startCommand": "node dist/main.js",
+    "startCommand": "node dist/main/main.js",
     "healthcheckPath": "/health"
   }
 }
