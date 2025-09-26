@@ -6,6 +6,7 @@ import {
   it,
   vi,
 } from 'vitest';
+import type { MockInstance } from 'vitest';
 import DeviceStorage, { DeviceStorageError } from '../services/deviceStorage';
 import { useMatchStore } from '../store/match';
 
@@ -18,7 +19,7 @@ vi.mock('../utils/analytics', () => ({
 }));
 
 describe('useMatchStore', () => {
-  let getJsonSpy: ReturnType<typeof vi.spyOn>;
+  let getJsonSpy: MockInstance;
 
   beforeEach(() => {
     getJsonSpy = vi.spyOn(DeviceStorage, 'getJSON').mockResolvedValue(null);

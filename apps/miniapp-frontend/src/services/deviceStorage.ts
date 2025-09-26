@@ -46,11 +46,14 @@ const ensureCloudStorage = (): TelegramCloudStorage | undefined => {
   }
 
   try {
-    const [cloudStorage, cleanup] = initCloudStorage();
+    const initResult = initCloudStorage() as TelegramCloudStorage | [TelegramCloudStorage, () => void];
+    const cloudStorage = Array.isArray(initResult) ? initResult[0] : initResult;
+    const cleanup = Array.isArray(initResult) ? initResult[1] : undefined;
+
     if (!cloudStorage.supports('set')
       || !cloudStorage.supports('get')
       || !cloudStorage.supports('delete')) {
-      cleanup();
+      cleanup?.();
       return undefined;
     }
 
