@@ -9,7 +9,7 @@
 - Каждый сервис (`backend`, `miniapp-gateway`, `frontend`, `miniapp-frontend`) автоматом деплоится из GitHub после зелёного CI, без локальных `railway up`.
 - Preview-окружение появляется на каждый pull request и сверяется вместе с закрытием PR.
 - Railpack собирает Maven/Node проекты без кастомных Dockerfile, прогоняя Liquibase перед поднятием Spring Boot.
-- PostGIS сервис предоставляет приватное подключение; чувствительные значения лежат в sealed/reference variables.
+- PostGIS сервис предоставляет приватное подключение; чувствительные значения лежат в sealed/reference variables. Используйте именно PostGIS-темплейт, иначе `CREATE EXTENSION postgis;` упадёт и оставит блокировку миграций.
 
 ---
 
@@ -20,7 +20,7 @@
 | `miniapp-gateway` | `apps/miniapp-gateway` | Node 20 (Railpack) | Telegram Mini App proxy/gateway      |
 | `frontend`        | `apps/frontend`        | Node 20 (Railpack) | Core React SPA                       |
 | `miniapp-frontend`| `apps/miniapp-frontend`| Node 20 (Railpack) | Telegram Mini App UI                 |
-| `postgis`         | template               | PostgreSQL 15 + PostGIS | Primary relational store        |
+| `postgis`         | template               | PostgreSQL 15 + PostGIS | Primary relational store (требуется PostGIS) |
 
 ---
 
@@ -29,6 +29,7 @@
 - GitHub repository `geoBot` with workflows allowed to request OIDC or secrets usage.
 - Maintainers have `railway` CLI ≥ 3.12 installed (требуется только для диагностики).
 - Secrets (Bot token, JWT, external APIs) подготовлены для загрузки в Railway.
+- База должна быть создана из шаблона **Postgres + PostGIS**. Если выбрать обычный `PostgreSQL`, миграции остановятся на `ERROR: extension "postgis" is not available` и оставят блокировку.
 
 ---
 
@@ -41,7 +42,8 @@
    - `frontend` → Root Directory `apps/frontend`.
    - `miniapp-frontend` → Root Directory `apps/miniapp-frontend`.
 4. В разделе **Deployments → Triggers** включите **Autodeploy on push** для ветки `main` и отметьте `Wait for CI` у всех сервисов, кроме `postgis`.
-5. В **Settings → Private Networking** убедитесь, что включён проектный private domain; он понадобится для внутренних URL.
+5. Если остались старые сервисы `PostgreSQL` без PostGIS, отключите для них autodeploy или удалите — достаточно одного `postgis`.
+6. В **Settings → Private Networking** убедитесь, что включён проектный private domain; он понадобится для внутренних URL.
 
 ---
 
@@ -62,9 +64,13 @@
     "buildCommand": "mvn -DskipTests package"
   },
   "deploy": {
-    "startCommand": "java -jar target/backend-0.1.0.jar",
     "healthcheckPath": "/actuator/health",
-    "overlapSeconds": 30
+    "overlapSeconds": 30,
+    "connections": [
+      {
+        "service": "PostgreSQL"
+      }
+    ]
   }
 }
 ```
@@ -225,6 +231,18 @@ Action опубликует домен в комментарии к PR. При �
 - Убедитесь, что фронтенды собрали правильные base URL (см. Network tab).
 - Включите `Log Drains` или прокиньте `OTEL_EXPORTER_OTLP_ENDPOINT` в backend для передачи метрик/логов внешним системам.
 - Настройте алерты в Railway (Settings → Metrics) по CPU, памяти и ошибкам health-check.
+- Если деплой падает с `extension "postgis" is not available`, значит база создана без PostGIS. Пересоздайте сервис из шаблона **Postgres + PostGIS** и обновите переменные подключения. После сбоя снимите блокировку:
+
+```bash
+railway connect PostgreSQL --environment production <<'SQL'
+UPDATE databasechangeloglock
+SET locked = FALSE,
+    lockgranted = NULL,
+    lockedby = NULL;
+SQL
+```
+
+Это очистит lock, чтобы следующий запуск Liquibase прошёл успешно.
 
 ---
 
