@@ -55,3 +55,10 @@ docker compose -f infra/docker-compose.yml up --build
 
 Документация API доступна по адресу `http://localhost:8080/swagger-ui.html` после запуска бэкенда.
 Мониторинг доступен через Spring Boot Actuator: проверка здоровья — `http://localhost:8080/actuator/health`, метрики — `http://localhost:8080/actuator/metrics`.
+
+## Railway Deployment
+
+- Автодеплой происходит через Railpack из GitHub после успешного CI; подробная инструкция — `docs/runbooks/railway-deploy.md`.
+- Каждая служба (`apps/backend`, `apps/miniapp-gateway`, `apps/frontend`, `apps/miniapp-frontend`) содержит `railway.json` с билд/старт-командами для Railway.
+- В Railway UI подключите репозиторий, включите `Autodeploy on push` + `Wait for CI` на ветке `main` и привяжите соответствующий `railway.json` в разделе Config as Code.
+- Production/preview переменные храните в sealed/reference variables; токены и секреты прокиньте через `RAILWAY_TOKEN` и `RAILWAY_PROJECT_ID` в GitHub Actions.

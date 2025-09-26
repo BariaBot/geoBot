@@ -1,5 +1,10 @@
 # Session Notes — 2025-09-24
 
+## 2025-09-26
+- Переписан `docs/runbooks/railway-deploy.md`: зафиксирована стратегия Railpack + GitHub Autodeploy, добавлены конфигурации `railway.json` для всех сервисов, настройка shared/reference/sealed variables и workflow превью-окружений.
+- Зафиксирована потребность добавить `railway.json` файлы в репозиторий и привязать их в Railway UI, а также создать секреты `RAILWAY_TOKEN`/`RAILWAY_PROJECT_ID` для CI.
+- Следующая сессия: подготовить реальные `railway.json`, проверить build/start команды в локальной среде и обновить README с краткой ссылкой на runbook.
+
 ## 2025-09-25
 - Закрыта задача #61: добавлены undo/dislike для очереди свайпов.
   - Backend: `MiniAppSwipeService` хранит историю, поддерживает undo и покрыт тестом `MiniAppSwipeServiceTest`.

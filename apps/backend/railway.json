@@ -1,0 +1,15 @@
+{
+  "$schema": "https://railway.com/railway.schema.json",
+  "build": {
+    "builder": "RAILPACK",
+    "env": {
+      "RAILPACK_JDK_VERSION": "17"
+    },
+    "buildCommand": "mvn -DskipTests package"
+  },
+  "deploy": {
+    "startCommand": "java -jar target/backend-0.1.0.jar",
+    "healthcheckPath": "/actuator/health",
+    "overlapSeconds": 30
+  }
+}
