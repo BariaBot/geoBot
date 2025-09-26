@@ -9,6 +9,11 @@
   },
   "deploy": {
     "healthcheckPath": "/actuator/health",
-    "overlapSeconds": 30
+    "overlapSeconds": 30,
+    "connections": [
+      {
+        "service": "PostgreSQL"
+      }
+    ]
   }
 }
