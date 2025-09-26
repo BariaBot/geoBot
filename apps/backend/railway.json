@@ -8,7 +8,6 @@
     "buildCommand": "mvn -DskipTests package"
   },
   "deploy": {
-    "startCommand": "java -jar app.jar",
     "healthcheckPath": "/actuator/health",
     "overlapSeconds": 30
   }
