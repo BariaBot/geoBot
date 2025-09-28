@@ -63,7 +63,7 @@
   },
   "deploy": {
     "startCommand": "java -jar target/backend-0.1.0.jar",
-    "healthcheckPath": "/actuator/health",
+    "healthcheckPath": "/api/v1/actuator/health",
     "overlapSeconds": 30
   }
 }
