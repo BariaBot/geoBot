@@ -64,7 +64,7 @@
     "buildCommand": "mvn -DskipTests package"
   },
   "deploy": {
-    "healthcheckPath": "/actuator/health",
+    "healthcheckPath": "/api/v1/actuator/health",
     "overlapSeconds": 30,
     "connections": [
       {
