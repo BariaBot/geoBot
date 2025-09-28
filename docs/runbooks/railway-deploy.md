@@ -71,6 +71,8 @@
 
 > Если понадобится отдельный pre-deploy шаг для Liquibase, добавьте `preDeployCommand` и настройте `liquibase-maven-plugin` в `pom.xml` с параметрами подключения (Railway передаёт переменные окружения в команду).
 
+> Бэкенд при старте очищает застарелый `databasechangeloglock`, поэтому повторные деплои не требуют ручного вмешательства даже при аварийном завершении предыдущей ревизии.
+
 `apps/miniapp-gateway/railway.json`
 ```json
 {
